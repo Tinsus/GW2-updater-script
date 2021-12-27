@@ -18,3 +18,7 @@ open the .bat file and setup the path to the ones of your file system
 from now on start GW2 by double clicking the .bat file (only).
 
 nothing is more easy as adding a shortcut to your desktop to start the .bat file from there instead of your regular GW2-shortcut
+
+# download
+
+to share or download this file use this direct link: https://github.com/Tinsus/GW2-updater-script/archive/refs/heads/main.zip
