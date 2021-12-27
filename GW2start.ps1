@@ -6,9 +6,17 @@ $GW2_path = $GW2_path.Substring(1, $GW2_path.Length - 2)
 $TacO_path = $TacO_path.Substring(1, $TacO_path.Length - 2)
 $BlishHUD_path = $BlishHUD_path.Substring(1, $BlishHUD_path.Length - 2)
 $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
+$Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
 
-$neededGithubApiCalls = 9
+$neededGithubApiCalls = 10
 
+
+
+echo $path
+
+sleep 1000000
+
+exit
 
 
 # some functions for lazy people
@@ -487,7 +495,7 @@ if (
 	Copy-Item "$path_t.md5" -Destination "$path_b.md5"
 }
 
-removefile "$TacO_path\POIs\SchattenfluegelTrails.check"
+removefile "$path_t.check"
 Write-Output "SCHATTENFLUEGEL is up-to-date"
 
 
@@ -601,6 +609,34 @@ if (
 }
 
 Write-Output "REACTIF is up-to-date"
+
+
+
+# auto update this script itself
+
+$checkurl = "https://api.github.com/repos/Tinsus/GW2-updater-script/contents/GW2start.ps1"
+$targeturl = "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.ps1"
+$checkfile = "$Script_path/GW2start.txt"
+
+Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+
+if (
+	-not (Test-Path "$checkfile.md5") -or
+	$(Get-FileHash "$checkfile.check").Hash -ne $(Get-FileHash "$checkfile.md5").Hash
+) {
+	Write-Output "GW2start.ps1 is being updated"
+
+	# prepare the update to be done by the .bat file with the next start
+	removefile "$checkfile"
+	Invoke-WebRequest "$targeturl" -OutFile "$checkfile"
+
+	# remember this version
+	removefile "$checkfile.md5"
+	Rename-Item "$checkfile.check" -NewName "$checkfile.md5"
+}
+
+removefile "$checkfile.check"
+Write-Output "GW2start.ps1 is up-to-date"
 
 
 
