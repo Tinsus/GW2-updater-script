@@ -12,13 +12,6 @@ $neededGithubApiCalls = 10
 
 
 
-echo $path
-
-sleep 1000000
-
-exit
-
-
 # some functions for lazy people
 
 function stopprocesses() {
