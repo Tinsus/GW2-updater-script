@@ -295,6 +295,68 @@ if ($use_ArcDPS) {
 }
 
 
+# auto update arcdps-healing-stats
+if ($use_ArcDPS) {
+	checkGithub
+
+	$checkurl = "https://api.github.com/repos/Krappa322/arcdps_healing_stats/releases/latest"
+	$targetfile = "$GW2_path\bin64\arcdps_healing_stats.dll"
+	$checkfile = "$Version_path\arcdps_healing_stats.dll"
+
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
+
+	if (
+		-not (Test-Path "$checkfile.md5") -or
+		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.name)
+	) {
+		Write-Host "arcdps-healing-stats is being updated" -ForegroundColor Green
+
+		removefile "$targetfile"
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile"
+
+		# remember this version
+		Set-Content -Path "$checkfile.md5" -Value $json.name
+	} else {
+		Write-Host "arcdps-healing-stats is up-to-date"
+	}
+
+	removefile "$checkfile.check"
+}
+
+
+# auto update GW2-ArcDPS-Mechanics-Log
+if ($use_ArcDPS) {
+	checkGithub
+
+	$checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Mechanics-Log/releases/latest"
+	$targetfile = "$GW2_path\bin64\ d3d9_arcdps_mechanics.dll"
+	$checkfile = "$Version_path\ d3d9_arcdps_mechanics.dll"
+
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
+
+	if (
+		-not (Test-Path "$checkfile.md5") -or
+		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.name)
+	) {
+		Write-Host "GW2-ArcDPS-Mechanics-Log is being updated" -ForegroundColor Green
+
+		removefile "$targetfile"
+		Invoke-WebRequest $json.assets[0].browser_download_url -OutFile "$targetfile"
+
+		# remember this version
+		Set-Content -Path "$checkfile.md5" -Value $json.name
+	} else {
+		Write-Host "GW2-ArcDPS-Mechanics-Log is up-to-date"
+	}
+
+	removefile "$checkfile.check"
+}
+
+
 # auto update BlishHUD
 if ($use_BHud) {
 	newdir "$BlishHUD_path"
