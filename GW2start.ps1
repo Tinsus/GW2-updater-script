@@ -680,7 +680,7 @@ if ($use_BHud -or $use_TacO) {
 		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Version_path\" -Force
 		removefile "$checkfile.zip"
 		Compress-Archive -Path "$Version_path\czokalapik-czokalapiks-guides-for-gw2taco-$hash\POIs\*" -DestinationPath "$checkfile.zip"
-		Remove-Item "$checkfile\czokalapik-czokalapiks-guides-for-gw2taco-$hash" -Recurse -force
+		Remove-Item "$Version_path\czokalapik-czokalapiks-guides-for-gw2taco-$hash" -Recurse -force
 
 		if ($use_TacO) {
 			removefile "$path_t"
