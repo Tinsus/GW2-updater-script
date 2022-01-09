@@ -1,4 +1,7 @@
-# you don't need to change anything here - except you know what you are doing
+# you really really don't need to change anything here - except you know exactly what you are doing
+
+
+#some magic stuff for pathes and options
 
 param($GW2_path, $TacO_path, $BlishHUD_path, $use_ArcDPS, $use_TacO, $use_BHud)
 
@@ -7,17 +10,24 @@ $TacO_path = $TacO_path.Substring(1, $TacO_path.Length - 2)
 $BlishHUD_path = $BlishHUD_path.Substring(1, $BlishHUD_path.Length - 2)
 $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
 $Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
-$Version_path ="$Script_path\version_control"
+$Version_path = "$Script_path\version_control"
 
 $use_ArcDPS = ($use_ArcDPS.Substring(1, $use_ArcDPS.Length - 2)) -ne 0
 $use_TacO = ($use_TacO.Substring(1, $use_TacO.Length - 2)) -ne 0
 $use_BHud = ($use_BHud.Substring(1, $use_BHud.Length - 2)) -ne 0
 
+
 # some functions for lazy people
 
 function stopprocesses() {
-	Stop-Process -Name "GW2TacO" -ErrorAction SilentlyContinue
-	Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
+	if ($use_TacO) {
+		Stop-Process -Name "GW2TacO" -ErrorAction SilentlyContinue
+	}
+
+	if ($use_BHud) {
+		Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
+	}
+
 	Stop-Process -Name "Gw2-64" -ErrorAction SilentlyContinue
 }
 
@@ -35,23 +45,26 @@ function newdir($path) {
 
 function startGW2() {
 	# start TacO
-	Start-Process -FilePath "$TacO_path\GW2TacO.exe" -WorkingDirectory "$TacO_path\" -ErrorAction SilentlyContinue
+	if ($use_TacO) {
+		Start-Process -FilePath "$TacO_path\GW2TacO.exe" -WorkingDirectory "$TacO_path\" -ErrorAction SilentlyContinue
+	}
 
 	# start BlishHUD
-	Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
+	if ($use_BHud) {
+		Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
+	}
 
 	# start Guild Wars 2
-	Write-Host " "
-	Write-Host " "
+	nls 2
 	Write-Host "have fun in Guild Wars 2"
 
 	Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
 
 	# if GW2 has an update removes ArcDPS
-	if ($true -and (Test-Path "$GW2_path\errorautocheck.txt") -and ((Get-Item "$GW2_path\errorautocheck.txt").length -ne 0)) {
-		Write-Host " "
+	if ($use_ArcDPS -and (Test-Path "$GW2_path\errorautocheck.txt") -and ((Get-Item "$GW2_path\errorautocheck.txt").length -ne 0)) {
+		nls 1
 		Write-Host "crash detected - removing ArcDPS" -ForegroundColor Red
-		Write-Host " "
+		nls 1
 
 		# UNTESTED (need update/crash to test this)
 		$gw2error = Get-Content -Path "$GW2_path\errorautocheck.txt"
@@ -85,8 +98,8 @@ function nls($total) {
 function checkGithub() {
 	# check githubs API restrictions and waits until it's possible again
 
-	Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$GW2_path\github.json"
-	$json = (Get-Content "$GW2_path\github.json" -Raw) | ConvertFrom-Json
+	Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Version_path\github.json"
+	$json = (Get-Content "$Version_path\github.json" -Raw) | ConvertFrom-Json
 
 	if ($json.rate.remaining -lt 1) {
 		if (-not $older) {
@@ -118,12 +131,12 @@ function checkGithub() {
 		do {
 			Start-Sleep -Seconds 60
 
-			Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$GW2_path\github.json"
-			$json = (Get-Content "$GW2_path\github.json" -Raw) | ConvertFrom-Json
+			Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Version_path\github.json"
+			$json = (Get-Content "$Version_path\github.json" -Raw) | ConvertFrom-Json
 		} until ($json.rate.remaining -ge 1)
 	}
 
-	removefile "$GW2_path\github.json"
+	removefile "$Version_path\github.json"
 }
 
 # now the non-dynamic stuff:
@@ -136,47 +149,7 @@ nls 7
 
 stopprocesses
 
-newdir "$Script_path"
-
-
-# auto update this script itself
-
-# prepare the update to be done by the .bat file with the next start
-
-Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.ps1" -OutFile "$Script_path/GW2start.txt"
-
-Write-Host "GW2start.ps1 is updated every time"
-
-
-# auto update ArcDPS
-
-$checkurl = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum"
-$targeturl = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll"
-$checkfile = "$GW2_path\bin64\d3d9.dll"
-
-Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
-
-if (
-	-not (Test-Path "$checkfile.md5") -or
-	((Get-Content "$checkfile.check" -Raw).Trim() -ne (Get-Content "$checkfile.md5" -Raw).Trim())
-) {
-	Write-Host "ArcDPS is being updated" -ForegroundColor Green
-
-	# direct install
-	removefile "$checkfile"
-	Invoke-WebRequest "$targeturl" -OutFile "$checkfile"
-
-	# remember this version
-	removefile "$checkfile.md5"
-	Rename-Item "$checkfile.check" -NewName "$checkfile.md5"
-} else {
-	Write-Host "ArcDPS is up-to-date"
-}
-
-removefile "$checkfile.check"
-
-
-# check githubs API restrictions and waits until it's possible again
+newdir "$Version_path"
 
 $older = $false
 
@@ -186,473 +159,595 @@ if (Test-Path "$GW2_path\github.json") {
 	removefile "$GW2_path\github.json"
 }
 
-# auto update TacO
+# auto update this script itself
+# prepare the update to be done by the .bat file with the next start
 
-newdir "$TacO_path"
+removefile "$Script_path\GW2start.txt"
 
-$checkurl = "https://api.github.com/repos/BoyC/GW2TacO/releases/latest"
-$checkfile = "$TacO_path\tacoautoupdate"
+Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.ps1" -OutFile "$Script_path/GW2start.txt"
 
-checkGithub
-Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+Write-Host "GW2start.ps1 is updated every time"
 
-$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
 
-if (
-	-not (Test-Path "$checkfile.md5") -or
-	((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.node_id)
-) {
-	Write-Host "TacO is being updated" -ForegroundColor Green
+# auto update ArcDPS
+if ($use_ArcDPS) {
+	$checkurl = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum"
+	$targeturl = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll"
+	$targetfile = "$GW2_path\bin64\d3d9.dll"
+	$checkfile = "$Version_path\d3d9.dll"
 
-	Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.temp.zip"
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
-	Expand-Archive -Path "$checkfile.temp.zip" -DestinationPath "$TacO_path\" -Force
-	removefile "$checkfile.temp.zip"
+	if (
+		-not (Test-Path "$checkfile.md5") -or
+		((Get-Content "$checkfile.check" -Raw).Trim() -ne (Get-Content "$checkfile.md5" -Raw).Trim())
+	) {
+		Write-Host "ArcDPS is being updated" -ForegroundColor Green
 
-	# remember this version
-	Set-Content -Path "$checkfile.md5" -Value $json.node_id
-} else {
-	Write-Host "TacO is up-to-date"
+		# direct install
+		removefile "$targetfile"
+		Invoke-WebRequest "$targeturl" -OutFile "$targetfile"
+
+		# remember this version
+		removefile "$checkfile.md5"
+		Rename-Item "$checkfile.check" -NewName "$checkfile.md5"
+	} else {
+		Write-Host "ArcDPS is up-to-date"
+	}
+
+	removefile "$checkfile.check"
 }
 
-removefile "$checkfile.check"
+
+# auto update TacO
+if ($use_TacO) {
+	newdir "$TacO_path"
+
+	$checkurl = "https://api.github.com/repos/BoyC/GW2TacO/releases/latest"
+	$targetfile = "$TacO_path\"
+	$checkfile = "$Version_path\taco"
+
+	checkGithub
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
+
+	if (
+		-not (Test-Path "$checkfile.md5") -or
+		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.node_id)
+	) {
+		Write-Host "TacO is being updated" -ForegroundColor Green
+
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.temp.zip"
+
+		Expand-Archive -Path "$checkfile.temp.zip" -DestinationPath "$targetfile" -Force
+		removefile "$checkfile.temp.zip"
+
+		# remember this version
+		Set-Content -Path "$checkfile.md5" -Value $json.node_id
+	} else {
+		Write-Host "TacO is up-to-date"
+	}
+
+	removefile "$checkfile.check"
+}
 
 
 # auto update arcdps-killproof.me-plugin
+if ($use_ArcDPS) {
+	checkGithub
 
-$checkurl = "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest"
-$checkfile = "$GW2_path\bin64\d3d9_arcdps_killproof_me.dll"
+	$checkurl = "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest"
+	$targetfile = "$GW2_path\bin64\d3d9_arcdps_killproof_me.dll"
+	$checkfile = "$Version_path\d3d9_arcdps_killproof_me.dll"
 
-checkGithub
-Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
-$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
 
-if (
-	-not (Test-Path "$checkfile.md5") -or
-	((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.name)
-) {
-	Write-Host "ArcDps-killproof.me-plugin is being updated" -ForegroundColor Green
+	if (
+		-not (Test-Path "$checkfile.md5") -or
+		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.name)
+	) {
+		Write-Host "ArcDps-killproof.me-plugin is being updated" -ForegroundColor Green
 
-	removefile "$checkfile"
-	Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile"
+		removefile "$targetfile"
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile"
 
-	# remember this version
-	Set-Content -Path "$checkfile.md5" -Value $json.name
-} else {
-	Write-Host "ArcDps-killproof.me-plugin is up-to-date"
+		# remember this version
+		Set-Content -Path "$checkfile.md5" -Value $json.name
+	} else {
+		Write-Host "ArcDps-killproof.me-plugin is up-to-date"
+	}
+
+	removefile "$checkfile.check"
 }
-
-removefile "$checkfile.check"
 
 
 # auto update arcdps-Boon-Table-plugin
+if ($use_ArcDPS) {
+	checkGithub
 
-$checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest"
-$checkfile = "$GW2_path\bin64\d3d9_arcdps_table.dll"
+	$checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest"
+	$targetfile = "$GW2_path\bin64\d3d9_arcdps_table.dll"
+	$checkfile = "$Version_path\d3d9_arcdps_table.dll"
 
-checkGithub
-Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
-$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
 
-if (
-	-not (Test-Path "$checkfile.md5") -or
-	((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.name)
-) {
-	Write-Host "GW2-ArcDps-Boon-Table is being updated" -ForegroundColor Green
+	if (
+		-not (Test-Path "$checkfile.md5") -or
+		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.name)
+	) {
+		Write-Host "GW2-ArcDps-Boon-Table is being updated" -ForegroundColor Green
 
-	removefile "$checkfile"
-	Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile"
+		removefile "$targetfile"
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile"
 
-	# remember this version
-	Set-Content -Path "$checkfile.md5" -Value $json.name
-} else {
-	Write-Host "GW2-ArcDps-Boon-Table is up-to-date"
+		# remember this version
+		Set-Content -Path "$checkfile.md5" -Value $json.name
+	} else {
+		Write-Host "GW2-ArcDps-Boon-Table is up-to-date"
+	}
+
+	removefile "$checkfile.check"
 }
-
-removefile "$checkfile.check"
 
 
 # auto update BlishHUD
+if ($use_BHud) {
+	newdir "$BlishHUD_path"
+	newdir "$MyDocuments_path\Guild Wars 2"
+	newdir "$MyDocuments_path\Guild Wars 2\addons"
+	newdir "$MyDocuments_path\Guild Wars 2\addons\blishhud"
+	newdir "$MyDocuments_path\Guild Wars 2\addons\blishhud\markers"
+	newdir "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
 
-newdir "$BlishHUD_path"
-newdir "$MyDocuments_path\Guild Wars 2"
-newdir "$MyDocuments_path\Guild Wars 2\addons"
-newdir "$MyDocuments_path\Guild Wars 2\addons\blishhud"
-newdir "$MyDocuments_path\Guild Wars 2\addons\blishhud\markers"
-newdir "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
+	checkGithub
 
-$checkurl = "https://api.github.com/repos/blish-hud/Blish-HUD/releases/latest"
-$checkfile = "$BlishHUD_path\blishhudautoupdate"
+	$checkurl = "https://api.github.com/repos/blish-hud/Blish-HUD/releases/latest"
+	$targetfile = "$BlishHUD_path\"
+	$checkfile = "$Version_path\blishhud"
 
-checkGithub
-Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
-$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
 
-if (
-	-not (Test-Path "$checkfile.md5") -or
-	((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.node_id)
-) {
-	Write-Host "BlishHUD is being updated" -ForegroundColor Green
+	if (
+		-not (Test-Path "$checkfile.md5") -or
+		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.node_id)
+	) {
+		Write-Host "BlishHUD is being updated" -ForegroundColor Green
 
-	Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.temp.zip"
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.temp.zip"
 
-	Expand-Archive -Path "$checkfile.temp.zip" -DestinationPath "$BlishHUD_path\" -Force
-	removefile "$checkfile.temp.zip"
+		Expand-Archive -Path "$checkfile.temp.zip" -DestinationPath "$targetfile\" -Force
+		removefile "$checkfile.temp.zip"
 
-	# remember this version
-	Set-Content -Path "$checkfile.md5" -Value $json.node_id
-} else {
-	Write-Host "BlishHUD is up-to-date"
+		# remember this version
+		Set-Content -Path "$checkfile.md5" -Value $json.node_id
+	} else {
+		Write-Host "BlishHUD is up-to-date"
+	}
+
+	removefile "$checkfile.check"
 }
-
-removefile "$checkfile.check"
 
 
 # auto update BlishHUD-ArcDPS Bridge
+if ($use_BHud -and $use_ArcDPS) {
+	checkGithub
 
-$checkurl = "https://api.github.com/repos/blish-hud/arcdps-bhud/releases/latest"
-$checkfile = "$GW2_path\bin64\arcdps_bhud"
+	$checkurl = "https://api.github.com/repos/blish-hud/arcdps-bhud/releases/latest"
+	$targetfile = "$GW2_path\bin64\arcdps_bhud.dll"
+	$checkfile = "$Version_path\arcdps_bhud.dll"
 
-checkGithub
-Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
-$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
 
-if (
-	-not (Test-Path "$checkfile.md5") -or
-	((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.node_id)
-) {
-	Write-Host "BlishHUD-ArcDPS Bridge is being updated" -ForegroundColor Green
-	Invoke-WebRequest $json.assets.browser_download_url[1] -OutFile "$checkfile.zip"
+	if (
+		-not (Test-Path "$checkfile.md5") -or
+		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.node_id)
+	) {
+		Write-Host "BlishHUD-ArcDPS Bridge is being updated" -ForegroundColor Green
 
-	Expand-Archive -Path "$checkfile.zip" -DestinationPath "$GW2_path\bin64\" -Force
-	removefile "$checkfile.zip"
+		Invoke-WebRequest $json.assets.browser_download_url[1] -OutFile "$checkfile.zip"
 
-	# remember this version
-	Set-Content -Path "$checkfile.md5" -Value $json.node_id
-} else {
-	Write-Host "BlishHUD-ArcDPS Bridge is up-to-date"
+		removefile "$targetfile"
+		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$GW2_path\bin64\" -Force
+		removefile "$checkfile.zip"
+
+		# remember this version
+		Set-Content -Path "$checkfile.md5" -Value $json.node_id
+	} else {
+		Write-Host "BlishHUD-ArcDPS Bridge is up-to-date"
+	}
+
+	removefile "$checkfile.check"
 }
-
-removefile "$checkfile.check"
 
 
 # auto update BlishHUD-Modules
 
-
 # Pathing
+if ($use_BHud) {
+	checkGithub
 
-$checkurl = "https://api.github.com/repos/blish-hud/Pathing/releases/latest"
-$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
-$checkfile = "$checkpath\pathing"
+	$checkurl = "https://api.github.com/repos/blish-hud/Pathing/releases/latest"
+	$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
+	$checkfile = "$Version_path\pathing"
 
-checkGithub
-Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
-$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
-$new = $($json.tag_name).Substring(1)
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
+	$new = $($json.tag_name).Substring(1)
 
-$old = 0
+	$old = 0
 
-if (Test-Path "$checkfile.md5") {
-	$old = $(Get-Content "$checkfile.md5" -Raw).Trim()
+	if (Test-Path "$checkfile.md5") {
+		$old = $(Get-Content "$checkfile.md5" -Raw).Trim()
+	}
+
+	if ($new -ne $old) {
+		Write-Host "BlishHUD-Module Pathing is being updated" -ForegroundColor Green
+
+		# remove old version
+		removefile "$checkpath\bh.community.pathing_$old.bhm"
+		removefile "$checkpath\Pathing_v$old.bhm"
+
+		#  get new version
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkpath\bh.community.pathing_$new.bhm"
+
+		# remember this version
+		Set-Content -Path "$checkfile.md5" -Value $new
+	} else {
+		Write-Host "BlishHUD-Module Pathing is up-to-date"
+	}
+
+	removefile "$checkfile.check"
 }
-
-if ($new -ne $old) {
-	Write-Host "BlishHUD-Module Pathing is being updated" -ForegroundColor Green
-
-	# remove old version
-	removefile "$checkpath\bh.community.pathing_$old.bhm"
-	removefile "$checkpath\Pathing_v$old.bhm"
-
-	#  get new version
-	Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkpath\bh.community.pathing_$new.bhm"
-
-	# remember this version
-	Set-Content -Path "$checkfile.md5" -Value $new
-} else {
-	Write-Host "BlishHUD-Module Pathing is up-to-date"
-}
-
-removefile "$checkfile.check"
 
 
 # KillProof-Module
+if ($use_BHud) {
+	checkGithub
 
-$checkurl = "https://api.github.com/repos/blish-hud/KillProof-Module/releases/latest"
-$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
-$checkfile = "$checkpath\KillProof.bhm"
+	$checkurl = "https://api.github.com/repos/blish-hud/KillProof-Module/releases/latest"
+	$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
+	$targetfile = "$checkpath\KillProof.bhm"
+	$checkfile = "$Version_path\KillProof.bhm"
 
-checkGithub
-Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
-$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
-$new = $($json.tag_name).Substring(1)
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
+	$new = $($json.tag_name).Substring(1)
 
-$old = 0
+	$old = 0
 
-if (Test-Path "$checkfile.md5") {
-	$old = $(Get-Content "$checkfile.md5" -Raw).Trim()
+	if (Test-Path "$checkfile.md5") {
+		$old = $(Get-Content "$checkfile.md5" -Raw).Trim()
+	}
+
+	if ($new -ne $old) {
+		Write-Host "BlishHUD-Module KillProof is being updated" -ForegroundColor Green
+
+		# remove old version
+		removefile "$targetfile"
+
+		#  get new version
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile"
+
+		# remember this version
+		Set-Content -Path "$checkfile.md5" -Value $new
+	} else {
+		Write-Host "BlishHUD-Module KillProof is up-to-date"
+	}
+
+	removefile "$checkfile.check"
 }
-
-if ($new -ne $old) {
-	Write-Host "BlishHUD-Module KillProof is being updated" -ForegroundColor Green
-
-	# remove old version
-	removefile "$checkfile"
-
-	#  get new version
-	Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile"
-
-	# remember this version
-	Set-Content -Path "$checkfile.md5" -Value $new
-} else {
-	Write-Host "BlishHUD-Module KillProof is up-to-date"
-}
-
-removefile "$checkfile.check"
 
 
 # Quick-Surrender
+if ($use_BHud) {
+	checkGithub
 
-$checkurl = "https://api.github.com/repos/agaertner/Blish-HUD-Modules-Releases/releases/latest"
-$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
-$checkfile = "$checkpath\QuickSurrender"
+	$checkurl = "https://api.github.com/repos/agaertner/Blish-HUD-Modules-Releases/releases/latest"
+	$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
+	$targetfile = "$checkpath\QuickSurrender"
+	$checkfile = "$Version_path\QuickSurrender"
 
-checkGithub
-Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
-$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
-$new = $($json.tag_name).Substring(1)
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
+	$new = $($json.tag_name).Substring(1)
 
-$old = 0
+	$old = 0
 
-if (Test-Path "$checkfile.md5") {
-	$old = $(Get-Content "$checkfile.md5" -Raw).Trim()
-}
-
-$targeturl = ""
-
-$json.assets | foreach-object {
-	if ($_.name -match "Surrender") {
-		$targeturl = $_
+	if (Test-Path "$checkfile.md5") {
+		$old = $(Get-Content "$checkfile.md5" -Raw).Trim()
 	}
+
+	$targeturl = ""
+
+	$json.assets | foreach-object {
+		if ($_.name -match "Surrender") {
+			$targeturl = $_
+		}
+	}
+
+	$new = $($targeturl.name)
+	$new = $new.Substring($new.Length - 9, 5)
+	$name = $targeturl.name
+	$targeturl = $targeturl.browser_download_url
+
+	if ($new -ne $old) {
+		Write-Host "BlishHUD-Module Quick-Surrende is being updated" -ForegroundColor Green
+
+		# remove old version
+		removefile "$checkpath\Nekres.Quick_Surrender_Module_$old.bhm"
+		removefile "$checkpath\$name"
+
+		#  get new version
+		Invoke-WebRequest $targeturl -OutFile "$checkpath\Nekres.Quick_Surrender_Module_$ver.bhm"
+
+		# remember this version
+		Set-Content -Path "$checkfile.md5" -Value $new
+	} else {
+		Write-Host "BlishHUD-Module Quick-Surrende is up-to-date"
+	}
+
+	removefile "$checkfile.check"
 }
-
-$new = $($targeturl.name)
-$new = $new.Substring($new.Length - 9, 5)
-$name = $targeturl.name
-$targeturl = $targeturl.browser_download_url
-
-if ($new -ne $old) {
-	Write-Host "BlishHUD-Module Quick-Surrende is being updated" -ForegroundColor Green
-
-	# remove old version
-	removefile "$checkpath\Nekres.Quick_Surrender_Module_$old.bhm"
-	removefile "$checkpath\$name"
-
-	#  get new version
-	Invoke-WebRequest $targeturl -OutFile "$checkpath\Nekres.Quick_Surrender_Module_$ver.bhm"
-
-	# remember this version
-	Set-Content -Path "$checkfile.md5" -Value $new
-} else {
-	Write-Host "BlishHUD-Module Quick-Surrende is up-to-date"
-}
-
-removefile "$checkfile.check"
 
 
 # auto update TEKKIT
+if ($use_BHud -or $use_TacO) {
+	$checkurl = "http://tekkitsworkshop.net/index.php/gw2-taco/changelog"
+	$targeturl = "http://tekkitsworkshop.net/index.php/component/jdownloads/send/2-taco-marker-packs/32-all-in-one"
+	$targetfile = "tw_ALL_IN_ONE.taco"
+	$checkfile = "$Version_path\tw_ALL_IN_ONE.taco"
 
-$checkurl = "http://tekkitsworkshop.net/index.php/gw2-taco/changelog"
-$targeturl = "http://tekkitsworkshop.net/index.php/component/jdownloads/send/2-taco-marker-packs/32-all-in-one"
-$checkfile = "tw_ALL_IN_ONE.taco"
+	$path_t = path_t $targetfile
+	$path_b = path_b $targetfile
 
-$path_t = path_t $checkfile
-$path_b = path_b $checkfile
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
-Invoke-WebRequest "$checkurl" -OutFile "$path_t.check"
+	if (
+		(
+			$use_TacO -and
+			(
+				(-not (Test-Path "$checkfile.t.md5")) -or
+				(Compare-Object -ReferenceObject $(Get-Content "$checkfile.check") -DifferenceObject $(Get-Content "$checkfile.t.md5"))
+			)
+		) -or (
+			$use_BHud -and
+			(
+				(-not (Test-Path "$checkfile.b.md5")) -or
+				(Compare-Object -ReferenceObject $(Get-Content "$checkfile.check") -DifferenceObject $(Get-Content "$checkfile.b.md5"))
+			)
+		)
+	) {
+		Write-Host "TEKKIT is being updated" -ForegroundColor Green
 
-if (
-	-not (Test-Path "$path_t.md5") -or
-	-not (Test-Path "$path_b.md5") -or
-	(Compare-Object -ReferenceObject $(Get-Content "$path_t.check") -DifferenceObject $(Get-Content "$path_t.md5")) -or
-	(Compare-Object -ReferenceObject $(Get-Content "$path_t.check") -DifferenceObject $(Get-Content "$path_b.md5"))
-) {
-	Write-Host "TEKKIT is being updated" -ForegroundColor Green
-	# update for TacO
-	removefile "$path_t"
-	Invoke-WebRequest "$targeturl" -OutFile "$path_t"
+		Invoke-WebRequest "$targeturl" -OutFile "$checkfile"
 
-	# update for BlishHUD
-	removefile "$path_b"
-	Copy-Item "$path_t" -Destination "$path_b"
+		if ($use_BHud) {
+			removefile "$path_b"
+			Copy-Item "$checkfile" -Destination "$path_b"
+			removefile "$checkfile.b.md5"
+			Copy-Item "$checkfile.check" -Destination "$checkfile.b.md5"
+		}
 
-	# remember this version
-	removefile "$path_t.md5"
-	removefile "$path_b.md5"
-	Rename-Item "$path_t.check" -NewName "$path_t.md5"
-	Copy-Item "$path_t.md5" -Destination "$path_b.md5"
-} else {
-	Write-Host "TEKKIT is up-to-date"
+		if ($use_TacO) {
+			removefile "$path_t"
+			Copy-Item "$checkfile" -Destination "$path_t"
+			removefile "$checkfile.t.md5"
+			Copy-Item "$checkfile.check" -Destination "$checkfile.t.md5"
+		}
+
+		removefile "$checkfile"
+	} else {
+		Write-Host "TEKKIT is up-to-date"
+	}
+
+	removefile "$checkfile.check"
 }
-
-removefile "$path_t.check"
 
 
 # auto update SCHATTENFLUEGEL
+if ($use_BHud -or $use_TacO) {
+	checkGithub
 
-$checkurl = "https://api.github.com/repos/Schattenfluegel/SchattenfluegelTrails/contents/Download"
-$targeturl = "https://github.com/Schattenfluegel/SchattenfluegelTrails/raw/main/Download/SchattenfluegelTrails.taco"
-$checkfile = "SchattenfluegelTrails.taco"
+	$checkurl = "https://api.github.com/repos/Schattenfluegel/SchattenfluegelTrails/contents/Download"
+	$targeturl = "https://github.com/Schattenfluegel/SchattenfluegelTrails/raw/main/Download/SchattenfluegelTrails.taco"
+	$targetfile = "SchattenfluegelTrails.taco"
+	$checkfile = "$Version_path\SchattenfluegelTrails.taco"
 
-$path_t = path_t $checkfile
-$path_b = path_b $checkfile
+	$path_t = path_t $targetfile
+	$path_b = path_b $targetfile
 
-checkGithub
-Invoke-WebRequest "$checkurl" -OutFile "$path_t.check"
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
-if (
-	-not (Test-Path "$path_t") -or
-	-not (Test-Path "$path_b") -or
-	$(Get-FileHash "$path_t.check").Hash -ne $(Get-FileHash "$path_t.md5").Hash -or
-	$(Get-FileHash "$path_t.check").Hash -ne $(Get-FileHash "$path_b.md5").Hash
-) {
-	Write-Host "SCHATTENFLUEGEL is being updated" -ForegroundColor Green
+	if (
+		(
+			$use_TacO -and
+			(
+				(-not (Test-Path "$checkfile.t.md5")) -or
+				$(Get-FileHash "$checkfile.check").Hash -ne $(Get-FileHash "$checkfile.t.md5").Hash
+			)
+		) -or (
+			$use_BHud -and
+			(
+				(-not (Test-Path "$checkfile.b.md5")) -or
+				$(Get-FileHash "$checkfile.check").Hash -ne $(Get-FileHash "$checkfile.b.md5").Hash
+			)
+		)
+	) {
+		Write-Host "SCHATTENFLUEGEL is being updated" -ForegroundColor Green
 
-	# update for TacO
-	removefile "$path_t"
-	Invoke-WebRequest "$targeturl" -OutFile "$path_t"
+		Invoke-WebRequest "$targeturl" -OutFile "$checkfile"
 
-	# update for BlishHUD
-	removefile "$path_b"
-	Copy-Item "$path_t" -Destination "$path_b"
+		if ($use_TacO) {
+			removefile "$path_t"
+			Copy-Item "$checkfile" -Destination "$path_t"
+			removefile "$checkfile.t.md5"
+			Copy-Item "$checkfile.check" -Destination "$checkfile.t.md5"
+		}
 
-	# remember this version
-	removefile "$path_t.md5"
-	removefile "$path_b.md5"
-	Rename-Item "$path_t.check" -NewName "$path_t.md5"
-	Copy-Item "$path_t.md5" -Destination "$path_b.md5"
-} else {
-	Write-Host "SCHATTENFLUEGEL is up-to-date"
+		if ($use_BHud) {
+			removefile "$path_b"
+			Copy-Item "$checkfile" -Destination "$path_b"
+			removefile "$checkfile.b.md5"
+			Copy-Item "$checkfile.check" -Destination "$checkfile.b.md5"
+		}
+
+		removefile "$checkfile"
+	} else {
+		Write-Host "SCHATTENFLUEGEL is up-to-date"
+	}
+
+	removefile "$checkfile.check"
 }
-
-removefile "$path_t.check"
 
 
 # auto update HEROMARKERS
+# update for BlishHUD (no TacO support)
+if ($use_BHud) {
+	checkGithub
 
-$checkurl = "https://api.github.com/repos/QuitarHero/Heros-Marker-Pack/releases/latest"
-$checkfile = "Hero.Blish.Pack.zip"
+	$checkurl = "https://api.github.com/repos/QuitarHero/Heros-Marker-Pack/releases/latest"
+	$targetfile = "Hero.Blish.Pack.zip"
+	$checkfile = "$Version_path\Hero.Blish.Pack.zip"
 
-$path_b = path_b $checkfile
+	$path_b = path_b $targetfile
 
-checkGithub
-Invoke-WebRequest "$checkurl" -OutFile "$path_b.check"
-$json = (Get-Content "$path_b.check" -Raw) | ConvertFrom-Json
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
 
-if (
-	-not (Test-Path "$path_b.md5") -or
-	((Get-Content "$path_b.md5" -Raw).Trim() -ne $json.node_id)
-) {
-	Write-Host "HEROMARKERS is being updated" -ForegroundColor Green
+	if (
+		-not (Test-Path "$checkfile.md5") -or
+		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.node_id)
+	) {
+		Write-Host "HEROMARKERS is being updated" -ForegroundColor Green
 
-	# update for BlishHUD (no TacO support)
-	removefile "$path_b"
+		removefile "$path_b"
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$path_b"
 
-	Invoke-WebRequest $json.assets.browser_download_url -OutFile "$path_b"
+		Set-Content -Path "$checkfile.md5" -Value $json.node_id
+	} else {
+		Write-Host "HEROMARKERS is up-to-date"
+	}
 
-	# remember this version
-	Set-Content -Path "$path_b.md5" -Value $json.node_id
-} else {
-	Write-Host "HEROMARKERS is up-to-date"
+	removefile "$checkfile.check"
 }
-
-removefile "$path_b.check"
 
 
 # auto update CZOKALAPIK
+if ($use_BHud -or $use_TacO) {
+	$checkurl = "https://api.bitbucket.org/2.0/repositories/czokalapik/czokalapiks-guides-for-gw2taco/commits"
+	$targeturl = "https://bitbucket.org/czokalapik/czokalapiks-guides-for-gw2taco/get"
+	$targetfile = "czokalapiks-guides.taco"
+	$checkfile = "$Version_path\czokalapiks-guides.taco"
 
-$checkurl = "https://api.bitbucket.org/2.0/repositories/czokalapik/czokalapiks-guides-for-gw2taco/commits"
-$targeturl = "https://bitbucket.org/czokalapik/czokalapiks-guides-for-gw2taco/get"
-$checkfile = "czokalapiks-guides.taco"
+	$path_t = path_t $targetfile
+	$path_b = path_b $targetfile
 
-$path_t = path_t $checkfile
-$path_b = path_b $checkfile
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
 
-Invoke-WebRequest "$checkurl" -OutFile "$path_t.check"
-$json = (Get-Content "$path_t.check" -Raw) | ConvertFrom-Json
+	$hash = $($json.values[0].hash).Substring(0, 12)
 
-$hash = $($json.values[0].hash).Substring(0, 12)
+	if (
+		(
+			$use_TacO -and
+			(
+				(-not (Test-Path "$checkfile.t.md5")) -or
+				((Get-Content "$checkfile.t.md5" -Raw).Trim() -ne $json.values[0].hash)
+			)
+		) -or (
+			$use_BHud -and
+			(
+				(-not (Test-Path "$checkfile.b.md5")) -or
+				((Get-Content "$checkfile.b.md5" -Raw).Trim() -ne $json.values[0].hash)
+			)
+		)
+	) {
+		Write-Host "CZOKALAPIK is being updated" -ForegroundColor Green
 
-if (
-	-not (Test-Path "$path_t.md5") -or
-	-not (Test-Path "$path_b.md5") -or
-	((Get-Content "$path_t.md5" -Raw).Trim() -ne $json.values[0].hash) -or
-	((Get-Content "$path_b.md5" -Raw).Trim() -ne $json.values[0].hash)
-) {
-	Write-Host "CZOKALAPIK is being updated" -ForegroundColor Green
+		Invoke-WebRequest "$targeturl/$hash.zip" -OutFile "$checkfile.zip"
+		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Version_path\" -Force
+		removefile "$checkfile.zip"
+		Compress-Archive -Path "$Version_path\czokalapik-czokalapiks-guides-for-gw2taco-$hash\POIs\*" -DestinationPath "$checkfile.zip"
+		Remove-Item "$checkfile\czokalapik-czokalapiks-guides-for-gw2taco-$hash" -Recurse -force
 
-	# update for TacO
-	removefile "$path_t"
-	Invoke-WebRequest "$targeturl/$hash.zip" -OutFile "$path_t.zip"
+		if ($use_TacO) {
+			removefile "$path_t"
+			Copy-Item "$checkfile.zip" -Destination "$path_t"
+			Set-Content -Path "$checkfile.t.md5" -Value $json.values[0].hash
+		}
 
-	Expand-Archive -Path "$path_t.zip" -DestinationPath "$TacO_path\POIs\" -Force
-	removefile "$path_t.zip"
+		if ($use_BHud) {
+			removefile "$path_b"
+			Copy-Item "$checkfile.zip" -Destination "$path_b"
+			Set-Content -Path "$checkfile.b.md5" -Value $json.values[0].hash
+		}
 
-	Compress-Archive -Path "$TacO_path\POIs\czokalapik-czokalapiks-guides-for-gw2taco-$hash\POIs\*" -DestinationPath "$path_t.zip"
-	Remove-Item "$TacO_path\POIs\czokalapik-czokalapiks-guides-for-gw2taco-$hash" -Recurse -force
-	Rename-Item -Path "$path_t.zip" -NewName "$path_t"
+		removefile "$checkfile.zip"
+	} else {
+		Write-Host "CZOKALAPIK is up-to-date"
+	}
 
-
-	# update for BlishHUD
-	removefile "$path_b"
-	Copy-Item "$path_t" -Destination "$path_b"
-
-	# remember this version
-	Set-Content -Path "$path_t.md5" -Value $json.values[0].hash
-	Copy-Item "$path_t.md5" -Destination "$path_b.md5"
-} else {
-	Write-Host "CZOKALAPIK is up-to-date"
+	removefile "$checkfile.check"
 }
-
-removefile "$path_t.check"
 
 
 # auto update REACTIF
+if ($use_BHud -or $use_TacO) {
+	$ver = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-en.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
+	$targeturl = "https://www.heinze.fr/taco/download.php?f=3"
+	$targetfile = "reactif_en.taco"
+	$checkfile = "$Version_path\reactif_en.taco"
 
-$ver = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-en.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
-$targeturl = "https://www.heinze.fr/taco/download.php?f=3"
-$checkfile = "reactif_en.taco"
+	$path_t = path_t $targetfile
+	$path_b = path_b $targetfile
 
-$path_t = path_t $checkfile
-$path_b = path_b $checkfile
+	if (
+		(
+			$use_TacO -and
+			(
+				(-not (Test-Path "$checkfile.t.md5")) -or
+				((Get-Content "$checkfile.t.md5" -Raw).Trim() -ne $ver)
+			)
+		) -or (
+			$use_BHud -and
+			(
+				(-not (Test-Path "$checkfile.b.md5")) -or
+				((Get-Content "$checkfile.b.md5" -Raw).Trim() -ne $ver)
+			)
+		)
+	) {
+		Write-Host "REACTIF is being updated" -ForegroundColor Green
 
-if (
-	-not (Test-Path "$path_t.md5") -or
-	-not (Test-Path "$path_b.md5") -or
-	((Get-Content "$path_t.md5" -Raw).Trim() -ne $ver) -or
-	((Get-Content "$path_b.md5" -Raw).Trim() -ne $ver)
-) {
-	Write-Host "REACTIF is being updated" -ForegroundColor Green
+		Invoke-WebRequest "$targeturl" -OutFile "$checkfile"
 
-	# update for TacO
-	removefile "$path_t"
-	Invoke-WebRequest "$targeturl" -OutFile "$path_t"
+		if ($use_TacO) {
+			removefile "$path_t"
+			Copy-Item "$checkfile" -Destination "$path_t"
+			Set-Content -Path "$checkfile.t.md5" -Value $ver
+		}
 
-	# update for BlishHUD
-	removefile "$path_b"
-	Copy-Item "$path_t" -Destination "$path_b"
+		if ($use_BHud) {
+			removefile "$path_b"
+			Copy-Item "$checkfile" -Destination "$path_b"
+			Set-Content -Path "$checkfile.b.md5" -Value $ver
+		}
 
-	# remember this version
-	Set-Content -Path "$path_t.md5" -Value $ver
-	Copy-Item "$path_t.md5" -Destination "$path_b.md5"
-} else {
-	Write-Host "REACTIF is up-to-date"
+		removefile "$checkfile"
+	} else {
+		Write-Host "REACTIF is up-to-date"
+	}
 }
 
 
