@@ -1,16 +1,17 @@
 # you don't need to change anything here - except you know what you are doing
 
-param($GW2_path, $TacO_path, $BlishHUD_path)
+param($GW2_path, $TacO_path, $BlishHUD_path, $use_ArcDPS, $use_TacO, $use_BHud)
 
 $GW2_path = $GW2_path.Substring(1, $GW2_path.Length - 2)
 $TacO_path = $TacO_path.Substring(1, $TacO_path.Length - 2)
 $BlishHUD_path = $BlishHUD_path.Substring(1, $BlishHUD_path.Length - 2)
 $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
 $Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
+$Version_path ="$Script_path\version_control"
 
-$neededGithubApiCalls = 10
-
-
+$use_ArcDPS = ($use_ArcDPS.Substring(1, $use_ArcDPS.Length - 2)) -ne 0
+$use_TacO = ($use_TacO.Substring(1, $use_TacO.Length - 2)) -ne 0
+$use_BHud = ($use_BHud.Substring(1, $use_BHud.Length - 2)) -ne 0
 
 # some functions for lazy people
 
@@ -75,18 +76,76 @@ function path_b($tag) {
 	return "$MyDocuments_path\Guild Wars 2\addons\blishhud\markers\$tag"
 }
 
+function nls($total) {
+	for ($i = 0; $i -lt $total; $i++) {
+		Write-Host " "
+	}
+}
+
+function checkGithub() {
+	# check githubs API restrictions and waits until it's possible again
+
+	Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$GW2_path\github.json"
+	$json = (Get-Content "$GW2_path\github.json" -Raw) | ConvertFrom-Json
+
+	if ($json.rate.remaining -lt 1) {
+		if (-not $older) {
+			$date = (Get-Date -Date "1970-01-01 00:00:00Z").toLocalTime().addSeconds($json.rate.reset)
+
+			nls 3
+			Write-Host "No more updates possible due to API limitations by github.com :(" -ForegroundColor Red
+			nls 1
+			Write-Host "The restrictions will be lifted on:"
+			Write-Host $date -ForegroundColor Yellow
+			nls 1
+			Write-Host "Sorry for that."
+			nls 2
+			Write-Host "This script will wait until updates are possible again. Of cause you can close this window everytime. The updates will be done the next you start this script."
+			nls 1
+		}
+
+		startGW2
+		stopprocesses
+
+		if ($older) {
+			exit
+		}
+
+		nls 1
+		Write-Host "OK - we will wait until the updates are possible again. You can close this window everytime. No data will be damaged or deleted." -ForegroundColor Yellow
+		nls 1
+
+		do {
+			Start-Sleep -Seconds 60
+
+			Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$GW2_path\github.json"
+			$json = (Get-Content "$GW2_path\github.json" -Raw) | ConvertFrom-Json
+		} until ($json.rate.remaining -ge 1)
+	}
+
+	removefile "$GW2_path\github.json"
+}
+
 # now the non-dynamic stuff:
 
 # clean up before anything else starts
 
 Clear-Host
 
-for ($i = 0; $i -lt 7; $i++) {
-	Write-Host " "
-}
+nls 7
 
 stopprocesses
 
+newdir "$Script_path"
+
+
+# auto update this script itself
+
+# prepare the update to be done by the .bat file with the next start
+
+Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.ps1" -OutFile "$Script_path/GW2start.txt"
+
+Write-Host "GW2start.ps1 is updated every time"
 
 
 # auto update ArcDPS
@@ -127,50 +186,6 @@ if (Test-Path "$GW2_path\github.json") {
 	removefile "$GW2_path\github.json"
 }
 
-Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$GW2_path\github.json"
-$json = (Get-Content "$GW2_path\github.json" -Raw) | ConvertFrom-Json
-
-if ($json.rate.remaining -lt $neededGithubApiCalls) {
-	if (-not $older) {
-		$date = (Get-Date -Date "1970-01-01 00:00:00Z").toLocalTime().addSeconds($json.rate.reset)
-
-		Write-Host " "
-		Write-Host " "
-		Write-Host " "
-		Write-Host "No more updates possible due to API limitations by github.com :(" -ForegroundColor Red
-		Write-Host " "
-		Write-Host "The restrictions will be lifted on:"
-		Write-Host $date -ForegroundColor Yellow
-		Write-Host " "
-		Write-Host "Sorry for that."
-		Write-Host " "
-		Write-Host " "
-		Write-Host "This script will wait until updates are possible. Of cause you can close this window everytime. The updates will be done the next time."
-		Write-Host " "
-	}
-
-	startGW2
-	stopprocesses
-
-	if ($older) {
-		exit
-	}
-
-	Write-Host " "
-	Write-Host "OK - we will wait until the updates are possible again. You can close this window everytime. No data will be damaged or deleted." -ForegroundColor Yellow
-	Write-Host " "
-
-	do {
-		Start-Sleep -Seconds 60
-
-		Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$GW2_path\github.json"
-		$json = (Get-Content "$GW2_path\github.json" -Raw) | ConvertFrom-Json
-	} until ($json.rate.remaining -ge $neededGithubApiCalls)
-}
-
-removefile "$GW2_path\github.json"
-
-
 # auto update TacO
 
 newdir "$TacO_path"
@@ -178,6 +193,7 @@ newdir "$TacO_path"
 $checkurl = "https://api.github.com/repos/BoyC/GW2TacO/releases/latest"
 $checkfile = "$TacO_path\tacoautoupdate"
 
+checkGithub
 Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
 $json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
@@ -207,6 +223,7 @@ removefile "$checkfile.check"
 $checkurl = "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest"
 $checkfile = "$GW2_path\bin64\d3d9_arcdps_killproof_me.dll"
 
+checkGithub
 Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
 $json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
@@ -234,6 +251,7 @@ removefile "$checkfile.check"
 $checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest"
 $checkfile = "$GW2_path\bin64\d3d9_arcdps_table.dll"
 
+checkGithub
 Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
 $json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
@@ -268,6 +286,7 @@ newdir "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
 $checkurl = "https://api.github.com/repos/blish-hud/Blish-HUD/releases/latest"
 $checkfile = "$BlishHUD_path\blishhudautoupdate"
 
+checkGithub
 Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
 $json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
@@ -297,6 +316,7 @@ removefile "$checkfile.check"
 $checkurl = "https://api.github.com/repos/blish-hud/arcdps-bhud/releases/latest"
 $checkfile = "$GW2_path\bin64\arcdps_bhud"
 
+checkGithub
 Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
 $json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
@@ -329,6 +349,7 @@ $checkurl = "https://api.github.com/repos/blish-hud/Pathing/releases/latest"
 $checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
 $checkfile = "$checkpath\pathing"
 
+checkGithub
 Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
 $json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
@@ -365,6 +386,7 @@ $checkurl = "https://api.github.com/repos/blish-hud/KillProof-Module/releases/la
 $checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
 $checkfile = "$checkpath\KillProof.bhm"
 
+checkGithub
 Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
 $json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
@@ -400,6 +422,7 @@ $checkurl = "https://api.github.com/repos/agaertner/Blish-HUD-Modules-Releases/r
 $checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
 $checkfile = "$checkpath\QuickSurrender"
 
+checkGithub
 Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
 $json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
@@ -490,6 +513,7 @@ $checkfile = "SchattenfluegelTrails.taco"
 $path_t = path_t $checkfile
 $path_b = path_b $checkfile
 
+checkGithub
 Invoke-WebRequest "$checkurl" -OutFile "$path_t.check"
 
 if (
@@ -527,6 +551,7 @@ $checkfile = "Hero.Blish.Pack.zip"
 
 $path_b = path_b $checkfile
 
+checkGithub
 Invoke-WebRequest "$checkurl" -OutFile "$path_b.check"
 $json = (Get-Content "$path_b.check" -Raw) | ConvertFrom-Json
 
@@ -631,17 +656,57 @@ if (
 }
 
 
-# auto update this script itself
+# cleanup for older version of this script
 
-# prepare the update to be done by the .bat file with the next start
 removefile "$Script_path/GW2start.txt"
 removefile "$Script_path/GW2start.txt.md5"
 removefile "$Script_path/LICENSE"
 removefile "$Script_path/README.md"
 
-Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.ps1" -OutFile "$Script_path/GW2start.txt"
-
-Write-Host "GW2start.ps1 is up-to-date"
+$checkfile = "$GW2_path\bin64\d3d9.dll"
+removefile "$checkfile.md5"
+$checkfile = "$TacO_path\tacoautoupdate"
+removefile "$checkfile.md5"
+$checkfile = "$GW2_path\bin64\d3d9_arcdps_killproof_me.dll"
+removefile "$checkfile.md5"
+$checkfile = "$GW2_path\bin64\d3d9_arcdps_table.dll"
+removefile "$checkfile.md5"
+$checkfile = "$BlishHUD_path\blishhudautoupdate"
+removefile "$checkfile.md5"
+$checkfile = "$GW2_path\bin64\arcdps_bhud"
+removefile "$checkfile.md5"
+$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
+$checkfile = "$checkpath\pathing"
+removefile "$checkfile.md5"
+$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
+$checkfile = "$checkpath\KillProof.bhm"
+removefile "$checkfile.md5"
+$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
+$checkfile = "$checkpath\QuickSurrender"
+removefile "$checkfile.md5"
+$checkfile = "tw_ALL_IN_ONE.taco"
+$path_t = path_t $checkfile
+$path_b = path_b $checkfile
+removefile "$path_t.md5"
+removefile "$path_b.md5"
+$checkfile = "SchattenfluegelTrails.taco"
+$path_t = path_t $checkfile
+$path_b = path_b $checkfile
+removefile "$path_t.md5"
+removefile "$path_b.md5"
+$checkfile = "Hero.Blish.Pack.zip"
+$path_b = path_b $checkfile
+removefile "$path_b.md5"
+$checkfile = "czokalapiks-guides.taco"
+$path_t = path_t $checkfile
+$path_b = path_b $checkfile
+removefile "$path_t.md5"
+removefile "$path_b.md5"
+$checkfile = "reactif_en.taco"
+$path_t = path_t $checkfile
+$path_b = path_b $checkfile
+removefile "$path_t.md5"
+removefile "$path_b.md5"
 
 
 # done with updating
@@ -651,7 +716,7 @@ if (-not $older) {
 	stopprocesses
 }
 
-Write-Host " "
+nls 1
 Write-Host "see you soon"
 
 Start-Sleep -Seconds 2

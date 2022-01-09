@@ -1,8 +1,14 @@
 cd /d "%~dp0"
 
+rem change this to your own installtion-paths
 set GW2_path="C:\Program Files\Guild Wars 2"
 set TacO_path="D:\Program Files (x86)\GW2\TacO"
 set BlishHUD_path="D:\Program Files (x86)\GW2\BlishHUD"
+
+rem set it to 1 to enable the update and installation of the corresponding tools or 0 to ignore it
+set use_ArcDPS=1
+set use_TacO=1
+set use_BHud=1
 
 
 if exist "GW2start.txt" (
@@ -10,4 +16,4 @@ if exist "GW2start.txt" (
 	rename "GW2start.txt" "GW2start.ps1"
 )
 
-powershell.exe -file "GW2start.ps1" '%GW2_path%' '%TacO_path%' '%BlishHUD_path%'
+powershell.exe -file "GW2start.ps1" '%GW2_path%' '%TacO_path%' '%BlishHUD_path%' '%use_ArcDPS%' '%use_TacO%' '%use_BHud%'

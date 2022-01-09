@@ -11,7 +11,15 @@ Set-ExecutionPolicy "RemoteSigned" -Force
 
 # config
 
-open the .bat file and setup the path to the ones of your file system
+open the .bat file and:
+- setup GW2_path to the installation path of Guildwars 2
+- setup TacO_path to where you want TacO to be installed. Don't choose your Documents or Guildwars 2 folder for that
+- setup BlishHUD_path to where you want BlishHub to be installed. Don't choose your Documents or Guildwars 2 folder for that
+
+- set use_ArcDPS to 0 if you don't want to get ArcDPS installed, 1 means enabled and is the default value
+- set use_TacO to 0 if you don't want to install, update or open TacO, 1 means enabled and is the default value
+- set use_BHud to 0 if you don't want to install, update or open BlishHud, 1 means enabled and is the default value
+
 
 -> info: make sure to enable the donwloaded modules within the BlishHud Userinterface yourself
 
@@ -33,4 +41,4 @@ if the script don't work the first time make sure:
 - you did the config change in powershell under the install headline
 - check the file settings of the two downloaded files: make sure the tick is set for downloaded files to be executable
 
-if you don't make this changes the script will open and close in under 1 second 
+if you don't make this changes the script will open and close without doing anything in under 1 second
