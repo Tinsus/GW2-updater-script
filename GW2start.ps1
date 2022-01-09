@@ -98,7 +98,9 @@ function nls($total) {
 function checkGithub() {
 	# check githubs API restrictions and waits until it's possible again
 
+	removefile "$Version_path\github.json"
 	Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Version_path\github.json"
+	
 	$json = (Get-Content "$Version_path\github.json" -Raw) | ConvertFrom-Json
 
 	if ($json.rate.remaining -lt 1) {
@@ -131,12 +133,12 @@ function checkGithub() {
 		do {
 			Start-Sleep -Seconds 60
 
+			removefile "$Version_path\github.json"
 			Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Version_path\github.json"
+
 			$json = (Get-Content "$Version_path\github.json" -Raw) | ConvertFrom-Json
 		} until ($json.rate.remaining -ge 1)
 	}
-
-	removefile "$Version_path\github.json"
 }
 
 # now the non-dynamic stuff:
@@ -155,8 +157,6 @@ $older = $false
 
 if (Test-Path "$GW2_path\github.json") {
 	$older = $true
-
-	removefile "$GW2_path\github.json"
 }
 
 # auto update this script itself
@@ -871,7 +871,10 @@ removefile "$path_b.md5"
 if (-not $older) {
 	startGW2
 	stopprocesses
+
+	removefile "$GW2_path\github.json"
 }
+
 
 nls 1
 Write-Host "see you soon"
