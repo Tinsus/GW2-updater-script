@@ -100,7 +100,7 @@ function checkGithub() {
 
 	removefile "$Version_path\github.json"
 	Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Version_path\github.json"
-	
+
 	$json = (Get-Content "$Version_path\github.json" -Raw) | ConvertFrom-Json
 
 	if ($json.rate.remaining -lt 1) {
@@ -153,20 +153,71 @@ stopprocesses
 
 newdir "$Version_path"
 
+
+# some information for our user (yes, I'm talking about YOU, you creepy coder)
+
 $older = $false
 
 if (Test-Path "$GW2_path\github.json") {
 	$older = $true
+} else {
+	Write-Host "You set the following options. " -ForegroundColor White -NoNewline
+	Write-Host "If you need change it there $Script_path\GW2start.bat" -ForegroundColor DarkGray
+	nls 1
+
+	Write-Host "Guildwars 2 " -NoNewline -ForegroundColor White
+	Write-Host "is installed in " -NoNewline
+	Write-Host $GW2_path -ForegroundColor DarkGray
+	nls 1
+
+	Write-Host "ArcDPS " -ForegroundColor White -NoNewline
+	Write-Host "is " -NoNewline
+	if ($use_ArcDPS) {
+		Write-Host "enabled " -ForegroundColor Green -NoNewline
+		Write-Host "it will get installed and updated."
+		Write-Host "If you have any trouble with the game crashing: disable ArcDPS-updating in the .bat-file and delete the ArcDPS-specific files in your \GW2\bin64-folder." -ForegroundColor DarkGray
+	} else {
+		Write-Host "disabled " -ForegroundColor Red -NoNewline
+		Write-Host " it will not get installed, updated or deleted. Just ignored. I'm good with ignoring." -ForegroundColor DarkGray
+	}
+	nls 1
+
+	Write-Host "BlishHUD " -NoNewline -ForegroundColor White
+	Write-Host "is " -NoNewline
+	if ($use_BHud) {
+		Write-Host "enabled " -ForegroundColor Green -NoNewline
+		Write-Host "it will get installed and updated in " -NoNewline
+		Write-Host $BlishHUD_path -ForegroundColor DarkGray
+	} else {
+		Write-Host "disabled " -ForegroundColor Red -NoNewline
+		Write-Host "it will not get installed, updated or deleted. Just ignored. I'm quite good with ignoring."
+	}
+	nls 1
+
+	Write-Host "TacO " -NoNewline -ForegroundColor White
+	Write-Host "is " -NoNewline
+	if ($use_TacO) {
+		Write-Host "enabled " -ForegroundColor Green -NoNewline
+		Write-Host "it will get installed and updated in " -NoNewline
+		Write-Host $TacO_path -ForegroundColor DarkGray
+	} else {
+		Write-Host "disabled " -ForegroundColor Red -NoNewline
+		Write-Host "it will not get installed, updated or deleted. Just ignored. I'm very good with ignoring."
+	}
+	nls 3
 }
 
-# auto update this script itself
-# prepare the update to be done by the .bat file with the next start
+
+# auto update this script itself (prepare the update to be done by the .bat file with the next start)
 
 removefile "$Script_path\GW2start.txt"
 
 Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.ps1" -OutFile "$Script_path/GW2start.txt"
 
-Write-Host "GW2start.ps1 is updated every time"
+Write-Host "GW2start.ps1 " -NoNewline -ForegroundColor White
+Write-Host "is " -NoNewline
+Write-Host "updated " -NoNewline -ForegroundColor Green
+Write-Host "every time"
 
 
 # auto update ArcDPS
@@ -182,7 +233,8 @@ if ($use_ArcDPS) {
 		-not (Test-Path "$checkfile.md5") -or
 		((Get-Content "$checkfile.check" -Raw).Trim() -ne (Get-Content "$checkfile.md5" -Raw).Trim())
 	) {
-		Write-Host "ArcDPS is being updated" -ForegroundColor Green
+		Write-Host "ArcDPS " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		# direct install
 		removefile "$targetfile"
@@ -192,7 +244,8 @@ if ($use_ArcDPS) {
 		removefile "$checkfile.md5"
 		Rename-Item "$checkfile.check" -NewName "$checkfile.md5"
 	} else {
-		Write-Host "ArcDPS is up-to-date"
+		Write-Host "ArcDPS " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -216,7 +269,8 @@ if ($use_TacO) {
 		-not (Test-Path "$checkfile.md5") -or
 		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.node_id)
 	) {
-		Write-Host "TacO is being updated" -ForegroundColor Green
+		Write-Host "TacO " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.temp.zip"
 
@@ -226,7 +280,8 @@ if ($use_TacO) {
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $json.node_id
 	} else {
-		Write-Host "TacO is up-to-date"
+		Write-Host "TacO " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -249,7 +304,8 @@ if ($use_ArcDPS) {
 		-not (Test-Path "$checkfile.md5") -or
 		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.name)
 	) {
-		Write-Host "ArcDps-killproof.me-plugin is being updated" -ForegroundColor Green
+		Write-Host "ArcDps-killproof.me-plugin " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		removefile "$targetfile"
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile"
@@ -257,7 +313,8 @@ if ($use_ArcDPS) {
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $json.name
 	} else {
-		Write-Host "ArcDps-killproof.me-plugin is up-to-date"
+		Write-Host "ArcDps-killproof.me-plugin " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -280,7 +337,8 @@ if ($use_ArcDPS) {
 		-not (Test-Path "$checkfile.md5") -or
 		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.name)
 	) {
-		Write-Host "GW2-ArcDps-Boon-Table is being updated" -ForegroundColor Green
+		Write-Host "GW2-ArcDps-Boon-Table " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		removefile "$targetfile"
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile"
@@ -288,7 +346,8 @@ if ($use_ArcDPS) {
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $json.name
 	} else {
-		Write-Host "GW2-ArcDps-Boon-Table is up-to-date"
+		Write-Host "GW2-ArcDps-Boon-Table " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -311,7 +370,8 @@ if ($use_ArcDPS) {
 		-not (Test-Path "$checkfile.md5") -or
 		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.name)
 	) {
-		Write-Host "arcdps-healing-stats is being updated" -ForegroundColor Green
+		Write-Host "arcdps-healing-stats " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		removefile "$targetfile"
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile"
@@ -319,7 +379,8 @@ if ($use_ArcDPS) {
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $json.name
 	} else {
-		Write-Host "arcdps-healing-stats is up-to-date"
+		Write-Host "arcdps-healing-stats " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -342,7 +403,8 @@ if ($use_ArcDPS) {
 		-not (Test-Path "$checkfile.md5") -or
 		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.name)
 	) {
-		Write-Host "GW2-ArcDPS-Mechanics-Log is being updated" -ForegroundColor Green
+		Write-Host "GW2-ArcDPS-Mechanics-Log " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		removefile "$targetfile"
 		Invoke-WebRequest $json.assets[0].browser_download_url -OutFile "$targetfile"
@@ -350,7 +412,8 @@ if ($use_ArcDPS) {
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $json.name
 	} else {
-		Write-Host "GW2-ArcDPS-Mechanics-Log is up-to-date"
+		Write-Host "GW2-ArcDPS-Mechanics-Log " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -380,7 +443,8 @@ if ($use_BHud) {
 		-not (Test-Path "$checkfile.md5") -or
 		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.node_id)
 	) {
-		Write-Host "BlishHUD is being updated" -ForegroundColor Green
+		Write-Host "BlishHUD " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.temp.zip"
 
@@ -390,7 +454,8 @@ if ($use_BHud) {
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $json.node_id
 	} else {
-		Write-Host "BlishHUD is up-to-date"
+		Write-Host "BlishHUD " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -413,7 +478,8 @@ if ($use_BHud -and $use_ArcDPS) {
 		-not (Test-Path "$checkfile.md5") -or
 		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.node_id)
 	) {
-		Write-Host "BlishHUD-ArcDPS Bridge is being updated" -ForegroundColor Green
+		Write-Host "BlishHUD-ArcDPS Bridge " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		Invoke-WebRequest $json.assets.browser_download_url[1] -OutFile "$checkfile.zip"
 
@@ -424,7 +490,8 @@ if ($use_BHud -and $use_ArcDPS) {
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $json.node_id
 	} else {
-		Write-Host "BlishHUD-ArcDPS Bridge is up-to-date"
+		Write-Host "BlishHUD-ArcDPS Bridge " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -453,7 +520,8 @@ if ($use_BHud) {
 	}
 
 	if ($new -ne $old) {
-		Write-Host "BlishHUD-Module Pathing is being updated" -ForegroundColor Green
+		Write-Host "BlishHUD-Module Pathing " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		# remove old version
 		removefile "$checkpath\bh.community.pathing_$old.bhm"
@@ -465,7 +533,8 @@ if ($use_BHud) {
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $new
 	} else {
-		Write-Host "BlishHUD-Module Pathing is up-to-date"
+		Write-Host "BlishHUD-Module Pathing " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -493,7 +562,8 @@ if ($use_BHud) {
 	}
 
 	if ($new -ne $old) {
-		Write-Host "BlishHUD-Module KillProof is being updated" -ForegroundColor Green
+		Write-Host "BlishHUD-Module KillProof " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		# remove old version
 		removefile "$targetfile"
@@ -504,7 +574,8 @@ if ($use_BHud) {
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $new
 	} else {
-		Write-Host "BlishHUD-Module KillProof is up-to-date"
+		Write-Host "BlishHUD-Module KillProof " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -545,7 +616,8 @@ if ($use_BHud) {
 	$targeturl = $targeturl.browser_download_url
 
 	if ($new -ne $old) {
-		Write-Host "BlishHUD-Module Quick-Surrende is being updated" -ForegroundColor Green
+		Write-Host "BlishHUD-Module Quick-Surrende " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		# remove old version
 		removefile "$checkpath\Nekres.Quick_Surrender_Module_$old.bhm"
@@ -557,7 +629,8 @@ if ($use_BHud) {
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $new
 	} else {
-		Write-Host "BlishHUD-Module Quick-Surrende is up-to-date"
+		Write-Host "BlishHUD-Module Quick-Surrende " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -591,7 +664,8 @@ if ($use_BHud -or $use_TacO) {
 			)
 		)
 	) {
-		Write-Host "TEKKIT is being updated" -ForegroundColor Green
+		Write-Host "TEKKIT " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		Invoke-WebRequest "$targeturl" -OutFile "$checkfile"
 
@@ -611,7 +685,8 @@ if ($use_BHud -or $use_TacO) {
 
 		removefile "$checkfile"
 	} else {
-		Write-Host "TEKKIT is up-to-date"
+		Write-Host "TEKKIT " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -647,7 +722,8 @@ if ($use_BHud -or $use_TacO) {
 			)
 		)
 	) {
-		Write-Host "SCHATTENFLUEGEL is being updated" -ForegroundColor Green
+		Write-Host "SCHATTENFLUEGEL " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		Invoke-WebRequest "$targeturl" -OutFile "$checkfile"
 
@@ -667,7 +743,8 @@ if ($use_BHud -or $use_TacO) {
 
 		removefile "$checkfile"
 	} else {
-		Write-Host "SCHATTENFLUEGEL is up-to-date"
+		Write-Host "SCHATTENFLUEGEL " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -692,14 +769,16 @@ if ($use_BHud) {
 		-not (Test-Path "$checkfile.md5") -or
 		((Get-Content "$checkfile.md5" -Raw).Trim() -ne $json.node_id)
 	) {
-		Write-Host "HEROMARKERS is being updated" -ForegroundColor Green
+		Write-Host "HEROMARKERS " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		removefile "$path_b"
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$path_b"
 
 		Set-Content -Path "$checkfile.md5" -Value $json.node_id
 	} else {
-		Write-Host "HEROMARKERS is up-to-date"
+		Write-Host "HEROMARKERS " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -736,7 +815,8 @@ if ($use_BHud -or $use_TacO) {
 			)
 		)
 	) {
-		Write-Host "CZOKALAPIK is being updated" -ForegroundColor Green
+		Write-Host "CZOKALAPIK " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		Invoke-WebRequest "$targeturl/$hash.zip" -OutFile "$checkfile.zip"
 		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Version_path\" -Force
@@ -758,7 +838,8 @@ if ($use_BHud -or $use_TacO) {
 
 		removefile "$checkfile.zip"
 	} else {
-		Write-Host "CZOKALAPIK is up-to-date"
+		Write-Host "CZOKALAPIK " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 
 	removefile "$checkfile.check"
@@ -790,7 +871,8 @@ if ($use_BHud -or $use_TacO) {
 			)
 		)
 	) {
-		Write-Host "REACTIF is being updated" -ForegroundColor Green
+		Write-Host "REACTIF " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
 
 		Invoke-WebRequest "$targeturl" -OutFile "$checkfile"
 
@@ -808,7 +890,8 @@ if ($use_BHud -or $use_TacO) {
 
 		removefile "$checkfile"
 	} else {
-		Write-Host "REACTIF is up-to-date"
+		Write-Host "REACTIF " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
 	}
 }
 
