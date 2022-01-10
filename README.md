@@ -42,3 +42,5 @@ if the script don't work the first time make sure:
 - check the file settings of the two downloaded files: make sure the tick is set for downloaded files to be executable
 
 if you don't make this changes the script will open and close without doing anything in under 1 second
+
+- if ArcDPS crashes your game stop using Razor Cortex they don't like each other
