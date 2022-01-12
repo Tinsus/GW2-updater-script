@@ -1038,6 +1038,10 @@ $path_t = path_t $checkfile
 $path_b = path_b $checkfile
 removefile "$path_t.md5"
 removefile "$path_b.md5"
+removefile "$checkpath\Charr.Timers_BlishHUD_.bhm"
+removefile "$checkpath\Manlaan.HPGrid_.bhm"
+removefile "$checkpath\Nekres.Quick_Surrender_Module_.bhm"
+removefile "$checkpath\bh.community.pathing_.bhm"
 
 
 # done with updating
