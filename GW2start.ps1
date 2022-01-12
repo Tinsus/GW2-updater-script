@@ -616,7 +616,7 @@ if ($use_BHud) {
 	$targeturl = $targeturl.browser_download_url
 
 	if ($new -ne $old) {
-		Write-Host "BlishHUD-Module Quick-Surrende " -NoNewline -ForegroundColor White
+		Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
 		Write-Host "is being updated" -ForegroundColor Green
 
 		# remove old version
@@ -629,7 +629,52 @@ if ($use_BHud) {
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $new
 	} else {
-		Write-Host "BlishHUD-Module Quick-Surrende " -NoNewline -ForegroundColor White
+		Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
+	}
+
+	removefile "$checkfile.check"
+}
+
+
+# BlishHud-HPGrid
+if ($use_BHud) {
+	checkGithub
+
+	$checkurl = "https://api.github.com/repos/manlaan/BlishHud-HPGrid/releases/latest"
+	$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
+	$targetfile = "$checkpath\BlishHud-HPGrid"
+	$checkfile = "$Version_path\BlishHud-HPGrid"
+
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
+	$new = $($json.tag_name).Substring(1)
+
+	$old = 0
+
+	if (Test-Path "$checkfile.md5") {
+		$old = $(Get-Content "$checkfile.md5" -Raw).Trim()
+	}
+
+	$new = $json.name
+	$name = $json.assets.name
+
+	if ($new -ne $old) {
+		Write-Host "BlishHUD-Module HPGrid " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
+
+		# remove old version
+		removefile "$checkpath\Manlaan.HPGrid_$old.bhm"
+		removefile "$checkpath\$name"
+
+		#  get new version
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkpath\Manlaan.HPGrid_$ver.bhm"
+
+		# remember this version
+		Set-Content -Path "$checkfile.md5" -Value $new
+	} else {
+		Write-Host "BlishHUD-Module HPGrid " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
 	}
 
