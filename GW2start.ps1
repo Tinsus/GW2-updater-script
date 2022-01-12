@@ -624,7 +624,7 @@ if ($use_BHud) {
 		removefile "$checkpath\$name"
 
 		#  get new version
-		Invoke-WebRequest $targeturl -OutFile "$checkpath\Nekres.Quick_Surrender_Module_$ver.bhm"
+		Invoke-WebRequest $targeturl -OutFile "$checkpath\Nekres.Quick_Surrender_Module_$new.bhm"
 
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $new
@@ -669,12 +669,58 @@ if ($use_BHud) {
 		removefile "$checkpath\$name"
 
 		#  get new version
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkpath\Manlaan.HPGrid_$ver.bhm"
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkpath\Manlaan.HPGrid_$new.bhm"
 
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $new
 	} else {
 		Write-Host "BlishHUD-Module HPGrid " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
+	}
+
+	removefile "$checkfile.check"
+}
+
+
+# BlishHud-Timers
+if ($use_BHud) {
+	checkGithub
+
+	$checkurl = "https://api.github.com/repos/Dev-Zhao/Timers_BlishHUD/releases/latest"
+	$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
+	$targetfile = "$checkpath\BlishHud-Timers"
+	$checkfile = "$Version_path\BlishHud-Timers"
+
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
+	$new = $($json.tag_name).Substring(1)
+
+	$old = 0
+
+	if (Test-Path "$checkfile.md5") {
+		$old = $(Get-Content "$checkfile.md5" -Raw).Trim()
+	}
+
+	$new = $json.name
+	$new = $new.Substring($new.Length - 5, 5)
+	$name = $json.assets.name
+
+	if ($new -ne $old) {
+		Write-Host "BlishHUD-Module Timers " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
+
+		# remove old version
+		removefile "$checkpath\Charr.Timers_BlishHUD_$old.bhm"
+		removefile "$checkpath\$name"
+
+		#  get new version
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkpath\Charr.Timers_BlishHUD_$new.bhm"
+
+		# remember this version
+		Set-Content -Path "$checkfile.md5" -Value $new
+	} else {
+		Write-Host "BlishHUD-Module Timers " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
 	}
 
