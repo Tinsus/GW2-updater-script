@@ -28,6 +28,10 @@ function stopprocesses() {
 		Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
 	}
 
+	if ($use_ArcDPS) {
+		Stop-Process -Name "RazerCortex" -ErrorAction SilentlyContinue
+	}
+
 	Stop-Process -Name "Gw2-64" -ErrorAction SilentlyContinue
 }
 

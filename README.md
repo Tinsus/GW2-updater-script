@@ -29,6 +29,8 @@ from now on start GW2 by double clicking the .bat file (only).
 
 nothing is more easy as adding a shortcut to your desktop to start the .bat file from there instead of your regular GW2-shortcut
 
+Please hold in mind: ArcDPS causes GW2 crashes if your PC is running Razer Cortex. Cause of that - if you did not disabled ArcDPS in the .bat-file - the script automaticly closes Razer Cortex.
+
 # download
 
 to share or download this file use this direct link: https://github.com/Tinsus/GW2-updater-script/archive/refs/heads/main.zip
@@ -42,5 +44,3 @@ if the script don't work the first time make sure:
 - check the file settings of the two downloaded files: make sure the tick is set for downloaded files to be executable
 
 if you don't make this changes the script will open and close without doing anything in under 1 second
-
-- if ArcDPS crashes your game stop using Razor Cortex they don't like each other
