@@ -195,6 +195,46 @@ function Out-IniFile($InputObject, $FilePath) {
     }
 }
 
+function enforceBHM($modulename) {
+	$data = Get-Content "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw | ConvertFrom-Json
+
+	$i = 0
+
+	$data.Entries | foreach {
+		if ($_.Key -eq "ModuleConfiguration") {
+			if (-not $data.Entries[$i].Value.Entries.Value[0]."$modulename") {
+				Add-Member -InputObject $data.Entries[$i].Value.Entries.Value[0] -NotePropertyName "$modulename"  -NotePropertyValue @{
+					"Enabled" = $true
+					"UserEnabledPermissions" = $null
+					"IgnoreDependencies" = $false
+					"Settings" = $null
+				}
+			} else {
+				$data.Entries[$i].Value.Entries.Value[0]."$modulename".Enabled = $true
+			}
+
+			<#
+			if (-not $data.Entries[$i].Value.Entries.Value[0]."bh.general.events") {
+				Add-Member -InputObject $data.Entries[$i].Value.Entries.Value[0] -NotePropertyName "bh.general.events"  -NotePropertyValue @{
+					"Enabled" = $true
+					"UserEnabledPermissions" = $null
+					"IgnoreDependencies" = $false
+					"Settings" = $null
+				}
+			} else {
+				$data.Entries[$i].Value.Entries.Value[0]."bh.general.events".Enabled = $true
+			}
+			#>
+		}
+
+		$i++
+	}
+
+	$data | ConvertTo-Json -Depth 100 | Out-File "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json"
+
+	((Get-Content -path "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw).Replace("\u0027","'").Replace('   ', ' ').Replace('  ', ' ').Replace(":  ", ": ")) | Set-Content -Path "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json"
+}
+
 # now the real magic:
 
 # clean up before anything else starts
@@ -592,6 +632,9 @@ if ($use_BHud) {
 
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $new
+
+		# enable this version
+		enforceBHM "bh.community.pathing"
 	} else {
 		Write-Host "BlishHUD-Module Pathing " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
@@ -633,6 +676,9 @@ if ($use_BHud) {
 
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $new
+
+		# enable this version
+		enforceBHM "KillProofModule"
 	} else {
 		Write-Host "BlishHUD-Module KillProof " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
@@ -688,6 +734,9 @@ if ($use_BHud) {
 
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $new
+
+		# enable this version
+		enforceBHM "Nekres.Quick_Surrender_Module"
 	} else {
 		Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
@@ -733,6 +782,9 @@ if ($use_BHud) {
 
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $new
+
+		# enable this version
+		enforceBHM "Manlaan.HPGrid"
 	} else {
 		Write-Host "BlishHUD-Module HPGrid " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
@@ -779,6 +831,9 @@ if ($use_BHud) {
 
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $new
+
+		# enable this version
+		enforceBHM "Charr.Timers_BlishHUD"
 	} else {
 		Write-Host "BlishHUD-Module Timers " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
@@ -1045,7 +1100,6 @@ if ($use_BHud -or $use_TacO) {
 		Write-Host "is up-to-date"
 	}
 }
-
 
 # cleanup for older version of this script
 
