@@ -9,7 +9,7 @@ rem set it to 1 to enable the update and installation of the corresponding tools
 set use_ArcDPS=1
 set use_TacO=1
 set use_BHud=1
-
+rem TODO: setting to stop enforcement of blish-hud module activation
 
 if exist "GW2start.txt" (
 	del "GW2start.ps1"

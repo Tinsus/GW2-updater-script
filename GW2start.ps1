@@ -195,7 +195,7 @@ function Out-IniFile($InputObject, $FilePath) {
     }
 }
 
-# now the non-dynamic stuff:
+# now the real magic:
 
 # clean up before anything else starts
 
@@ -212,7 +212,7 @@ newdir "$Version_path"
 
 $older = $false
 
-if (Test-Path "$GW2_path\github.json") {
+if (Test-Path "$Script_path\github.json") {
 	$older = $true
 } else {
 	Write-Host "You set the following options. " -ForegroundColor White -NoNewline
@@ -366,6 +366,12 @@ if ($use_ArcDPS) {
 
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $json.name
+
+		#generate settings.json
+		Write-Host "Generating default files. This takes about 10 seconds." -ForegroundColor DarkGray
+		Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
+		Start-Sleep -Seconds 12
+		Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
 	} else {
 		Write-Host "ArcDps-killproof.me-plugin " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
@@ -1096,6 +1102,7 @@ removefile "$checkpath\Charr.Timers_BlishHUD_.bhm"
 removefile "$checkpath\Manlaan.HPGrid_.bhm"
 removefile "$checkpath\Nekres.Quick_Surrender_Module_.bhm"
 removefile "$checkpath\bh.community.pathing_.bhm"
+removefile "$GW2_path\github.json"
 
 
 # done with updating
@@ -1103,9 +1110,9 @@ removefile "$checkpath\bh.community.pathing_.bhm"
 if (-not $older) {
 	startGW2
 	stopprocesses
-
-	removefile "$GW2_path\github.json"
 }
+
+removefile "$Script_path\github.json"
 
 
 nls 1
