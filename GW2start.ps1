@@ -366,12 +366,6 @@ if ($use_ArcDPS) {
 
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $json.name
-
-		#generate settings.json
-		Write-Host "Generating default files. This takes about 10 seconds." -ForegroundColor DarkGray
-		Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
-		Start-Sleep -Seconds 12
-		Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
 	} else {
 		Write-Host "ArcDps-killproof.me-plugin " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
@@ -513,6 +507,12 @@ if ($use_BHud) {
 
 		# remember this version
 		Set-Content -Path "$checkfile.md5" -Value $json.node_id
+
+		#generate settings.json
+		Write-Host "Generating default files. This takes about 10 seconds." -ForegroundColor DarkGray
+		Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
+		Start-Sleep -Seconds 12
+		Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
 	} else {
 		Write-Host "BlishHUD " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
