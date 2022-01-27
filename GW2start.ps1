@@ -326,7 +326,7 @@ if (
 	Write-Host "will update itself to build $new" -ForegroundColor Green
 
 	# remember this version
-	Set-Content -Path "$checkfile.md5" -Value $json.new
+	Set-Content -Path "$checkfile.md5" -Value $new
 } else {
 	Write-Host "Guildwars 2 " -NoNewline -ForegroundColor White
 	Write-Host "is up-to-date"
