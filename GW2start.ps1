@@ -745,6 +745,72 @@ if ($use_BHud) {
 			Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
 			Write-Host "is up-to-date"
 		}
+	} else {
+		Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
+		Write-Host "is not contained in the latest bundle" -ForegroundColor Yellow
+	}
+
+	removefile "$checkfile.check"
+}
+
+
+# Mistwar
+if ($use_BHud) {
+	checkGithub
+
+	$checkurl = "https://api.github.com/repos/agaertner/Blish-HUD-Modules-Releases/releases/latest"
+	$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
+	$targetfile = "$checkpath\Mistwar"
+	$checkfile = "$Version_path\Mistwar"
+
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+
+	$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
+	$new = $($json.tag_name).Substring(1)
+
+	$old = 0
+
+	$targeturl = ""
+
+	$json.assets | foreach-object {
+		if ($_.name -match "Mistwar") {
+			$targeturl = $_
+		}
+	}
+
+	if ($targeturl -ne "") {
+		if (Test-Path "$checkfile.md5") {
+			$old = $(Get-Content "$checkfile.md5" -Raw).Trim()
+		}
+
+		$new = $($targeturl.name)
+		$new = $new.Substring($new.Length - 9, 5)
+		$name = $targeturl.name
+		$targeturl = $targeturl.browser_download_url
+
+		if ($new -ne $old) {
+			Write-Host "BlishHUD-Module Mistwar " -NoNewline -ForegroundColor White
+			Write-Host "is being updated" -ForegroundColor Green
+
+			# remove old version
+			removefile "$checkpath\Nekres.Mistwar_$old.bhm"
+			removefile "$checkpath\$name"
+
+			#  get new version
+			Invoke-WebRequest $targeturl -OutFile "$checkpath\Nekres.Mistwar_$new.bhm"
+
+			# remember this version
+			Set-Content -Path "$checkfile.md5" -Value $new
+
+			# enable this version
+			enforceBHM "Nekres.Mistwar"
+		} else {
+			Write-Host "BlishHUD-Module Mistwar " -NoNewline -ForegroundColor White
+			Write-Host "is up-to-date"
+		}
+	} else {
+		Write-Host "BlishHUD-Module Mistwar " -NoNewline -ForegroundColor White
+		Write-Host "is not contained in the latest bundle" -ForegroundColor Yellow
 	}
 
 	removefile "$checkfile.check"
