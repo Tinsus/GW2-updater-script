@@ -62,8 +62,6 @@ function startGW2() {
 	nls 2
 	Write-Host "have fun in Guild Wars 2"
 
-	### DOTO: add msg when GW2 itself needs an update
-
 	Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
 
 	# if GW2 has an update removes ArcDPS
@@ -311,8 +309,33 @@ if (Test-Path "$Script_path\github.json") {
 }
 
 
-# auto update this script itself (prepare the update to be done by the .bat file with the next start)
+# give message about GW2 build id
+$checkurl = "https://api.guildwars2.com/v1/build.json"
+$checkfile = "$Version_path\gw2"
 
+Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
+
+$json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
+$new = $json.build_id
+
+if (
+	-not (Test-Path "$checkfile.md5") -or
+	((Get-Content "$checkfile.md5" -Raw).Trim() -ne $new)
+) {
+	Write-Host "Guildwars 2 " -NoNewline -ForegroundColor White
+	Write-Host "will update itself to build $new" -ForegroundColor Green
+
+	# remember this version
+	Rename-Item "$checkfile.check" -NewName "$checkfile.md5"
+} else {
+	Write-Host "Guildwars 2 " -NoNewline -ForegroundColor White
+	Write-Host "is up-to-date"
+}
+
+removefile "$checkfile.check"
+
+
+# auto update this script itself (prepare the update to be done by the .bat file with the next start)
 removefile "$Script_path\GW2start.txt"
 
 Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.ps1" -OutFile "$Script_path/GW2start.txt"
