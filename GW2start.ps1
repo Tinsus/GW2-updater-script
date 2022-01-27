@@ -326,7 +326,7 @@ if (
 	Write-Host "will update itself to build $new" -ForegroundColor Green
 
 	# remember this version
-	Rename-Item "$checkfile.check" -NewName "$checkfile.md5"
+	Set-Content -Path "$checkfile.md5" -Value $json.new
 } else {
 	Write-Host "Guildwars 2 " -NoNewline -ForegroundColor White
 	Write-Host "is up-to-date"
