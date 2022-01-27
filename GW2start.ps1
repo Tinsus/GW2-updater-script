@@ -62,6 +62,8 @@ function startGW2() {
 	nls 2
 	Write-Host "have fun in Guild Wars 2"
 
+	### DOTO: add msg when GW2 itself needs an update
+
 	Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
 
 	# if GW2 has an update removes ArcDPS
@@ -705,10 +707,6 @@ if ($use_BHud) {
 
 	$old = 0
 
-	if (Test-Path "$checkfile.md5") {
-		$old = $(Get-Content "$checkfile.md5" -Raw).Trim()
-	}
-
 	$targeturl = ""
 
 	$json.assets | foreach-object {
@@ -717,30 +715,36 @@ if ($use_BHud) {
 		}
 	}
 
-	$new = $($targeturl.name)
-	$new = $new.Substring($new.Length - 9, 5)
-	$name = $targeturl.name
-	$targeturl = $targeturl.browser_download_url
+	if ($targeturl -ne "") {
+		if (Test-Path "$checkfile.md5") {
+			$old = $(Get-Content "$checkfile.md5" -Raw).Trim()
+		}
 
-	if ($new -ne $old) {
-		Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
+		$new = $($targeturl.name)
+		$new = $new.Substring($new.Length - 9, 5)
+		$name = $targeturl.name
+		$targeturl = $targeturl.browser_download_url
 
-		# remove old version
-		removefile "$checkpath\Nekres.Quick_Surrender_Module_$old.bhm"
-		removefile "$checkpath\$name"
+		if ($new -ne $old) {
+			Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
+			Write-Host "is being updated" -ForegroundColor Green
 
-		#  get new version
-		Invoke-WebRequest $targeturl -OutFile "$checkpath\Nekres.Quick_Surrender_Module_$new.bhm"
+			# remove old version
+			removefile "$checkpath\Nekres.Quick_Surrender_Module_$old.bhm"
+			removefile "$checkpath\$name"
 
-		# remember this version
-		Set-Content -Path "$checkfile.md5" -Value $new
+			#  get new version
+			Invoke-WebRequest $targeturl -OutFile "$checkpath\Nekres.Quick_Surrender_Module_$new.bhm"
 
-		# enable this version
-		enforceBHM "Nekres.Quick_Surrender_Module"
-	} else {
-		Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
+			# remember this version
+			Set-Content -Path "$checkfile.md5" -Value $new
+
+			# enable this version
+			enforceBHM "Nekres.Quick_Surrender_Module"
+		} else {
+			Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
+			Write-Host "is up-to-date"
+		}
 	}
 
 	removefile "$checkfile.check"
