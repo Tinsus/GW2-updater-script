@@ -310,13 +310,13 @@ if (Test-Path "$Script_path\github.json") {
 
 
 # give message about GW2 build id
-$checkurl = "https://api.guildwars2.com/v1/build.json"
+$checkurl = "https://api.guildwars2.com/v2/build"
 $checkfile = "$Version_path\gw2"
 
 Invoke-WebRequest "$checkurl" -OutFile "$checkfile.check"
 
 $json = (Get-Content "$checkfile.check" -Raw) | ConvertFrom-Json
-$new = $json.build_id
+$new = $json.id
 
 if (
 	-not (Test-Path "$checkfile.md5") -or
