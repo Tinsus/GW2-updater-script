@@ -3,19 +3,11 @@
 
 #some magic stuff for pathes and options
 
-param($GW2_path, $TacO_path, $BlishHUD_path, $use_ArcDPS, $use_TacO, $use_BHud)
+param($GW2_path_old, $TacO_path_old, $BlishHUD_path_old, $use_ArcDPS_old, $use_TacO_old, $use_BHud_old)
 
-$GW2_path = $GW2_path.Substring(1, $GW2_path.Length - 2)
-$TacO_path = $TacO_path.Substring(1, $TacO_path.Length - 2)
-$BlishHUD_path = $BlishHUD_path.Substring(1, $BlishHUD_path.Length - 2)
 $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
 $Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
 $Version_path = "$Script_path\version_control"
-
-$use_ArcDPS = ($use_ArcDPS.Substring(1, $use_ArcDPS.Length - 2)) -ne 0
-$use_TacO = ($use_TacO.Substring(1, $use_TacO.Length - 2)) -ne 0
-$use_BHud = ($use_BHud.Substring(1, $use_BHud.Length - 2)) -ne 0
-
 
 # some functions for lazy people
 
@@ -173,7 +165,10 @@ function Get-IniContent($filePath) {
 }
 
 function Out-IniFile($InputObject, $FilePath) {
+	removefile $FilePath
+
     $outFile = New-Item -ItemType file -Path $Filepath
+
     foreach ($i in $InputObject.keys) {
         if (!($($InputObject[$i].GetType().Name) -eq "Hashtable")) {
             #No Sections
@@ -244,11 +239,73 @@ function enforceBHM($modulename) {
 
 # now the real magic:
 
-# clean up before anything else starts
-
 Clear-Host
 
-nls 7
+#build or read the new and shiny GW2start.ini
+
+if (-not (Test-Path "$Script_path\GW2start.ini")) {
+	Write-Host "Hi there! It seems to be the very first time for you to use this script. This script can do a lot - maybe you don't want to use all of it. We build the file together now, if you want to change anything just edit or delete the following file: " -NoNewline -ForegroundColor White
+	Write-Host "$Script_path\GW2start.ini"
+
+	$conf = @{}
+
+	nls 1
+} else {
+	$conf = Get-IniContent "$Script_path\GW2start.ini"
+
+	nls 7
+}
+
+if ($conf.installation_paths -eq $null) {
+	$conf["installation_paths"] = @{}
+}
+
+if ($conf.installation_paths.Guildwars2 -eq $null) {
+	nls 1
+	Write-Host "To do a lot of it's magic this script needs to know where you have installed " -NoNewline
+	Write-Host "Guildwars 2" -ForegroundColor White
+	Write-Host "For example: C:\Program Files\Guild Wars 2"
+
+	$input = "C:\Program Files\Guild Wars 2"
+
+	if ($GW2_path_old -ne $null) {
+		$input = $GW2_path_old.Substring(1, $GW2_path_old.Length - 2)
+	}
+	
+	if (-not (Test-Path "$input\Gw2-64.exe")) {
+		do {
+			$input = Read-Host -Prompt "Enter the installation path to Guildwars 2: "
+		} while (-not (Test-Path "$input\Gw2-64.exe"))
+	} else {
+		Write-Host "Found it: $input"
+	}
+	
+	$conf["installation_paths"]["Guildwars2"] = $input
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+$GW2_path = $conf.installation_paths.Guildwars2
+
+nls 3
+Write-Host "To change any settings for this script checkout the GW2start.ini file located " -NoNewline
+Write-Host "$Script_path\GW2start.ini" -ForegroundColor White
+
+Write-Output $conf.GW2_path
+Write-Output $conf.Paths.GW2_path
+
+exit
+
+$GW2_path = 
+$TacO_path = $TacO_path.Substring(1, $TacO_path.Length - 2)
+$BlishHUD_path = $BlishHUD_path.Substring(1, $BlishHUD_path.Length - 2)
+
+$use_ArcDPS = ($use_ArcDPS.Substring(1, $use_ArcDPS.Length - 2)) -ne 0
+$use_TacO = ($use_TacO.Substring(1, $use_TacO.Length - 2)) -ne 0
+$use_BHud = ($use_BHud.Substring(1, $use_BHud.Length - 2)) -ne 0
+
+# clean up before anything else starts
+
 
 stopprocesses
 
