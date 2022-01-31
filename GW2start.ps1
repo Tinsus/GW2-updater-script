@@ -287,22 +287,65 @@ if ($conf.installation_paths.Guildwars2 -eq $null) {
 
 $GW2_path = $conf.installation_paths.Guildwars2
 
+if ($conf.installation_paths.TacO -eq $null) {
+	nls 1
+	Write-Host "Most people likes TacO a lot. Where do you want it to get installed or already have installed " -NoNewline
+	Write-Host "TacO" -ForegroundColor White
+	Write-Host "For example: C:\Program Files\TacO"
+
+	$input = "C:\Program Files\TacO"
+
+	if ($TacO_path_old -ne $null) {
+		$input = $TacO_path_old.Substring(1, $TacO_path_old.Length - 2)
+	}
+	
+	if (-not (Test-Path "$input")) {
+		$input = Read-Host -Prompt "Enter the installation path for TacO: "
+	} else {
+		Write-Host "Found it: $input"
+	}
+	
+	$conf["installation_paths"]["TacO"] = $input
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+$TacO_path = $conf.installation_paths.BlishHUD
+
+if ($conf.installation_paths.BlishHUD -eq $null) {
+	nls 1
+	Write-Host "BlishHUD is a project like TacO, but BlishHUD can do a lot more and is better costomizable. Where do you want it to get installed or already have installed " -NoNewline
+	Write-Host "BlishHUD" -ForegroundColor White
+	Write-Host "For example: C:\Program Files\BlishHUD"
+
+	$input = "C:\Program Files\BlishHUD"
+
+	if ($BlishHUD_path_old -ne $null) {
+		$input = $BlishHUD_path_old.Substring(1, $BlishHUD_path_old.Length - 2)
+	}
+	
+	if (-not (Test-Path "$input")) {
+		$input = Read-Host -Prompt "Enter the installation path for BlishHUD: "
+	} else {
+		Write-Host "Found it: $input"
+	}
+	
+	$conf["installation_paths"]["BlishHUD"] = $input
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+$BlishHUD_path = $conf.installation_paths.BlishHUD
 nls 3
 Write-Host "To change any settings for this script checkout the GW2start.ini file located " -NoNewline
 Write-Host "$Script_path\GW2start.ini" -ForegroundColor White
 
-Write-Output $conf.GW2_path
-Write-Output $conf.Paths.GW2_path
-
 exit
 
-$GW2_path = 
-$TacO_path = $TacO_path.Substring(1, $TacO_path.Length - 2)
-$BlishHUD_path = $BlishHUD_path.Substring(1, $BlishHUD_path.Length - 2)
-
-$use_ArcDPS = ($use_ArcDPS.Substring(1, $use_ArcDPS.Length - 2)) -ne 0
-$use_TacO = ($use_TacO.Substring(1, $use_TacO.Length - 2)) -ne 0
-$use_BHud = ($use_BHud.Substring(1, $use_BHud.Length - 2)) -ne 0
+#update behavior of:
+#$use_ArcDPS 
+#$use_TacO 
+#$use_BHud 
 
 # clean up before anything else starts
 
