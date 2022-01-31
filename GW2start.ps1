@@ -263,7 +263,8 @@ if ($conf.installation_paths -eq $null) {
 if ($conf.installation_paths.Guildwars2 -eq $null) {
 	nls 1
 	Write-Host "To do a lot of it's magic this script needs to know where you have installed " -NoNewline
-	Write-Host "Guildwars 2" -ForegroundColor White
+	Write-Host "Guildwars 2" -NoNewline -ForegroundColor Yellow
+	Write-Host "?"
 	Write-Host "For example: C:\Program Files\Guild Wars 2"
 
 	$input = "C:\Program Files\Guild Wars 2"
@@ -271,7 +272,7 @@ if ($conf.installation_paths.Guildwars2 -eq $null) {
 	if ($GW2_path_old -ne $null) {
 		$input = $GW2_path_old.Substring(1, $GW2_path_old.Length - 2)
 	}
-	
+
 	if (-not (Test-Path "$input\Gw2-64.exe")) {
 		do {
 			$input = Read-Host -Prompt "Enter the installation path to Guildwars 2: "
@@ -279,7 +280,7 @@ if ($conf.installation_paths.Guildwars2 -eq $null) {
 	} else {
 		Write-Host "Found it: $input"
 	}
-	
+
 	$conf["installation_paths"]["Guildwars2"] = $input
 
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
@@ -289,8 +290,9 @@ $GW2_path = $conf.installation_paths.Guildwars2
 
 if ($conf.installation_paths.TacO -eq $null) {
 	nls 1
-	Write-Host "Most people likes TacO a lot. Where do you want it to get installed or already have installed " -NoNewline
-	Write-Host "TacO" -ForegroundColor White
+	Write-Host "Most people like " -NoNewline
+	Write-Host "TacO " -NoNewline -ForegroundColor Yellow
+	Write-Host "a lot. Where do you want it to get installed or where do you have it installed already?"
 	Write-Host "For example: C:\Program Files\TacO"
 
 	$input = "C:\Program Files\TacO"
@@ -298,13 +300,13 @@ if ($conf.installation_paths.TacO -eq $null) {
 	if ($TacO_path_old -ne $null) {
 		$input = $TacO_path_old.Substring(1, $TacO_path_old.Length - 2)
 	}
-	
+
 	if (-not (Test-Path "$input")) {
 		$input = Read-Host -Prompt "Enter the installation path for TacO: "
 	} else {
 		Write-Host "Found it: $input"
 	}
-	
+
 	$conf["installation_paths"]["TacO"] = $input
 
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
@@ -314,8 +316,8 @@ $TacO_path = $conf.installation_paths.BlishHUD
 
 if ($conf.installation_paths.BlishHUD -eq $null) {
 	nls 1
-	Write-Host "BlishHUD is a project like TacO, but BlishHUD can do a lot more and is better costomizable. Where do you want it to get installed or already have installed " -NoNewline
-	Write-Host "BlishHUD" -ForegroundColor White
+	Write-Host "BlishHUD " -NoNewline -ForegroundColor Yellow
+	Write-Host "is a project like TacO, but BlishHUD can do a lot more and is better costomizable. Where do you want it to get installed or already have it installed already?"
 	Write-Host "For example: C:\Program Files\BlishHUD"
 
 	$input = "C:\Program Files\BlishHUD"
@@ -323,19 +325,188 @@ if ($conf.installation_paths.BlishHUD -eq $null) {
 	if ($BlishHUD_path_old -ne $null) {
 		$input = $BlishHUD_path_old.Substring(1, $BlishHUD_path_old.Length - 2)
 	}
-	
+
 	if (-not (Test-Path "$input")) {
 		$input = Read-Host -Prompt "Enter the installation path for BlishHUD: "
 	} else {
 		Write-Host "Found it: $input"
 	}
-	
+
 	$conf["installation_paths"]["BlishHUD"] = $input
 
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
 $BlishHUD_path = $conf.installation_paths.BlishHUD
+
+if ($conf.configuration -eq $null) {
+	$conf["configuration"] = @{}
+}
+
+if ($conf.configuration.defaultmode -eq $null) {
+	nls 1
+	Write-Host "If you want to autoupdate and autostart every feature supported by this script activate the " -NoNewline
+	Write-Host "default-mode " -NoNewline -ForegroundColor Yellow
+	Write-Host "but if you like to edit what to install/update or auto start activate the " -NoNewline
+	Write-Host "pro-mode" -ForegroundColor Yellow
+
+	do {
+		$input = Read-Host -Prompt "Type d for default-mode or p for pro-mode: "
+	} while (-not(
+		($input -eq "d") -or
+		($input -eq "p")
+	))
+
+	$conf["configuration"]["defaultmode"] = $input -eq "d"
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.configuration.update_ArcDPS -eq $null) {
+	$default = $true
+
+	Write-Host "ArcDPS " -NoNewline -ForegroundColor Yellow
+	Write-Host "is a great tool to monitor the DPS and other stuff of you and your group. (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		do {
+			$input = Read-Host -Prompt "Type y to install ArcDPS, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["configuration"]["update_ArcDPS"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.configuration.update_TacO -eq $null) {
+	$default = $true
+
+	Write-Host "TacO " -NoNewline -ForegroundColor Yellow
+	Write-Host "is a great tool for almost any content in GW2, mostly known for its features to show paths inb the world or help within raids."
+	Write-Host "Do you want this script to install TacO and keep it up-to-date? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate TacO, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["configuration"]["update_TacO"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.configuration.update_BlishHUD -eq $null) {
+	$default = $true
+
+	Write-Host "BlishHUD " -NoNewline -ForegroundColor Yellow
+	Write-Host "is a modern tool for doing the same stuff as TacO does but BlishHUD is more customizable and can be enhanced with so called modules."
+	Write-Host "Do you want this script to install BlishHUD and keep it up-to-date? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate BlishHUD, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["configuration"]["update_BlishHUD"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.configuration.start_TacO -eq $null) {
+	$default = $false
+
+	Write-Host "TacO " -NoNewline -ForegroundColor Yellow
+	Write-Host "needs to be started additionaly to GW2. You need to play GW2 Fullscreen in window-mode."
+	Write-Host "Do you want this script to autostart TacO? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_TacO) {
+			Write-Host "TacO will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autostart TacO, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["configuration"]["start_TacO"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.configuration.start_BlishHUD -eq $null) {
+	$default = $true
+
+	Write-Host "BlishHUD " -NoNewline -ForegroundColor Yellow
+	Write-Host "needs to be started additionaly to GW2. You need to play GW2 Fullscreen in window-mode."
+
+	if ($conf.configuration.start_TacO) {
+		Write-Host "TacO and BlishHUD can run side by side."
+	}
+
+	Write-Host "Do you want this script to autostart BlishHUD? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_BlishHUD) {
+			Write-Host "BlishHUD will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+		
+		do {
+			$input = Read-Host -Prompt "Type y to autostart BlishHUD, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["configuration"]["start_BlishHUD"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+#$conf.configuration.defaultmode
+#$conf.configuration.update_ArcDPS
+#$conf.configuration.update_TacO
+#$conf.configuration.update_BlishHUD
+#$conf.configuration.start_TacO
+#$conf.configuration.start_BlishHUD
+
 nls 3
 Write-Host "To change any settings for this script checkout the GW2start.ini file located " -NoNewline
 Write-Host "$Script_path\GW2start.ini" -ForegroundColor White
@@ -343,9 +514,9 @@ Write-Host "$Script_path\GW2start.ini" -ForegroundColor White
 exit
 
 #update behavior of:
-#$use_ArcDPS 
-#$use_TacO 
-#$use_BHud 
+#$use_ArcDPS
+#$use_TacO
+#$use_BHud
 
 # clean up before anything else starts
 
