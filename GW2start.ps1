@@ -507,6 +507,42 @@ if ($conf.settings_ArcDPS -eq $null) {
 	$conf["settings_ArcDPS"] = @{}
 }
 
+if ($conf.settings_ArcDPS.dx9 -eq $null) {
+	$default = $true
+
+	Write-Host "The game uses " -NoNewline
+	Write-Host "DirectX9 " -NoNewline -ForegroundColor Yellow
+	Write-Host "as default. ArcDPS and all its dependencies will NOT work if you swap to " -NoNewline
+	Write-Host "DirectX11 " -NoNewline -ForegroundColor Yellow
+	Write-Host "in the ingame video-settings."
+	Write-Host "The settings here needs to match your video settings."
+	Write-Host "If you change it without changing the ArcDPS version the game may crash when you try to start it." -ForegroundColor Yellow
+	Write-Host "Remember this setting - changing the DirectX9 ingame later on may makes the game unplayable until you delete ArcDPS from your system." -ForegroundColor Red
+	Write-Host "Do you want this script to install ArcDPS for DirectX9 instead of DirectX11? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_ArcDPS) {
+			Write-Host "ArcDPS will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type 9 if you play Guildwars2 using DirectX9, or 11 if you use DirectX11: "
+		} while (-not(
+			($input -eq "9") -or
+			($input -eq "11") -or
+			($input -eq "ll")
+		))
+
+		$default = $input -eq "9"
+	}
+
+	$conf["settings_ArcDPS"]["killproof"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
 if ($conf.settings_ArcDPS.killproof -eq $null) {
 	$default = $true
 
@@ -1126,11 +1162,29 @@ if ($conf.settings_Mappacks.heromarkers -eq $null) {
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
+
+if ($conf.versions -eq $null) {
+	$conf["versions"] = @{}
+}
+
+nls 3
+Write-Host "To change any settings for this script checkout the GW2start.ini file located " -NoNewline
+Write-Host "$Script_path\GW2start.ini" -ForegroundColor White
+
+# clean up before anything else starts
+
+
+stopprocesses
+
+newdir "$Version_path"
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------
 #$conf.configuration.update_ArcDPS
 #$conf.configuration.update_TacO
 #$conf.configuration.update_BlishHUD
 #$conf.configuration.start_TacO
 #$conf.configuration.start_BlishHUD
+#$conf.settings_ArcDPS.dx9
 #$conf.settings_ArcDPS.killproof
 #$conf.settings_ArcDPS.boon_table
 #$conf.settings_ArcDPS.healing_stats
@@ -1150,24 +1204,15 @@ if ($conf.settings_Mappacks.heromarkers -eq $null) {
 #$conf.settings_Mappacks.reactif
 #$conf.settings_Mappacks.heromarkers
 
-nls 3
-Write-Host "To change any settings for this script checkout the GW2start.ini file located " -NoNewline
-Write-Host "$Script_path\GW2start.ini" -ForegroundColor White
+# if ($conf.versions.FOR -eq $null) ; $conf["versions"]["FOR"] = $version ; Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 
+#todo support for dx11 ; me the Arc DLL to d3d11.dll
 exit
-
 #update behavior of:
 #$use_ArcDPS
 #$use_TacO
 #$use_BHud
-
-# clean up before anything else starts
-
-
-stopprocesses
-
-newdir "$Version_path"
-
+# --------------------------------------------------------------------------------------------------------------------------------------------------
 
 # some information for our user (yes, I'm talking about YOU, you creepy coder)
 
