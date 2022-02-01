@@ -369,6 +369,9 @@ if ($conf.configuration.update_ArcDPS -eq $null) {
 	Write-Host "is a great tool to monitor the DPS and other stuff of you and your group. (default: " -NoNewline
 	Write-Host $default -NoNewline -ForegroundColor White
 	Write-Host ")"
+	Write-Host "Warning: sometimes the game crashes after updates, especially after some game updates. This is may caused by ArcDPS. If this happens delete: " -NoNewline -ForegroundColor Red
+	Write-Host "$GW2_path\bin64\d3d9.dll " -NoNewline
+	Write-Host "Keep this warning in mind!" -ForegroundColor Red
 
 	if (-not $conf.configuration.defaultmode) {
 		do {
@@ -484,7 +487,7 @@ if ($conf.configuration.start_BlishHUD -eq $null) {
 		if (-not $conf.configuration.update_BlishHUD) {
 			Write-Host "BlishHUD will not get installed or updated. Choose n!" -ForegroundColor Red
 		}
-		
+
 		do {
 			$input = Read-Host -Prompt "Type y to autostart BlishHUD, n if don't want it: "
 		} while (-not(
@@ -500,12 +503,652 @@ if ($conf.configuration.start_BlishHUD -eq $null) {
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
-#$conf.configuration.defaultmode
+if ($conf.settings_ArcDPS -eq $null) {
+	$conf["settings_ArcDPS"] = @{}
+}
+
+if ($conf.settings_ArcDPS.killproof -eq $null) {
+	$default = $true
+
+	Write-Host "killproof.me-plugin " -NoNewline -ForegroundColor Yellow
+	Write-Host "extences ArcDPS to show the killproof.me data of your group members. Shortcut to open that is Shift+Alt+K"
+	Write-Host "Do you want this script to autoupdate the killproof.me-plugin? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_ArcDPS) {
+			Write-Host "ArcDPS will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate ArcDPS-killproof.me-plugin, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_ArcDPS"]["killproof"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_ArcDPS.boon_table -eq $null) {
+	$default = $true
+
+	Write-Host "Boon-Table-plugin " -NoNewline -ForegroundColor Yellow
+	Write-Host "extences ArcDPS to show the boons done by you and your group members. Shortcut to open that is Shift+Alt+B"
+	Write-Host "Do you want this script to autoupdate the Boon-Table-plugin? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_ArcDPS) {
+			Write-Host "ArcDPS will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate ArcDPS-Boon-Table-plugin, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_ArcDPS"]["boon_table"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_ArcDPS.healing_stats -eq $null) {
+	$default = $true
+
+	Write-Host "Healing-Stats-plugin " -NoNewline -ForegroundColor Yellow
+	Write-Host "extences ArcDPS to show your heal."
+	Write-Host "Do you want this script to autoupdate the Healing-Stats-plugin? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_ArcDPS) {
+			Write-Host "ArcDPS will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate Healing-Stats-plugin, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_ArcDPS"]["healing_stats"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_ArcDPS.mechanics_log -eq $null) {
+	$default = $true
+
+	Write-Host "Mechanics-Log-plugin " -NoNewline -ForegroundColor Yellow
+	Write-Host "extences ArcDPS to how good you or your group members perform with the mechanics in raids. Shortcut to open that is Shift+Alt+L"
+	Write-Host "Do you want this script to autoupdate the Mechanics-Log-plugin? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_ArcDPS) {
+			Write-Host "ArcDPS will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate ArcDPS-Mechanics-Log-plugin, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_ArcDPS"]["mechanics_log"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_BlishHUD -eq $null) {
+	$conf["settings_BlishHUD"] = @{}
+}
+
+if ($conf.settings_BlishHUD.ArcDPS_Bridge -eq $null) {
+	$default = $true
+
+	Write-Host "ArcDPS Bridge " -NoNewline -ForegroundColor Yellow
+	Write-Host "allows BlishHUD to have access to the live ArcDPS data. Some Modules need that."
+	Write-Host "Do you want this script to autoupdate the BlishHUD-ArcDPS-Bridge? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_ArcDPS) {
+			Write-Host "ArcDPS will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		if (-not $conf.configuration.update_BlishHUD) {
+			Write-Host "BlishHUD will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate BlishHUD-ArcDPS-Bridge, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_BlishHUD"]["ArcDPS_Bridge"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_BlishHUD.Pathing -eq $null) {
+	$default = $true
+
+	Write-Host "Pathing-Module " -NoNewline -ForegroundColor Yellow
+	Write-Host "allows BlishHUD to show pathes in the world like TacO does. You need that for all the Map-packs."
+	Write-Host "Do you want this script to autoupdate the BlishHUD-Pathing-Module? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_BlishHUD) {
+			Write-Host "BlishHUD will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate BlishHUD-Pathing-Module, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_BlishHUD"]["Pathing"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_BlishHUD.KillProof_Module -eq $null) {
+	$default = $true
+
+	Write-Host "KillProof-Module " -NoNewline -ForegroundColor Yellow
+	Write-Host "extences BlishHUD to show the killproof.me data of you and your group members."
+	Write-Host "Do you want this script to autoupdate the KillProof-Module? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_ArcDPS) {
+			Write-Host "ArcDPS will not get installed or updated. You need to enter the account-names or killproof-ids manually." -ForegroundColor Yellow
+		}
+
+		if (-not $conf.settings_BlishHUD.ArcDPS_Bridge) {
+			Write-Host "BlishHUD-ArcDPS-Bridge will not get installed or updated. You need to enter the account-names or killproof-ids manually." -ForegroundColor Yellow
+		}
+
+		if (-not $conf.configuration.update_BlishHUD) {
+			Write-Host "BlishHUD will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate BlishHUD-KillProof-Module, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_BlishHUD"]["KillProof_Module"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_BlishHUD.Quick_Surrender -eq $null) {
+	$default = $true
+
+	Write-Host "Quick Surrender-Module " -NoNewline -ForegroundColor Yellow
+	Write-Host "extences BlishHUD to show a nice /gg-Button right of your normal skill-bar. Push it and you die. Only visible whre you can /gg"
+	Write-Host "Do you want this script to autoupdate the Quick Surrender-Module? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_BlishHUD) {
+			Write-Host "BlishHUD will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate BlishHUD-KillProof-Module, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_BlishHUD"]["Quick_Surrender"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_BlishHUD.Mistwar -eq $null) {
+	$default = $true
+
+	Write-Host "Mistwar-Module " -NoNewline -ForegroundColor Yellow
+	Write-Host "extences BlishHUD to show a map in WvW. Just press N while you are in WvW to see it."
+	Write-Host "Do you want this script to autoupdate the Mistwar-Module? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_BlishHUD) {
+			Write-Host "BlishHUD will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate BlishHUD-Mistwar, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_BlishHUD"]["Mistwar"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_BlishHUD.HPGrid -eq $null) {
+	$default = $true
+
+	Write-Host "HPGrid-Module " -NoNewline -ForegroundColor Yellow
+	Write-Host "extences BlishHUD to show small bars on the lp bar of bosses in fractals and raids. The bars indicates where LP-driven mechanics happen."
+	Write-Host "Do you want this script to autoupdate the HPGrid-Module? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_BlishHUD) {
+			Write-Host "BlishHUD will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate BlishHUD-HPGrid, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_BlishHUD"]["HPGrid"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_BlishHUD.Timers -eq $null) {
+	$default = $true
+
+	Write-Host "Timers-Module " -NoNewline -ForegroundColor Yellow
+	Write-Host "extences BlishHUD to show information for mechanics in raids. Way better than TacO does - trust me."
+	Write-Host "Do you want this script to autoupdate the Timers-Module? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_BlishHUD) {
+			Write-Host "BlishHUD will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate BlishHUD-Timers, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_BlishHUD"]["Timers"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_BlishHUD.Timers -eq $null) {
+	$default = $true
+
+	Write-Host "Timers-Module " -NoNewline -ForegroundColor Yellow
+	Write-Host "extences BlishHUD to show information for mechanics in raids. Way better than TacO does - trust me."
+	Write-Host "Do you want this script to autoupdate the Timers-Module? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_BlishHUD) {
+			Write-Host "BlishHUD will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate BlishHUD-Timers, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_BlishHUD"]["Timers"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_Mappacks -eq $null) {
+	$conf["settings_Mappacks"] = @{}
+}
+
+if ($conf.settings_Mappacks.use_TacO -eq $null) {
+	$default = $false
+
+	Write-Host "Add map packs to " -NoNewline
+	Write-Host "TacO? " -ForegroundColor Yellow -NoNewline
+	Write-Host "BlishHUD can also do that."
+
+	Write-Host "Do you want this script to autoupdate map packs for TacO? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_TacO) {
+			Write-Host "TacO will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to add map packs to TacO, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_Mappacks"]["use_TacO"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_Mappacks.use_BlishHUD -eq $null) {
+	$default = $true
+
+	Write-Host "Add map packs to " -NoNewline
+	Write-Host "BlishHUD? " -ForegroundColor Yellow -NoNewline
+	Write-Host "Some packs only support BlishHUD."
+
+	Write-Host "Do you want this script to autoupdate map packs for BlishHUD? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.configuration.update_BlishHUD) {
+			Write-Host "BlishHUD will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to add map packs to BlishHUD-Pathing-Module, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_Mappacks"]["use_BlishHUD"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_Mappacks.tekkit -eq $null) {
+	$default = $true
+
+	Write-Host "TEKKIT-Map pack " -NoNewline -ForegroundColor Yellow
+	Write-Host "map pack to show nearly anything in the world. Like map completions, farming trails, jumping puzzles and more. the mostly known map pack of them all and the reason the most people install TacO."
+	Write-Host "Do you want this script to autoupdate TEKKIT? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (
+			(-not $conf.configuration.update_TacO) -and
+			(-not $conf.BlishHUD.Pathing)
+		) {
+			Write-Host "TacO and BlishHUD-pathing-Module will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		if (
+			(-not $conf.settings_Mappacks.use_TacO) -and
+			(-not $conf.settings_Mappacks.use_BlishHUD)
+		) {
+			Write-Host "TacO and BlishHUD-pathing-Module will not used for map-packs. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate TEKKIT, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_Mappacks"]["tekkit"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_Mappacks.schattenfluegel -eq $null) {
+	$default = $true
+
+	Write-Host "Schattenfluegel-Map pack " -NoNewline -ForegroundColor Yellow
+	Write-Host "map pack to show be better than TEKKIT. It adds shotcuts and way better pathes. Way better design, but not as complete as TEKKIT."
+	Write-Host "Do you want this script to autoupdate Schattenfluegel? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (
+			(-not $conf.configuration.update_TacO) -and
+			(-not $conf.BlishHUD.Pathing)
+		) {
+			Write-Host "TacO and BlishHUD-pathing-Module will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		if (
+			(-not $conf.settings_Mappacks.use_TacO) -and
+			(-not $conf.settings_Mappacks.use_BlishHUD)
+		) {
+			Write-Host "TacO and BlishHUD-pathing-Module will not used for map-packs. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate Schattenfluegel, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_Mappacks"]["schattenfluegel"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_Mappacks.czokalapik -eq $null) {
+	$default = $true
+
+	Write-Host "Czokalapik-Map pack " -NoNewline -ForegroundColor Yellow
+	Write-Host "map pack for easy hero points farm runs. Includes all needed waypoints, easy to follow."
+	Write-Host "Do you want this script to autoupdate Czokalapik? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (
+			(-not $conf.configuration.update_TacO) -and
+			(-not $conf.BlishHUD.Pathing)
+		) {
+			Write-Host "TacO and BlishHUD-pathing-Module will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		if (
+			(-not $conf.settings_Mappacks.use_TacO) -and
+			(-not $conf.settings_Mappacks.use_BlishHUD)
+		) {
+			Write-Host "TacO and BlishHUD-pathing-Module will not used for map-packs. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate Czokalapik, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_Mappacks"]["czokalapik"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_Mappacks.reactif -eq $null) {
+	$default = $true
+
+	Write-Host "Reactif-Map pack " -NoNewline -ForegroundColor Yellow
+	Write-Host "map pack like Tekkit but focused on achievements."
+	Write-Host "Do you want this script to autoupdate Reactif? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (
+			(-not $conf.configuration.update_TacO) -and
+			(-not $conf.BlishHUD.Pathing)
+		) {
+			Write-Host "TacO and BlishHUD-pathing-Module will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		if (
+			(-not $conf.settings_Mappacks.use_TacO) -and
+			(-not $conf.settings_Mappacks.use_BlishHUD)
+		) {
+			Write-Host "TacO and BlishHUD-pathing-Module will not used for map-packs. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate Reactif, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_Mappacks"]["reactif"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+if ($conf.settings_Mappacks.heromarkers -eq $null) {
+	$default = $true
+
+	Write-Host "Heromarkers-Map pack " -NoNewline -ForegroundColor Yellow
+	Write-Host "to add nice tips and markers within the fractals. Only supported for BlishHUD."
+	Write-Host "Do you want this script to autoupdate Heromarkers? (default: " -NoNewline
+	Write-Host $default -NoNewline -ForegroundColor White
+	Write-Host ")"
+
+	if (-not $conf.configuration.defaultmode) {
+		if (-not $conf.BlishHUD.Pathing) {
+			Write-Host "BlishHUD-pathing-Module will not get installed or updated. Choose n!" -ForegroundColor Red
+		}
+
+		if (-not $conf.settings_Mappacks.use_BlishHUD) {
+			Write-Host "BlishHUD-pathing-Module will not used for map-packs. Choose n!" -ForegroundColor Red
+		}
+
+		do {
+			$input = Read-Host -Prompt "Type y to autoupdate Heromarkers, n if don't want it: "
+		} while (-not(
+			($input -eq "y") -or
+			($input -eq "n")
+		))
+
+		$default = $input -eq "y"
+	}
+
+	$conf["settings_Mappacks"]["heromarkers"] = $default
+
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
 #$conf.configuration.update_ArcDPS
 #$conf.configuration.update_TacO
 #$conf.configuration.update_BlishHUD
 #$conf.configuration.start_TacO
 #$conf.configuration.start_BlishHUD
+#$conf.settings_ArcDPS.killproof
+#$conf.settings_ArcDPS.boon_table
+#$conf.settings_ArcDPS.healing_stats
+#$conf.settings_ArcDPS.mechanics_log
+#$conf.settings_BlishHUD.ArcDPS_Bridge
+#$conf.settings_BlishHUD.Pathing
+#$conf.settings_BlishHUD.KillProof_Module
+#$conf.settings_BlishHUD.Quick_Surrender
+#$conf.settings_BlishHUD.Mistwar
+#$conf.settings_BlishHUD.HPGrid
+#$conf.settings_BlishHUD.Timers
+#$conf.settings_Mappacks.use_TacO
+#$conf.settings_Mappacks.use_BlishHUD
+#$conf.settings_Mappacks.tekkit
+#$conf.settings_Mappacks.schattenfluegel
+#$conf.settings_Mappacks.czokalapik
+#$conf.settings_Mappacks.reactif
+#$conf.settings_Mappacks.heromarkers
 
 nls 3
 Write-Host "To change any settings for this script checkout the GW2start.ini file located " -NoNewline
