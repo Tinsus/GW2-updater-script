@@ -12,15 +12,15 @@ $checkfile = "$Script_path\checkfile"
 # some functions for lazy people
 
 function stopprocesses() {
-	if ($use_TacO) {
+	if ($conf.configuration.start_TacO) {
 		Stop-Process -Name "GW2TacO" -ErrorAction SilentlyContinue
 	}
 
-	if ($use_BHud) {
+	if ($conf.configuration.start_BlishHUD) {
 		Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
 	}
 
-	if ($use_ArcDPS) {
+	if ($conf.configuration.update_ArcDPS) {
 		Stop-Process -Name "RazerCortex" -ErrorAction SilentlyContinue
 	}
 
