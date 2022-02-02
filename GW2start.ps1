@@ -262,7 +262,7 @@ if ($conf.installation_paths -eq $null) {
 }
 
 if ($conf.installation_paths.Guildwars2 -eq $null) {
-	nls 1
+	nls 2
 	Write-Host "To do a lot of it's magic this script needs to know where you have installed " -NoNewline
 	Write-Host "Guildwars 2" -NoNewline -ForegroundColor Yellow
 	Write-Host "?"
@@ -290,7 +290,7 @@ if ($conf.installation_paths.Guildwars2 -eq $null) {
 $GW2_path = $conf.installation_paths.Guildwars2
 
 if ($conf.installation_paths.TacO -eq $null) {
-	nls 1
+	nls 2
 	Write-Host "Most people like " -NoNewline
 	Write-Host "TacO " -NoNewline -ForegroundColor Yellow
 	Write-Host "a lot. Where do you want it to get installed or where do you have it installed already?"
@@ -316,7 +316,7 @@ if ($conf.installation_paths.TacO -eq $null) {
 $TacO_path = $conf.installation_paths.BlishHUD
 
 if ($conf.installation_paths.BlishHUD -eq $null) {
-	nls 1
+	nls 2
 	Write-Host "BlishHUD " -NoNewline -ForegroundColor Yellow
 	Write-Host "is a project like TacO, but BlishHUD can do a lot more and is better costomizable. Where do you want it to get installed or already have it installed already?"
 	Write-Host "For example: C:\Program Files\BlishHUD"
@@ -345,7 +345,7 @@ if ($conf.configuration -eq $null) {
 }
 
 if ($conf.configuration.defaultmode -eq $null) {
-	nls 1
+	nls 2
 	Write-Host "If you want to autoupdate and autostart every feature supported by this script activate the " -NoNewline
 	Write-Host "default-mode " -NoNewline -ForegroundColor Yellow
 	Write-Host "but if you like to edit what to install/update or auto start activate the " -NoNewline
@@ -364,6 +364,7 @@ if ($conf.configuration.defaultmode -eq $null) {
 }
 
 if ($conf.configuration.update_ArcDPS -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "ArcDPS " -NoNewline -ForegroundColor Yellow
@@ -391,6 +392,7 @@ if ($conf.configuration.update_ArcDPS -eq $null) {
 }
 
 if ($conf.configuration.update_TacO -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "TacO " -NoNewline -ForegroundColor Yellow
@@ -416,6 +418,7 @@ if ($conf.configuration.update_TacO -eq $null) {
 }
 
 if ($conf.configuration.update_BlishHUD -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "BlishHUD " -NoNewline -ForegroundColor Yellow
@@ -441,6 +444,7 @@ if ($conf.configuration.update_BlishHUD -eq $null) {
 }
 
 if ($conf.configuration.start_TacO -eq $null) {
+	nls 2
 	$default = $false
 
 	Write-Host "TacO " -NoNewline -ForegroundColor Yellow
@@ -470,6 +474,7 @@ if ($conf.configuration.start_TacO -eq $null) {
 }
 
 if ($conf.configuration.start_BlishHUD -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "BlishHUD " -NoNewline -ForegroundColor Yellow
@@ -509,6 +514,7 @@ if ($conf.settings_ArcDPS -eq $null) {
 }
 
 if ($conf.settings_ArcDPS.dx9 -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "The game uses " -NoNewline
@@ -545,6 +551,7 @@ if ($conf.settings_ArcDPS.dx9 -eq $null) {
 }
 
 if ($conf.settings_ArcDPS.killproof -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "killproof.me-plugin " -NoNewline -ForegroundColor Yellow
@@ -574,6 +581,7 @@ if ($conf.settings_ArcDPS.killproof -eq $null) {
 }
 
 if ($conf.settings_ArcDPS.boon_table -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "Boon-Table-plugin " -NoNewline -ForegroundColor Yellow
@@ -603,6 +611,7 @@ if ($conf.settings_ArcDPS.boon_table -eq $null) {
 }
 
 if ($conf.settings_ArcDPS.healing_stats -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "Healing-Stats-plugin " -NoNewline -ForegroundColor Yellow
@@ -632,6 +641,7 @@ if ($conf.settings_ArcDPS.healing_stats -eq $null) {
 }
 
 if ($conf.settings_ArcDPS.mechanics_log -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "Mechanics-Log-plugin " -NoNewline -ForegroundColor Yellow
@@ -665,6 +675,7 @@ if ($conf.settings_BlishHUD -eq $null) {
 }
 
 if ($conf.settings_BlishHUD.ArcDPS_Bridge -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "ArcDPS Bridge " -NoNewline -ForegroundColor Yellow
@@ -698,6 +709,7 @@ if ($conf.settings_BlishHUD.ArcDPS_Bridge -eq $null) {
 }
 
 if ($conf.settings_BlishHUD.Pathing -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "Pathing-Module " -NoNewline -ForegroundColor Yellow
@@ -727,6 +739,7 @@ if ($conf.settings_BlishHUD.Pathing -eq $null) {
 }
 
 if ($conf.settings_BlishHUD.KillProof_Module -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "KillProof-Module " -NoNewline -ForegroundColor Yellow
@@ -764,6 +777,7 @@ if ($conf.settings_BlishHUD.KillProof_Module -eq $null) {
 }
 
 if ($conf.settings_BlishHUD.Quick_Surrender -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "Quick Surrender-Module " -NoNewline -ForegroundColor Yellow
@@ -778,7 +792,7 @@ if ($conf.settings_BlishHUD.Quick_Surrender -eq $null) {
 		}
 
 		do {
-			$input = Read-Host -Prompt "Type y to autoupdate BlishHUD-KillProof-Module, n if don't want it: "
+			$input = Read-Host -Prompt "Type y to autoupdate Quci Surrender-Module, n if don't want it: "
 		} while (-not(
 			($input -eq "y") -or
 			($input -eq "n")
@@ -793,6 +807,7 @@ if ($conf.settings_BlishHUD.Quick_Surrender -eq $null) {
 }
 
 if ($conf.settings_BlishHUD.Mistwar -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "Mistwar-Module " -NoNewline -ForegroundColor Yellow
@@ -822,6 +837,7 @@ if ($conf.settings_BlishHUD.Mistwar -eq $null) {
 }
 
 if ($conf.settings_BlishHUD.HPGrid -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "HPGrid-Module " -NoNewline -ForegroundColor Yellow
@@ -851,6 +867,7 @@ if ($conf.settings_BlishHUD.HPGrid -eq $null) {
 }
 
 if ($conf.settings_BlishHUD.Timers -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "Timers-Module " -NoNewline -ForegroundColor Yellow
@@ -880,6 +897,7 @@ if ($conf.settings_BlishHUD.Timers -eq $null) {
 }
 
 if ($conf.settings_BlishHUD.Timers -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "Timers-Module " -NoNewline -ForegroundColor Yellow
@@ -913,6 +931,7 @@ if ($conf.settings_Mappacks -eq $null) {
 }
 
 if ($conf.settings_Mappacks.use_TacO -eq $null) {
+	nls 2
 	$default = $false
 
 	Write-Host "Add map packs to " -NoNewline
@@ -944,6 +963,7 @@ if ($conf.settings_Mappacks.use_TacO -eq $null) {
 }
 
 if ($conf.settings_Mappacks.use_BlishHUD -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "Add map packs to " -NoNewline
@@ -975,6 +995,7 @@ if ($conf.settings_Mappacks.use_BlishHUD -eq $null) {
 }
 
 if ($conf.settings_Mappacks.tekkit -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "TEKKIT-Map pack " -NoNewline -ForegroundColor Yellow
@@ -1014,6 +1035,7 @@ if ($conf.settings_Mappacks.tekkit -eq $null) {
 }
 
 if ($conf.settings_Mappacks.schattenfluegel -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "Schattenfluegel-Map pack " -NoNewline -ForegroundColor Yellow
@@ -1053,6 +1075,7 @@ if ($conf.settings_Mappacks.schattenfluegel -eq $null) {
 }
 
 if ($conf.settings_Mappacks.czokalapik -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "Czokalapik-Map pack " -NoNewline -ForegroundColor Yellow
@@ -1092,6 +1115,7 @@ if ($conf.settings_Mappacks.czokalapik -eq $null) {
 }
 
 if ($conf.settings_Mappacks.reactif -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "Reactif-Map pack " -NoNewline -ForegroundColor Yellow
@@ -1131,6 +1155,7 @@ if ($conf.settings_Mappacks.reactif -eq $null) {
 }
 
 if ($conf.settings_Mappacks.heromarkers -eq $null) {
+	nls 2
 	$default = $true
 
 	Write-Host "Heromarkers-Map pack " -NoNewline -ForegroundColor Yellow
@@ -1145,7 +1170,7 @@ if ($conf.settings_Mappacks.heromarkers -eq $null) {
 		}
 
 		if (-not $conf.settings_Mappacks.use_BlishHUD) {
-			Write-Host "BlishHUD-pathing-Module will not used for map-packs. Choose n!" -ForegroundColor Red
+			Write-Host "BlishHUD-pathing-Module will not used for map-packs. Choose n!!" -ForegroundColor Red
 		}
 
 		do {
