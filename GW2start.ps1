@@ -2102,7 +2102,7 @@ if (
 
 removefile "$Script_path/LICENSE"
 removefile "$Script_path/README.md"
-Remove-Item "$Script_path/version_control/" -Recurse -force
+Remove-Item "$Script_path/version_control/" -Recurse -force -ErrorAction SilentlyContinue
 
 # done with updating
 
