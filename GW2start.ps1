@@ -313,7 +313,7 @@ if ($conf.installation_paths.TacO -eq $null) {
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
-$TacO_path = $conf.installation_paths.BlishHUD
+$TacO_path = $conf.installation_paths.TacO
 
 if ($conf.installation_paths.BlishHUD -eq $null) {
 	nls 2
