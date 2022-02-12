@@ -11,8 +11,6 @@ $checkfile = "$Script_path\checkfile"
 
 # some functions for lazy people
 
-pause
-
 function stopprocesses() {
 	if ($conf.configuration.start_TacO) {
 		Stop-Process -Name "GW2TacO" -ErrorAction SilentlyContinue
@@ -1300,7 +1298,8 @@ if ($conf.configuration.update_TacO) {
 
 	if (
 		($conf.versions.TacO -eq $null) -or
-		($conf.versions.TacO -ne $new)
+		($conf.versions.TacO -ne $new) -or
+		(-not (Test-Path "$targetfile\GW2TacO.exe"))
 	) {
 		Write-Host "TacO " -NoNewline -ForegroundColor White
 		Write-Host "is being updated" -ForegroundColor Green
@@ -1470,7 +1469,8 @@ if ($conf.configuration.update_BlishHUD) {
 
 	if (
 		($conf.versions.BlishHUD -eq $null) -or
-		($conf.versions.BlishHUD -ne $new)
+		($conf.versions.BlishHUD -ne $new) -or
+		(-not (Test-Path "$targetfile\Blish HUD.exe"))
 	) {
 		Write-Host "BlishHUD " -NoNewline -ForegroundColor White
 		Write-Host "is being updated" -ForegroundColor Green
