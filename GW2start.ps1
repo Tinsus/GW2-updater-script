@@ -11,6 +11,8 @@ $checkfile = "$Script_path\checkfile"
 
 # some functions for lazy people
 
+pause
+
 function stopprocesses() {
 	if ($conf.configuration.start_TacO) {
 		Stop-Process -Name "GW2TacO" -ErrorAction SilentlyContinue
@@ -1196,7 +1198,6 @@ if ($conf.versions -eq $null) {
 
 stopprocesses
 
-
 # some information for our user (yes, I'm talking about YOU, you creepy coder)
 
 $older = $false
@@ -1237,10 +1238,11 @@ removefile "$checkfile"
 
 # auto update this script itself (prepare the update to be done by the .bat file with the next start)
 removefile "$Script_path\GW2start.txt"
+removefile "$Script_path\GW2start.bat"
 
-Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.ps1" -OutFile "$Script_path/GW2start.txt"
+Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.bat" -OutFile "$Script_path/GW2start.bat"
 
-Write-Host "GW2start.ps1 " -NoNewline -ForegroundColor White
+Write-Host "GW2start.bat " -NoNewline -ForegroundColor White
 Write-Host "is " -NoNewline
 Write-Host "updated " -NoNewline -ForegroundColor Green
 Write-Host "every time"

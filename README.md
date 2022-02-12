@@ -3,44 +3,31 @@ updating all the nice helpers for Guildwars 2 automaticly
 
 # install
 
-config your PowerShell installation before using the script
+to share or download GW2start use this direct link: https://github.com/Tinsus/GW2-updater-script/archive/refs/heads/main.zip
 
-start PowerShell as admin once and type:
+You only need the GW2start.bat file containing in the downloaded archive.
+Place it somewhere in your filesystem and add a shortcut to it e.g. on your Desktop.
 
-Set-ExecutionPolicy "RemoteSigned" -Force
+than run GW2start by your shortcut or double-clicking the GW2start.bat
 
 # config
 
-open the .bat file and:
-- setup GW2_path to the installation path of Guildwars 2
-- setup TacO_path to where you want TacO to be installed. Don't choose your Documents or Guildwars 2 folder for that
-- setup BlishHUD_path to where you want BlishHub to be installed. Don't choose your Documents or Guildwars 2 folder for that
+on first usage the window will open with some questions for you to answer.
 
-- set use_ArcDPS to 0 if you don't want to get ArcDPS installed, 1 means enabled and is the default value
-- set use_TacO to 0 if you don't want to install, update or open TacO, 1 means enabled and is the default value
-- set use_BHud to 0 if you don't want to install, update or open BlishHud, 1 means enabled and is the default value
+for easy-mode choose the default-mode, if you like to config everything on your own choose the pro-mode.
 
-
--> info: make sure to enable the donwloaded modules within the BlishHud Userinterface yourself
+GW2start will add a GW2start.ini file next to the GW2start.bat files containing all your settings. If you want to edit them open the file using editor or deleate the file to restart the configuration the next time you open the script.
 
 # usage
 
-from now on start GW2 by double clicking the .bat file (only).
+from now on start GW2 by double clicking the GW2start.bat file (only).
 
 nothing is more easy as adding a shortcut to your desktop to start the .bat file from there instead of your regular GW2-shortcut
 
-Please hold in mind: ArcDPS causes GW2 crashes if your PC is running Razer Cortex. Cause of that - if you did not disabled ArcDPS in the .bat-file - the script automaticly closes Razer Cortex.
-
-# download
-
-to share or download this file use this direct link: https://github.com/Tinsus/GW2-updater-script/archive/refs/heads/main.zip
-
+Please hold in mind: ArcDPS causes GW2 crashes if your PC is running Razer Cortex. Cause of that - if you did not disabled ArcDPS in configuration - the script automaticly closes Razer Cortex.
 
 # troubleshooting
 
-if the script don't work the first time make sure:
+If the script don't work the first time make sure to check the file settings of the downloaded .bat-file: add the tick for downloaded files to be executable in the file properties.
 
-- you did the config change in powershell under the install headline
-- check the file settings of the two downloaded files: make sure the tick is set for downloaded files to be executable
-
-if you don't make this changes the script will open and close without doing anything in under 1 second
+Powershell need to be set to allow script files from your computer this is done automatically but you need do give administrators privileges once OR change tzhe ExecutionPolicy yourself by open powershell as administrator and do: Set-ExecutionPolicy RemoteSigned -Force
