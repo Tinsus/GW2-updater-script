@@ -1614,129 +1614,132 @@ if ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.KillProof_M
 }
 
 
-# Quick-Surrender
-if ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Quick_Surrender) {
+# Quick-Surrender and/or Mistwar
+
+if (
+	($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Quick_Surrender) -or
+	($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Mistwar)
+) {
 	checkGithub
 
-	$checkurl = "https://api.github.com/repos/agaertner/Blish-HUD-Modules-Releases/releases/latest"
+	$checkurl = "https://api.github.com/repos/agaertner/Blish-HUD-Modules-Releases/releases"
 	$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
 
 	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $($json.tag_name).Substring(1)
-
-	$targeturl = ""
-
-	$json.assets | foreach-object {
-		if ($_.name -match "Surrender") {
-			$targeturl = $_
-		}
-	}
-
-	if ($targeturl -ne "") {
-		$new = $($targeturl.name)
-		$new = $new.Substring($new.Length - 9, 5)
-		$name = $targeturl.name
-		$targeturl = $targeturl.browser_download_url
-
-		if (
-			($conf.versions.BlishHUD_QuickSurrender -eq $null) -or
-			($conf.versions.BlishHUD_QuickSurrender -ne $new)
-		) {
-			$old = 0
-
-			if ($conf.versions.BlishHUD_QuickSurrender -ne $null) {
-				$old = $conf.versions.BlishHUD_QuickSurrender
+	$jsonb = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+	
+	$WantQuickSurrender = ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Quick_Surrender)
+	$WantMistwar = ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Mistwar)
+	
+	# Quick-Surrender
+	$jsonb | foreach-object {
+		$json = $_
+	
+		$targeturl = ""
+		
+		$json.assets | foreach-object {
+			if ($_.name -match "Surrender") {
+				$targeturl = $_
 			}
-
-			Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
-			Write-Host "is being updated" -ForegroundColor Green
-
-			# remove old version
-			removefile "$checkpath\Nekres.Quick_Surrender_Module_$old.bhm"
-			removefile "$checkpath\$name"
-
-			#  get new version
-			Invoke-WebRequest $targeturl -OutFile "$checkpath\Nekres.Quick_Surrender_Module_$new.bhm"
-
-			# enable this version
-			enforceBHM "Nekres.Quick_Surrender_Module"
-
-			$conf["versions"]["BlishHUD_QuickSurrender"] = $new
-			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-		} else {
-			Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
-			Write-Host "is up-to-date"
 		}
-	} else {
-		Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
-		Write-Host "is not contained in the latest bundle" -ForegroundColor Yellow
-	}
-
-	removefile "$checkfile"
-}
-
-
-# Mistwar
-if ($conf.configuration.start_BlishHUD -and $conf.settings_BlishHUD.Mistwar) {
-	checkGithub
-
-	$checkurl = "https://api.github.com/repos/agaertner/Blish-HUD-Modules-Releases/releases/latest"
-	$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
-	$targetfile = "$checkpath\Mistwar"
-
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $($json.tag_name).Substring(1)
-
-	$targeturl = ""
-
-	$json.assets | foreach-object {
-		if ($_.name -match "Mistwar") {
-			$targeturl = $_
-		}
-	}
-
-	if ($targeturl -ne "") {
-		$new = $($targeturl.name)
-		$new = $new.Substring($new.Length - 9, 5)
-		$name = $targeturl.name
-		$targeturl = $targeturl.browser_download_url
-
+		
 		if (
-			($conf.versions.BlishHUD_MistWar -eq $null) -or
-			($conf.versions.BlishHUD_MistWar -ne $new)
+			($targeturl -ne "") -and
+			($WantQuickSurrender)
 		) {
-			$old = 0
+			$WantQuickSurrender = $false
 
-			if ($conf.versions.BlishHUD_MistWar -ne $null) {
-				$old = $conf.versions.BlishHUD_MistWar
+			$new = $($targeturl.name)
+			$new = $new.Substring($new.Length - 9, 5)
+			$name = $targeturl.name
+			$targeturl = $targeturl.browser_download_url
+
+			if (
+				($conf.versions.BlishHUD_QuickSurrender -eq $null) -or
+				($conf.versions.BlishHUD_QuickSurrender -ne $new)
+			) {
+				$old = 0
+
+				if ($conf.versions.BlishHUD_QuickSurrender -ne $null) {
+					$old = $conf.versions.BlishHUD_QuickSurrender
+				}
+
+				Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
+				Write-Host "is being updated" -ForegroundColor Green
+
+				# remove old version
+				removefile "$checkpath\Nekres.Quick_Surrender_Module_$old.bhm"
+				removefile "$checkpath\$name"
+
+				#  get new version
+				Invoke-WebRequest $targeturl -OutFile "$checkpath\Nekres.Quick_Surrender_Module_$new.bhm"
+
+				# enable this version
+				enforceBHM "Nekres.Quick_Surrender_Module"
+
+				$conf["versions"]["BlishHUD_QuickSurrender"] = $new
+				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+			} else {
+				Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
+				Write-Host "is up-to-date"
 			}
-
-			Write-Host "BlishHUD-Module Mistwar " -NoNewline -ForegroundColor White
-			Write-Host "is being updated" -ForegroundColor Green
-
-			# remove old version
-			removefile "$checkpath\Nekres.Mistwar_$old.bhm"
-			removefile "$checkpath\$name"
-
-			#  get new version
-			Invoke-WebRequest $targeturl -OutFile "$checkpath\Nekres.Mistwar_$new.bhm"
-
-			# enable this version
-			enforceBHM "Nekres.Mistwar"
-
-			$conf["versions"]["BlishHUD_MistWar"] = $new
-			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-		} else {
-			Write-Host "BlishHUD-Module Mistwar " -NoNewline -ForegroundColor White
-			Write-Host "is up-to-date"
 		}
-	} else {
-		Write-Host "BlishHUD-Module Mistwar " -NoNewline -ForegroundColor White
-		Write-Host "is not contained in the latest bundle" -ForegroundColor Yellow
+	}
+
+	# Mistwar
+	$jsonb | foreach-object {
+		$json = $_
+	
+		$targeturl = ""
+		
+		$json.assets | foreach-object {
+			if ($_.name -match "Mistwar") {
+				$targeturl = $_
+			}
+		}
+		
+		if (
+			($targeturl -ne "") -and
+			($WantMistwar)
+		) {
+			$WantMistwar = $false
+
+			$new = $($targeturl.name)
+			$new = $new.Substring($new.Length - 9, 5)
+			$name = $targeturl.name
+			$targeturl = $targeturl.browser_download_url
+
+			if (
+				($conf.versions.BlishHUD_MistWar -eq $null) -or
+				($conf.versions.BlishHUD_MistWar -ne $new)
+			) {
+				$old = 0
+
+				if ($conf.versions.BlishHUD_MistWar -ne $null) {
+					$old = $conf.versions.BlishHUD_MistWar
+				}
+
+				Write-Host "BlishHUD-Module Mistwar " -NoNewline -ForegroundColor White
+				Write-Host "is being updated" -ForegroundColor Green
+
+				# remove old version
+				removefile "$checkpath\Nekres.Mistwar_$old.bhm"
+				removefile "$checkpath\$name"
+
+				#  get new version
+				Invoke-WebRequest $targeturl -OutFile "$checkpath\Nekres.Mistwar_$new.bhm"
+
+				# enable this version
+				enforceBHM "Nekres.Mistwar"
+
+				$conf["versions"]["BlishHUD_MistWar"] = $new
+				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+			} else {
+				Write-Host "BlishHUD-Module Mistwar " -NoNewline -ForegroundColor White
+				Write-Host "is up-to-date"
+			}
+		}
 	}
 
 	removefile "$checkfile"
