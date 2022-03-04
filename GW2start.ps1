@@ -1263,8 +1263,10 @@ if ($conf.configuration.update_ArcDPS) {
 
 		removefile "$GW2_path\bin64\d3d9.dll"
 		removefile "$GW2_path\bin64\d3d11.dll"
+		removefile "$GW2_path\d3d9.dll"
+		removefile "$GW2_path\d3d11.dll"
 
-		$targetfile = "$GW2_path\bin64\d3d11.dll"
+		$targetfile = "$GW2_path\d3d11.dll"
 
 		if ($conf.settings_ArcDPS.dx9) {
 			$targetfile = "$GW2_path\bin64\d3d9.dll"
