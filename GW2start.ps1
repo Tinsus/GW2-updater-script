@@ -1,6 +1,7 @@
 #testing stuff for dev only
 
 if ($false) {
+	cls
 	$modules = @{}
 	$modules.Main = @{}
 	$modules.ArcDPS = @{}
@@ -50,7 +51,7 @@ if ($false) {
 
 	$tooltip = New-Object System.Windows.Forms.ToolTip
 	$tooltip.AutoPopDelay = 30000;
-	$tooltip.InitialDelay = 300;
+	$tooltip.InitialDelay = 100;
 	$tooltip.ReshowDelay = 500;
 
 	$main_form.Text ='Config GW2start script'
@@ -154,6 +155,10 @@ if ($false) {
 	$arcDx9.AutoSize = $true
 	$arcDx9.Add_Click({
 		$arcDx11.Checked = $false
+
+		$modules.ArcDPS.GetEnumerator() | foreach {
+			$modules.ArcDPS[$_.key]["UI"].Enabled = $true
+		}
 	})
 	$tooltip.SetToolTip($arcDx9, "Did you set Guildwars2 to use DirectX9 (default) or DirectX11?")
 	$groupArc.Controls.Add($arcDx9)
@@ -165,60 +170,141 @@ if ($false) {
 	$arcDx11.AutoSize = $true
 	$arcDx11.Add_Click({
 		$arcDx9.Checked = $false
+
+		$modules.ArcDPS.GetEnumerator() | foreach {
+			$modules.ArcDPS[$_.key]["UI"].Enabled = $true
+		}
 	})
 	$tooltip.SetToolTip($arcDx11, "Did you set Guildwars2 to use DirectX9 (default) or DirectX11?")
 	$groupArc.Controls.Add($arcDx11)
 
-
-	$UI = @{}
-	$i = -1
-
-	$modules["ArcDPS"] | foreach {
-		$i++
-		Write-Host $i
-		Write-Host $_.value
-		<#
-		
-		$hname = $_.key+"check"
-
-		Set-Variable -Name $hname -Value (New-Object System.Windows.Forms.CheckBox)
-		$helper = Get-Variable -Name $hname -ValueOnly
-
-		if ($_.value.default) {
-			$helper.Text = "(suggested) "+$_.value.name
-		} else {
-			$helper.Text = $_.value.name
-		}
-		$helper.Location = New-Object System.Drawing.Point(120 + 20 * $i, 10)
-		$helper.Add_CheckStateChanged({
-			Write-Host $hname
+	$i = 0
+	$modules.ArcDPS.GetEnumerator() | foreach {
+		$modules.ArcDPS[$_.key]["UI"] = New-Object System.Windows.Forms.CheckBox
+		$modules.ArcDPS[$_.key]["UI"].Enabled = $false
+		$modules.ArcDPS[$_.key]["UI"].Text = $_.value.name
+		$modules.ArcDPS[$_.key]["UI"].Checked = $_.value.default
+		$modules.ArcDPS[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (100 + (20 * $i)))
+		$modules.ArcDPS[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 20)
+		$modules.ArcDPS[$_.key]["UI"].Add_CheckStateChanged({
+			Write-Host $this.Text
 		})
+		$tooltip.SetToolTip($modules.ArcDPS[$_.key]["UI"], $_.value.desc)
+		$groupArc.Controls.Add($modules.ArcDPS[$_.key]["UI"])
 
-		Set-Variable -Name $hname -Value $helper
-		$groupArc.Controls.Add((Get-Variable -Name $hname -ValueOnly))
-		$tooltip.SetToolTip((Get-Variable -Name $hname -ValueOnly), $_.value.decs)
-		
-		$UI[$_.key] = $hname
-		
-		#>
+		$i++
 	}
 
-
-	# Set-Variable -Name <String> [-Value <Object>]
-	# Get-Variable -Name <String> -ValueOnly
-
-
-
-
-
-
-
-
-
-
-
-
 	$main_form.Controls.Add($groupArc)
+
+
+	$groupTaco = New-Object System.Windows.Forms.GroupBox
+	$groupTaco.Location = New-Object System.Drawing.Size((10 + $groupArc.Width + 10) , 40)
+	$groupTaco.AutoSize = $true
+	$groupTaco.AutoSizeMode = 1
+	$groupTaco.text = "TacO"
+
+	$descriptionTaco = New-Object System.Windows.Forms.Label
+	$descriptionTaco.Text = "Oldschool tool best known for map paths"
+	$descriptionTaco.Location = New-Object System.Drawing.Point(10, 15)
+	$descriptionTaco.AutoSize = $true
+	$groupTaco.Controls.Add($descriptionTaco)
+
+	$enabledTaco = New-Object System.Windows.Forms.CheckBox
+	$enabledTaco.Text = "install + update"
+	$enabledTaco.Location = New-Object System.Drawing.Point(10, 30)
+	$enabledTaco.Add_CheckStateChanged({
+		$pathTaco.Enabled = $enabledTaco.Checked
+		$pathTacoLabel.Enabled = $enabledTaco.Checked
+
+		if ($enabledTaco.Checked) {
+			$enabledTaco.Text = "install + update"
+		} else {
+			$enabledTaco.Text = "uninstall"
+		}
+		
+		$path = $pathTacoLabel.Text
+		if (
+			(Test-Path "$path\GW2TacO.exe") -or
+			(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
+		) {
+			$path = "Select TacO installation path"
+			$TacoRun.Enabled = $false
+		} else {
+			$TacoRun.Enabled = $true
+		}
+
+	})
+	$groupTaco.Controls.Add($enabledTaco)
+
+	$pathTaco = New-Object System.Windows.Forms.Button
+	$pathTaco.Location = New-Object System.Drawing.Size(10, 55)
+	$pathTaco.Size = New-Object System.Drawing.Size(50, 20)
+	$pathTaco.Text = "Edit"
+	$pathTaco.Enabled = $false
+	$pathTaco.Add_Click({
+		$shell = New-Object -ComObject Shell.Application
+		$path = $shell.BrowseForFolder(0, "Select where TacO gets installed", 0).Self.Path
+
+		while (
+			-not (
+				(Test-Path "$path\GW2TacO.exe") -or
+				(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
+			)
+		) {
+			[System.Windows.Forms.MessageBox]::Show(
+				"TacO was not detected in the selected folder or it is not empthy. Select the folder containing TacO. Or create a new empthy folder.",
+				"GW2TacO.exe not found or folder not empthy",
+				0,
+				"Error"
+			)
+
+			$path = $shell.BrowseForFolder(0, "Select where TacO gets installed", 0).Self.Path
+		}
+
+		if (
+			(Test-Path "$path\GW2TacO.exe") -or
+			(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
+		) {
+			$TacoRun.Enabled = $true
+		} else {
+			$path = "Select TacO installation path"
+			$TacoRun.Enabled = $false
+		}
+
+		$pathTacoLabel.Text = $path
+	})
+	$groupTaco.Controls.Add($pathTaco)
+
+	$pathTacoLabel = New-Object System.Windows.Forms.Label
+	$pathTacoLabel.Text = "Select TacO installation path first"
+	$pathTacoLabel.Enabled = $false
+	$pathTacoLabel.Location = New-Object System.Drawing.Point(62, 58)
+	$pathTacoLabel.AutoSize = $true
+	$groupTaco.Controls.Add($pathTacoLabel)
+
+	$TacoRun = New-Object System.Windows.Forms.CheckBox
+	$TacoRun.Text = "auto start"
+	$TacoRun.Enabled = $false
+	$TacoRun.Size = New-Object System.Drawing.Point(200, 20)
+	$TacoRun.Location = New-Object System.Drawing.Point(10, 80)
+	$TacoRun.Add_CheckStateChanged({
+		if ($TacoRun.Checked) {
+			$TacoRun.Text = "auto start"
+		} else {
+			$TacoRun.Text = "manually started"
+		}
+	})
+	$tooltip.SetToolTip($TacoRun, "Should TacO start automaticly when using this script?")
+	$groupTaco.Controls.Add($TacoRun)
+
+
+
+
+
+
+
+	$main_form.Controls.Add($groupTaco)
 
 	<#
 	$ComboBox = New-Object System.Windows.Forms.ComboBox
