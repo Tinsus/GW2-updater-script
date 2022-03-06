@@ -1,3 +1,210 @@
+#testing stuff for dev only
+
+if ($false) {
+	Add-Type -assembly System.Windows.Forms
+
+	$main_form = New-Object System.Windows.Forms.Form
+
+	$main_form.Text ='Config GW2start script'
+	$main_form.AutoSize = $true
+	$main_form.AutoSizeMode = 1
+
+	$descriptionMain = New-Object System.Windows.Forms.Label
+	$descriptionMain.Text = "Here you can config the GW2start script to your own need. This config shows up when new options are available.
+	You can open this setting using the GW2start-config.bat placed next to your usual GW2start.bat"
+	$descriptionMain.Location  = New-Object System.Drawing.Point(0, 10)
+	$descriptionMain.AutoSize = $true
+	$main_form.Controls.Add($descriptionMain)
+
+
+	$groupArc = New-Object System.Windows.Forms.GroupBox
+	$groupArc.Location = New-Object System.Drawing.Size(10, 40)
+	$groupArc.AutoSize = $true
+	$groupArc.AutoSizeMode = 1
+	$groupArc.text = "ArcDPS"
+
+	$descriptionArc = New-Object System.Windows.Forms.Label
+	$descriptionArc.Text = "DPS meter with great expandability"
+	$descriptionArc.Location  = New-Object System.Drawing.Point(10, 15)
+	$descriptionArc.AutoSize = $true
+	$groupArc.Controls.Add($descriptionArc)
+
+	$enabledArc = New-Object System.Windows.Forms.CheckBox
+	$enabledArc.Text = "install + update"
+	$enabledArc.Location  = New-Object System.Drawing.Point(10, 30)
+	$enabledArc.Add_CheckStateChanged({
+		$pathArc.Enabled = $enabledArc.Checked
+		$pathArcLabel.Enabled = $enabledArc.Checked
+
+		if ($enabledArc.Checked) {
+			$enabledArc.Text = "install + update"
+		} else {
+			$enabledArc.Text = "uninstall"
+		}
+	})
+
+	$pathArc = New-Object System.Windows.Forms.Button
+	$pathArc.Location = New-Object System.Drawing.Size(10, 55)
+	$pathArc.Size = New-Object System.Drawing.Size(50, 20)
+	$pathArc.Text = "Edit"
+	$pathArc.Enabled = $false
+	$pathArc.Add_Click({
+		$shell = New-Object -ComObject Shell.Application
+		$path = $shell.BrowseForFolder(0, "Select where Guildwars 2 is installed", 0).Self.Path
+
+		while (
+			-not (
+				(Test-Path "$path\Gw2-64.exe") -or
+				($path.length -lt 3)
+			)
+		) {
+			[System.Windows.Forms.MessageBox]::Show(
+				"Guildwars 2 was not detected in the selected folder. Select the folder where Guildwars 2 is installed",
+				"GW2-62.exe not found",
+				0,
+				"Error"
+			)
+
+			$path = $shell.BrowseForFolder(0, "Select where GW2 is installed", 0).Self.Path
+		}
+
+		if (-not (Test-Path "$path\Gw2-64.exe")) {
+			$path = "Select GW2 installation path"
+		}
+
+		$pathArcLabel.Text = $path
+	})
+	$groupArc.Controls.Add($pathArc)
+
+	$pathArcLabel = New-Object System.Windows.Forms.Label
+	$pathArcLabel.Text = "Select GW2 installation path first"
+	$pathArcLabel.Enabled = $false
+	$pathArcLabel.Location  = New-Object System.Drawing.Point(62, 58)
+	$pathArcLabel.AutoSize = $true
+	$groupArc.Controls.Add($pathArcLabel)
+
+
+
+
+
+	$groupArc.Controls.Add($enabledArc)
+
+
+
+	$main_form.Controls.Add($groupArc)
+
+	<#
+	$ComboBox = New-Object System.Windows.Forms.ComboBox
+
+	$ComboBox.Width = 300
+
+	$Users = get-aduser -filter * -Properties SamAccountName
+
+	Foreach ($User in $Users)
+
+	{
+
+	$ComboBox.Items.Add($User.SamAccountName);
+
+	}
+
+	$ComboBox.Location  = New-Object System.Drawing.Point(60,10)
+
+	$main_form.Controls.Add($ComboBox)
+
+	$Label2 = New-Object System.Windows.Forms.Label
+
+	$Label2.Text = "Last Password Set:"
+
+	$Label2.Location  = New-Object System.Drawing.Point(0,40)
+
+	$Label2.AutoSize = $true
+
+	$main_form.Controls.Add($Label2)
+
+	$Label3 = New-Object System.Windows.Forms.Label
+
+	$Label3.Text = ""
+
+	$Label3.Location  = New-Object System.Drawing.Point(110,40)
+
+	$Label3.AutoSize = $true
+
+	$main_form.Controls.Add($Label3)
+
+	$Button = New-Object System.Windows.Forms.Button
+
+	$Button.Location = New-Object System.Drawing.Size(400,10)
+
+	$Button.Size = New-Object System.Drawing.Size(120,23)
+
+	$Button.Text = "Check"
+
+	$main_form.Controls.Add($Button)
+
+	$Button.Add_Click(
+
+	{
+
+	$Label3.Text =  [datetime]::FromFileTime((Get-ADUser -identity $ComboBox.selectedItem -Properties pwdLastSet).pwdLastSet).ToString('MM dd yy : hh ss')
+
+	}
+
+	)
+
+	$Label3.Text.Visible = $false
+
+	# or $True if you want to show it
+
+	#>
+
+
+
+
+
+
+
+
+
+
+
+	$main_form.ShowDialog()
+
+	#$shell = New-Object -ComObject Shell.Application
+
+	#$selectedfolder = $shell.BrowseForFolder( 0, 'Select a folder to proceed', 16, $shell.NameSpace( 17 ).Self.Path ).Self.Path
+
+	#$answer = [System.Windows.MessageBox]::Show( "Dou you want to remove this user?", " Removal Confirmation", "YesNoCancel", "Information" )
+
+
+<#
+    CheckBox – used to list some options and select them prior to running script;
+    RadioButton – lists some text options and allows to select only one of them;
+    TextBox – user can write some text. It can be used to get the value of the PoSh script parameter;
+    Label – used for labeling some parts of scripts’ GUI;
+    ChekedListBox – shows a list of items;
+    DataGridView – allows to view some tabular data;
+    GroupBox – allows viewing and grouping a set of controls together;
+    ListBox – can store several text items;
+    TabControl – allows you to split your form into different areas (tabs);
+    ListView – displays a list of items with text and (optionally) an icon;
+    TreeView – hierarchical objects view;
+    DateTimePicker – allows to select date and time;
+    TrackBar – scrollable control;
+    PictureBox – allows to show a picture on the form;
+    ProgressBar – indicates the operation progress;
+    HScrollBar – horizontal scroll bar;
+    VScrollBar – vertical scroll bar;
+    ContextMenu – right-click menus;
+    Menu – top menu in your form.
+#>
+
+	exit
+}
+
+#no more "big" testing stuff
+
+
 # you really really don't need to change anything here - except you know exactly what you are doing
 
 
@@ -1634,22 +1841,22 @@ if (
 	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
 	$jsonb = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	
+
 	$WantQuickSurrender = ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Quick_Surrender)
 	$WantMistwar = ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Mistwar)
-	
+
 	# Quick-Surrender
 	$jsonb | foreach-object {
 		$json = $_
-	
+
 		$targeturl = ""
-		
+
 		$json.assets | foreach-object {
 			if ($_.name -match "Surrender") {
 				$targeturl = $_
 			}
 		}
-		
+
 		if (
 			($targeturl -ne "") -and
 			($WantQuickSurrender)
@@ -1696,15 +1903,15 @@ if (
 	# Mistwar
 	$jsonb | foreach-object {
 		$json = $_
-	
+
 		$targeturl = ""
-		
+
 		$json.assets | foreach-object {
 			if ($_.name -match "Mistwar") {
 				$targeturl = $_
 			}
 		}
-		
+
 		if (
 			($targeturl -ne "") -and
 			($WantMistwar)
