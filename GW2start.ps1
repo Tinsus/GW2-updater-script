@@ -70,6 +70,8 @@ function startGW2() {
 		if ($gw2error -ne 0) {
 			removefile "$GW2_path\bin64\d3d9.dll"
 			removefile "$GW2_path\bin64\d3d11.dll"
+			removefile "$GW2_path\d3d9.dll"
+			removefile "$GW2_path\d3d11.dll"
 
 			startGW2
 		}
@@ -373,7 +375,9 @@ if ($conf.configuration.update_ArcDPS -eq $null) {
 	Write-Host ")"
 	Write-Host "Warning: sometimes the game crashes after updates, especially after some game updates. This is may caused by ArcDPS. If this happens delete: " -NoNewline -ForegroundColor Red
 	Write-Host "$GW2_path\bin64\d3d9.dll " -NoNewline
-	Write-Host "Keep this warning in mind!" -ForegroundColor Red
+	Write-Host "and " -NoNewline -ForegroundColor Red
+	Write-Host "$GW2_path\d3d11.dll " -NoNewline
+	Write-Host "(only one should be there) Keep this warning in mind!" -ForegroundColor Red
 
 	if (-not $conf.configuration.defaultmode) {
 		do {
