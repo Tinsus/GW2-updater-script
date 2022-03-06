@@ -1635,7 +1635,7 @@ if ($conf.configuration.update_ArcDPS -and $conf.settings_ArcDPS.mechanics_log) 
 	checkGithub
 
 	$checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Mechanics-Log/releases/latest"
-	$targetfile = "$GW2_path\bin64\ d3d9_arcdps_mechanics.dll"
+	$targetfile = "$GW2_path\bin64\d3d9_arcdps_mechanics.dll"
 
 	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
