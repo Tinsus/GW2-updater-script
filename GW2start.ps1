@@ -1,9 +1,57 @@
 #testing stuff for dev only
 
 if ($false) {
+	$modules = @{}
+	$modules.Main = @{}
+	$modules.ArcDPS = @{}
+	$modules.TaCO = @{}
+	$modules.BlishHud = @{}
+
+	$modules.ArcDPS.killproof = @{
+		name = "killproof.me";
+		desc = "extences ArcDPS to show the killproof.me data of your group members. Shortcut to open that is Shift+Alt+K";
+		default = $true;
+		checkurl = "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest";
+		targetfile = "bin64\d3d9_arcdps_killproof_me.dll";
+		platform = "github-normal"
+	}
+
+	$modules.ArcDPS.boon = @{
+		name = "Boon-Table";
+		desc = "extences ArcDPS to show the boons done by you and your group members. Shortcut to open that is Shift+Alt+B";
+		default = $true;
+		checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest";
+		targetfile = "bin64\d3d9_arcdps_table.dll";
+		platform = "github-normal"
+	}
+
+	$modules.ArcDPS.healing = @{
+		name = "Healing-Stats";
+		desc = "extences ArcDPS to show your heal.";
+		default = $true;
+		checkurl = "https://api.github.com/repos/Krappa322/arcdps_healing_stats/releases/latest";
+		targetfile = "bin64\arcdps-healing-stats.dll";
+		platform = "github-normal"
+	}
+
+	$modules.ArcDPS.mechanics = @{
+		name = "Mechanics-Logs";
+		desc = "extences ArcDPS to how good you or your group members perform with the mechanics in raids. Shortcut to open that is Shift+Alt+L";
+		default = $true;
+		checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Mechanics-Log/releases/latest";
+		targetfile = "bin64\d3d9_arcdps_mechanics.dll";
+		platform = "github-normal"
+	}
+
+
 	Add-Type -assembly System.Windows.Forms
 
 	$main_form = New-Object System.Windows.Forms.Form
+
+	$tooltip = New-Object System.Windows.Forms.ToolTip
+	$tooltip.AutoPopDelay = 30000;
+	$tooltip.InitialDelay = 300;
+	$tooltip.ReshowDelay = 500;
 
 	$main_form.Text ='Config GW2start script'
 	$main_form.AutoSize = $true
@@ -25,13 +73,13 @@ if ($false) {
 
 	$descriptionArc = New-Object System.Windows.Forms.Label
 	$descriptionArc.Text = "DPS meter with great expandability"
-	$descriptionArc.Location  = New-Object System.Drawing.Point(10, 15)
+	$descriptionArc.Location = New-Object System.Drawing.Point(10, 15)
 	$descriptionArc.AutoSize = $true
 	$groupArc.Controls.Add($descriptionArc)
 
 	$enabledArc = New-Object System.Windows.Forms.CheckBox
 	$enabledArc.Text = "install + update"
-	$enabledArc.Location  = New-Object System.Drawing.Point(10, 30)
+	$enabledArc.Location = New-Object System.Drawing.Point(10, 30)
 	$enabledArc.Add_CheckStateChanged({
 		$pathArc.Enabled = $enabledArc.Checked
 		$pathArcLabel.Enabled = $enabledArc.Checked
@@ -41,7 +89,18 @@ if ($false) {
 		} else {
 			$enabledArc.Text = "uninstall"
 		}
+
+		$path = $pathArcLabel.Text
+		if ((Test-Path "$path\Gw2-64.exe")) {
+			$arcDx9.Enabled = $enabledArc.Checked
+			$arcDx11.Enabled = $enabledArc.Checked
+		} else {
+			$arcDx9.Enabled = $false
+			$arcDx11.Enabled = $false
+		}
+
 	})
+	$groupArc.Controls.Add($enabledArc)
 
 	$pathArc = New-Object System.Windows.Forms.Button
 	$pathArc.Location = New-Object System.Drawing.Size(10, 55)
@@ -70,6 +129,11 @@ if ($false) {
 
 		if (-not (Test-Path "$path\Gw2-64.exe")) {
 			$path = "Select GW2 installation path"
+			$arcDx9.Enabled = $false
+			$arcDx11.Enabled = $false
+		} else {
+			$arcDx9.Enabled = $true
+			$arcDx11.Enabled = $true
 		}
 
 		$pathArcLabel.Text = $path
@@ -79,15 +143,78 @@ if ($false) {
 	$pathArcLabel = New-Object System.Windows.Forms.Label
 	$pathArcLabel.Text = "Select GW2 installation path first"
 	$pathArcLabel.Enabled = $false
-	$pathArcLabel.Location  = New-Object System.Drawing.Point(62, 58)
+	$pathArcLabel.Location = New-Object System.Drawing.Point(62, 58)
 	$pathArcLabel.AutoSize = $true
 	$groupArc.Controls.Add($pathArcLabel)
 
+	$arcDx9 = New-Object System.Windows.Forms.RadioButton
+	$arcDx9.Text = "DirectX 9"
+	$arcDx9.Enabled = $false
+	$arcDx9.Location = New-Object System.Drawing.Point(10, 80)
+	$arcDx9.AutoSize = $true
+	$arcDx9.Add_Click({
+		$arcDx11.Checked = $false
+	})
+	$tooltip.SetToolTip($arcDx9, "Did you set Guildwars2 to use DirectX9 (default) or DirectX11?")
+	$groupArc.Controls.Add($arcDx9)
+
+	$arcDx11 = New-Object System.Windows.Forms.RadioButton
+	$arcDx11.Text = "DirectX 11"
+	$arcDx11.Enabled = $false
+	$arcDx11.Location = New-Object System.Drawing.Point(90, 80)
+	$arcDx11.AutoSize = $true
+	$arcDx11.Add_Click({
+		$arcDx9.Checked = $false
+	})
+	$tooltip.SetToolTip($arcDx11, "Did you set Guildwars2 to use DirectX9 (default) or DirectX11?")
+	$groupArc.Controls.Add($arcDx11)
+
+
+	$UI = @{}
+	$i = -1
+
+	$modules["ArcDPS"] | foreach {
+		$i++
+		Write-Host $i
+		Write-Host $_.value
+		<#
+		
+		$hname = $_.key+"check"
+
+		Set-Variable -Name $hname -Value (New-Object System.Windows.Forms.CheckBox)
+		$helper = Get-Variable -Name $hname -ValueOnly
+
+		if ($_.value.default) {
+			$helper.Text = "(suggested) "+$_.value.name
+		} else {
+			$helper.Text = $_.value.name
+		}
+		$helper.Location = New-Object System.Drawing.Point(120 + 20 * $i, 10)
+		$helper.Add_CheckStateChanged({
+			Write-Host $hname
+		})
+
+		Set-Variable -Name $hname -Value $helper
+		$groupArc.Controls.Add((Get-Variable -Name $hname -ValueOnly))
+		$tooltip.SetToolTip((Get-Variable -Name $hname -ValueOnly), $_.value.decs)
+		
+		$UI[$_.key] = $hname
+		
+		#>
+	}
+
+
+	# Set-Variable -Name <String> [-Value <Object>]
+	# Get-Variable -Name <String> -ValueOnly
 
 
 
 
-	$groupArc.Controls.Add($enabledArc)
+
+
+
+
+
 
 
 
