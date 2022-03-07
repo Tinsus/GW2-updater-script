@@ -55,6 +55,7 @@ if ($false) {
 		targeturl = "https://github.com/Schattenfluegel/SchattenfluegelTrails/raw/main/Download/SchattenfluegelTrails.taco"
 		targetfile = "SchattenfluegelTrails.taco"
 		platform = "github-raw"
+		blishonly = $false
 	}
 
 
@@ -433,33 +434,10 @@ if ($false) {
 	$groupPaths.Location = New-Object System.Drawing.Size(($groupTaco.Location.X), ($groupArc.Location.Y + $groupArc.height + 10))
 	$groupPaths.AutoSize = $true
 	$groupPaths.AutoSizeMode = 1
-	$groupPaths.text = "Paths for TacO and Blish HUD"
+	$groupPaths.text = "Paths for Blish HUD and TacO"
 
 	$i = 0
 	$modules.Path.GetEnumerator() | foreach {
-		<#
-			$pathBlishLabel = New-Object System.Windows.Forms.Label
-			$pathBlishLabel.Text = "Select installation path first"
-			$pathBlishLabel.Enabled = $false
-			$pathBlishLabel.Location = New-Object System.Drawing.Point(62, 58)
-			$pathBlishLabel.AutoSize = $true
-			$groupBlish.Controls.Add($pathBlishLabel)
-
-			$BlishRun = New-Object System.Windows.Forms.CheckBox
-			$BlishRun.Text = "auto start"
-			$BlishRun.Enabled = $false
-			$BlishRun.Size = New-Object System.Drawing.Point(200, 20)
-			$BlishRun.Location = New-Object System.Drawing.Point(10, 80)
-			$BlishRun.Add_CheckStateChanged({
-				if ($BlishRun.Checked) {
-					$BlishRun.Text = "auto start"
-				} else {
-					$BlishRun.Text = "manually started"
-				}
-			})
-			$tooltip.SetToolTip($BlishRun, "Should Blish HUD start automaticly when using this script?")
-		#>
-
 		$modules.Path[$_.key]["UI"] = New-Object System.Windows.Forms.Label
 		$modules.Path[$_.key]["UI"].Text = $_.value.name
 		#$modules.Path[$_.key]["UI"].Enabled = $false
