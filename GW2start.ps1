@@ -8,43 +8,53 @@ if ($false) {
 	$modules = @{}
 	$modules.Main = @{}
 	$modules.ArcDPS = @{}
-	$modules.TaCO = @{}
+	$modules.Path = @{}
 	$modules.BlishHud = @{}
 
 	$modules.ArcDPS.killproof = @{
-		name = "killproof.me";
-		desc = "extences ArcDPS to show the killproof.me data of your group members. Shortcut to open that is Shift+Alt+K";
-		default = $true;
-		checkurl = "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest";
-		targetfile = "bin64\d3d9_arcdps_killproof_me.dll";
+		name = "killproof.me"
+		desc = "extences ArcDPS to show the killproof.me data of your group members. Shortcut to open that is Shift+Alt+K"
+		default = $true
+		checkurl = "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest"
+		targetfile = "bin64\d3d9_arcdps_killproof_me.dll"
 		platform = "github-normal"
 	}
 
 	$modules.ArcDPS.boon = @{
-		name = "Boon-Table";
-		desc = "extences ArcDPS to show the boons done by you and your group members. Shortcut to open that is Shift+Alt+B";
-		default = $true;
-		checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest";
-		targetfile = "bin64\d3d9_arcdps_table.dll";
+		name = "Boon-Table"
+		desc = "extences ArcDPS to show the boons done by you and your group members. Shortcut to open that is Shift+Alt+B"
+		default = $true
+		checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest"
+		targetfile = "bin64\d3d9_arcdps_table.dll"
 		platform = "github-normal"
 	}
 
 	$modules.ArcDPS.healing = @{
-		name = "Healing-Stats";
-		desc = "extences ArcDPS to show your heal.";
-		default = $true;
-		checkurl = "https://api.github.com/repos/Krappa322/arcdps_healing_stats/releases/latest";
-		targetfile = "bin64\arcdps-healing-stats.dll";
+		name = "Healing-Stats"
+		desc = "extences ArcDPS to show your heal."
+		default = $true
+		checkurl = "https://api.github.com/repos/Krappa322/arcdps_healing_stats/releases/latest"
+		targetfile = "bin64\arcdps-healing-stats.dll"
 		platform = "github-normal"
 	}
 
 	$modules.ArcDPS.mechanics = @{
-		name = "Mechanics-Logs";
-		desc = "extences ArcDPS to how good you or your group members perform with the mechanics in raids. Shortcut to open that is Shift+Alt+L";
-		default = $true;
-		checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Mechanics-Log/releases/latest";
-		targetfile = "bin64\d3d9_arcdps_mechanics.dll";
+		name = "Mechanics-Logs"
+		desc = "extences ArcDPS to how good you or your group members perform with the mechanics in raids. Shortcut to open that is Shift+Alt+L"
+		default = $true
+		checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Mechanics-Log/releases/latest"
+		targetfile = "bin64\d3d9_arcdps_mechanics.dll"
 		platform = "github-normal"
+	}
+
+	$modules.Path.schatten = @{
+		name = "Schattenfluegel"
+		desc = "map pack to show be better than TEKKIT. It adds shotcuts and way better pathes. Way better design, but not as complete as TEKKIT."
+		default = $true
+		checkurl = "https://api.github.com/repos/Schattenfluegel/SchattenfluegelTrails/contents/Download"
+		targeturl = "https://github.com/Schattenfluegel/SchattenfluegelTrails/raw/main/Download/SchattenfluegelTrails.taco"
+		targetfile = "SchattenfluegelTrails.taco"
+		platform = "github-raw"
 	}
 
 
@@ -426,18 +436,62 @@ if ($false) {
 	$groupPaths.text = "Paths for TacO and Blish HUD"
 
 	$i = 0
-	$modules.ArcDPS.GetEnumerator() | foreach {
-		$modules.ArcDPS[$_.key]["UI"] = New-Object System.Windows.Forms.CheckBox
-		$modules.ArcDPS[$_.key]["UI"].Enabled = $false
-		$modules.ArcDPS[$_.key]["UI"].Text = $_.value.name
-		$modules.ArcDPS[$_.key]["UI"].Checked = $_.value.default
-		$modules.ArcDPS[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (20 * $i)))
-		$modules.ArcDPS[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 20)
-		$modules.ArcDPS[$_.key]["UI"].Add_CheckStateChanged({
+	$modules.Path.GetEnumerator() | foreach {
+		<#
+			$pathBlishLabel = New-Object System.Windows.Forms.Label
+			$pathBlishLabel.Text = "Select installation path first"
+			$pathBlishLabel.Enabled = $false
+			$pathBlishLabel.Location = New-Object System.Drawing.Point(62, 58)
+			$pathBlishLabel.AutoSize = $true
+			$groupBlish.Controls.Add($pathBlishLabel)
+
+			$BlishRun = New-Object System.Windows.Forms.CheckBox
+			$BlishRun.Text = "auto start"
+			$BlishRun.Enabled = $false
+			$BlishRun.Size = New-Object System.Drawing.Point(200, 20)
+			$BlishRun.Location = New-Object System.Drawing.Point(10, 80)
+			$BlishRun.Add_CheckStateChanged({
+				if ($BlishRun.Checked) {
+					$BlishRun.Text = "auto start"
+				} else {
+					$BlishRun.Text = "manually started"
+				}
+			})
+			$tooltip.SetToolTip($BlishRun, "Should Blish HUD start automaticly when using this script?")
+		#>
+
+		$modules.Path[$_.key]["UI"] = New-Object System.Windows.Forms.Label
+		$modules.Path[$_.key]["UI"].Text = $_.value.name
+		#$modules.Path[$_.key]["UI"].Enabled = $false
+		#$modules.Path[$_.key]["UI"].Checked = $_.value.default
+		$modules.Path[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (70 * $i)))
+		$modules.Path[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 15)
+		$tooltip.SetToolTip($modules.Path[$_.key]["UI"], $_.value.desc)
+		$groupPaths.Controls.Add($modules.Path[$_.key]["UI"])
+		
+		$modules.Path[$_.key]["UI1"] = New-Object System.Windows.Forms.CheckBox
+		#$modules.Path[$_.key]["UI1"].Enabled = $false
+		$modules.Path[$_.key]["UI1"].Text = "Blish HUD"
+		#$modules.Path[$_.key]["UI1"].Checked = $_.value.default
+		$modules.Path[$_.key]["UI1"].Location = New-Object System.Drawing.Point(30, (35 + (100 * $i)))
+		$modules.Path[$_.key]["UI1"].Size = New-Object System.Drawing.Point(80, 20)
+		$modules.Path[$_.key]["UI1"].Add_CheckStateChanged({
 			Write-Host $this.Text
 		})
-		$tooltip.SetToolTip($modules.ArcDPS[$_.key]["UI"], $_.value.desc)
-		$groupPaths.Controls.Add($modules.ArcDPS[$_.key]["UI"])
+		$tooltip.SetToolTip($modules.Path[$_.key]["UI1"], $_.value.desc)
+		$groupPaths.Controls.Add($modules.Path[$_.key]["UI1"])
+		
+		$modules.Path[$_.key]["UI2"] = New-Object System.Windows.Forms.CheckBox
+		#$modules.Path[$_.key]["UI2"].Enabled = $false
+		$modules.Path[$_.key]["UI2"].Text = "TacO"
+		#$modules.Path[$_.key]["UI2"].Checked = $_.value.default
+		$modules.Path[$_.key]["UI2"].Location = New-Object System.Drawing.Point(120, (35 + (100 * $i)))
+		$modules.Path[$_.key]["UI2"].Size = New-Object System.Drawing.Point(80, 20)
+		$modules.Path[$_.key]["UI2"].Add_CheckStateChanged({
+			Write-Host $this.Text
+		})
+		$tooltip.SetToolTip($modules.Path[$_.key]["UI2"], $_.value.desc)
+		$groupPaths.Controls.Add($modules.Path[$_.key]["UI2"])
 
 		$i++
 	}
