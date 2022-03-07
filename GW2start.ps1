@@ -2,6 +2,9 @@
 
 if ($false) {
 	cls
+
+# prepare stuff
+
 	$modules = @{}
 	$modules.Main = @{}
 	$modules.ArcDPS = @{}
@@ -66,6 +69,7 @@ if ($false) {
 	$main_form.Controls.Add($descriptionMain)
 
 
+# ARCDPS
 	$groupArc = New-Object System.Windows.Forms.GroupBox
 	$groupArc.Location = New-Object System.Drawing.Size(10, 40)
 	$groupArc.AutoSize = $true
@@ -99,7 +103,6 @@ if ($false) {
 			$arcDx9.Enabled = $false
 			$arcDx11.Enabled = $false
 		}
-
 	})
 	$groupArc.Controls.Add($enabledArc)
 
@@ -129,7 +132,7 @@ if ($false) {
 		}
 
 		if (-not (Test-Path "$path\Gw2-64.exe")) {
-			$path = "Select GW2 installation path"
+			$path = "Select installation path"
 			$arcDx9.Enabled = $false
 			$arcDx11.Enabled = $false
 		} else {
@@ -142,7 +145,7 @@ if ($false) {
 	$groupArc.Controls.Add($pathArc)
 
 	$pathArcLabel = New-Object System.Windows.Forms.Label
-	$pathArcLabel.Text = "Select GW2 installation path first"
+	$pathArcLabel.Text = "Select installation path first"
 	$pathArcLabel.Enabled = $false
 	$pathArcLabel.Location = New-Object System.Drawing.Point(62, 58)
 	$pathArcLabel.AutoSize = $true
@@ -178,28 +181,12 @@ if ($false) {
 	$tooltip.SetToolTip($arcDx11, "Did you set Guildwars2 to use DirectX9 (default) or DirectX11?")
 	$groupArc.Controls.Add($arcDx11)
 
-	$i = 0
-	$modules.ArcDPS.GetEnumerator() | foreach {
-		$modules.ArcDPS[$_.key]["UI"] = New-Object System.Windows.Forms.CheckBox
-		$modules.ArcDPS[$_.key]["UI"].Enabled = $false
-		$modules.ArcDPS[$_.key]["UI"].Text = $_.value.name
-		$modules.ArcDPS[$_.key]["UI"].Checked = $_.value.default
-		$modules.ArcDPS[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (100 + (20 * $i)))
-		$modules.ArcDPS[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 20)
-		$modules.ArcDPS[$_.key]["UI"].Add_CheckStateChanged({
-			Write-Host $this.Text
-		})
-		$tooltip.SetToolTip($modules.ArcDPS[$_.key]["UI"], $_.value.desc)
-		$groupArc.Controls.Add($modules.ArcDPS[$_.key]["UI"])
-
-		$i++
-	}
 
 	$main_form.Controls.Add($groupArc)
 
-
+# TACO
 	$groupTaco = New-Object System.Windows.Forms.GroupBox
-	$groupTaco.Location = New-Object System.Drawing.Size((10 + $groupArc.Width + 10) , 40)
+	$groupTaco.Location = New-Object System.Drawing.Size(($groupArc.Location.X + $groupArc.Width + 10) , $groupArc.Location.Y)
 	$groupTaco.AutoSize = $true
 	$groupTaco.AutoSizeMode = 1
 	$groupTaco.text = "TacO"
@@ -222,18 +209,18 @@ if ($false) {
 		} else {
 			$enabledTaco.Text = "uninstall"
 		}
-		
+
 		$path = $pathTacoLabel.Text
+
 		if (
 			(Test-Path "$path\GW2TacO.exe") -or
 			(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
 		) {
-			$path = "Select TacO installation path"
+			$path = "Select installation path"
 			$TacoRun.Enabled = $false
 		} else {
 			$TacoRun.Enabled = $true
 		}
-
 	})
 	$groupTaco.Controls.Add($enabledTaco)
 
@@ -264,11 +251,11 @@ if ($false) {
 
 		if (
 			(Test-Path "$path\GW2TacO.exe") -or
-			(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
+			(Get-ChildItem "$path" | Measure-Object | %{ return $_.Count -eq 0})
 		) {
 			$TacoRun.Enabled = $true
 		} else {
-			$path = "Select TacO installation path"
+			$path = "Select installation path"
 			$TacoRun.Enabled = $false
 		}
 
@@ -277,7 +264,7 @@ if ($false) {
 	$groupTaco.Controls.Add($pathTaco)
 
 	$pathTacoLabel = New-Object System.Windows.Forms.Label
-	$pathTacoLabel.Text = "Select TacO installation path first"
+	$pathTacoLabel.Text = "Select installation path first"
 	$pathTacoLabel.Enabled = $false
 	$pathTacoLabel.Location = New-Object System.Drawing.Point(62, 58)
 	$pathTacoLabel.AutoSize = $true
@@ -299,12 +286,292 @@ if ($false) {
 	$groupTaco.Controls.Add($TacoRun)
 
 
-
-
-
-
-
 	$main_form.Controls.Add($groupTaco)
+
+# BLISH
+	$groupBlish = New-Object System.Windows.Forms.GroupBox
+	$groupBlish.Location = New-Object System.Drawing.Size(($groupTaco.Location.X + $groupTaco.Width + 10) , $groupArc.Location.Y)
+	$groupBlish.AutoSize = $true
+	$groupBlish.AutoSizeMode = 1
+	$groupBlish.text = "Blish HUD"
+
+	$descriptionBlish = New-Object System.Windows.Forms.Label
+	$descriptionBlish.Text = "Modern tool, better and bigger than TacO"
+	$descriptionBlish.Location = New-Object System.Drawing.Point(10, 15)
+	$descriptionBlish.AutoSize = $true
+	$groupBlish.Controls.Add($descriptionBlish)
+
+	$enabledBlish = New-Object System.Windows.Forms.CheckBox
+	$enabledBlish.Text = "install + update"
+	$enabledBlish.Location = New-Object System.Drawing.Point(10, 30)
+	$enabledBlish.Add_CheckStateChanged({
+		$pathBlish.Enabled = $enabledBlish.Checked
+		$pathBlishLabel.Enabled = $enabledBlish.Checked
+
+		if ($enabledBlish.Checked) {
+			$enabledBlish.Text = "install + update"
+		} else {
+			$enabledBlish.Text = "uninstall"
+		}
+
+		$path = $pathBlishLabel.Text
+
+		if (
+			(Test-Path "$path\Blish HUD.exe") -or
+			(Get-ChildItem "$path" | Measure-Object | %{ return $_.Count -eq 0})
+		) {
+			$path = "Select installation path"
+			$BlishRun.Enabled = $false
+		} else {
+			$BlishRun.Enabled = $true
+		}
+	})
+	$groupBlish.Controls.Add($enabledBlish)
+
+	$pathBlish = New-Object System.Windows.Forms.Button
+	$pathBlish.Location = New-Object System.Drawing.Size(10, 55)
+	$pathBlish.Size = New-Object System.Drawing.Size(50, 20)
+	$pathBlish.Text = "Edit"
+	$pathBlish.Enabled = $false
+	$pathBlish.Add_Click({
+		$shell = New-Object -ComObject Shell.Application
+		$path = $shell.BrowseForFolder(0, "Select where Blish HUD gets installed", 0).Self.Path
+
+		while (
+			-not (
+				(Test-Path "$path\Blish HUD.exe") -or
+				(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
+			)
+		) {
+			[System.Windows.Forms.MessageBox]::Show(
+				"Blish HUD was not detected in the selected folder or it is not empthy. Select the folder containing Blish HUD. Or create a new empthy folder.",
+				"Blish HUD.exe not found or folder not empthy",
+				0,
+				"Error"
+			)
+
+			$path = $shell.BrowseForFolder(0, "Select where Blish HUD gets installed", 0).Self.Path
+		}
+
+		if (
+			(Test-Path "$path\Blish HUD.exe") -or
+			(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
+		) {
+			$BlishRun.Enabled = $true
+		} else {
+			$path = "Select installation path"
+			$BlishRun.Enabled = $false
+		}
+
+		$pathBlishLabel.Text = $path
+	})
+	$groupBlish.Controls.Add($pathBlish)
+
+	$pathBlishLabel = New-Object System.Windows.Forms.Label
+	$pathBlishLabel.Text = "Select installation path first"
+	$pathBlishLabel.Enabled = $false
+	$pathBlishLabel.Location = New-Object System.Drawing.Point(62, 58)
+	$pathBlishLabel.AutoSize = $true
+	$groupBlish.Controls.Add($pathBlishLabel)
+
+	$BlishRun = New-Object System.Windows.Forms.CheckBox
+	$BlishRun.Text = "auto start"
+	$BlishRun.Enabled = $false
+	$BlishRun.Size = New-Object System.Drawing.Point(200, 20)
+	$BlishRun.Location = New-Object System.Drawing.Point(10, 80)
+	$BlishRun.Add_CheckStateChanged({
+		if ($BlishRun.Checked) {
+			$BlishRun.Text = "auto start"
+		} else {
+			$BlishRun.Text = "manually started"
+		}
+	})
+	$tooltip.SetToolTip($BlishRun, "Should Blish HUD start automaticly when using this script?")
+	$groupBlish.Controls.Add($BlishRun)
+
+
+	$main_form.Controls.Add($groupBlish)
+
+# ARCDPS ADDONS
+	$groupAddons = New-Object System.Windows.Forms.GroupBox
+	$groupAddons.Location = New-Object System.Drawing.Size(($groupArc.Location.X), ($groupArc.Location.Y + $groupArc.height + 10))
+	$groupAddons.AutoSize = $true
+	$groupAddons.AutoSizeMode = 1
+	$groupAddons.text = "ArcDPS Addons"
+
+	$i = 0
+	$modules.ArcDPS.GetEnumerator() | foreach {
+		$modules.ArcDPS[$_.key]["UI"] = New-Object System.Windows.Forms.CheckBox
+		$modules.ArcDPS[$_.key]["UI"].Enabled = $false
+		$modules.ArcDPS[$_.key]["UI"].Text = $_.value.name
+		$modules.ArcDPS[$_.key]["UI"].Checked = $_.value.default
+		$modules.ArcDPS[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (20 * $i)))
+		$modules.ArcDPS[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 20)
+		$modules.ArcDPS[$_.key]["UI"].Add_CheckStateChanged({
+			Write-Host $this.Text
+		})
+		$tooltip.SetToolTip($modules.ArcDPS[$_.key]["UI"], $_.value.desc)
+		$groupAddons.Controls.Add($modules.ArcDPS[$_.key]["UI"])
+
+		$i++
+	}
+
+	$main_form.Controls.Add($groupAddons)
+
+# PATHS
+	$groupPaths = New-Object System.Windows.Forms.GroupBox
+	$groupPaths.Location = New-Object System.Drawing.Size(($groupTaco.Location.X), ($groupArc.Location.Y + $groupArc.height + 10))
+	$groupPaths.AutoSize = $true
+	$groupPaths.AutoSizeMode = 1
+	$groupPaths.text = "Paths for TacO and Blish HUD"
+
+	$i = 0
+	$modules.ArcDPS.GetEnumerator() | foreach {
+		$modules.ArcDPS[$_.key]["UI"] = New-Object System.Windows.Forms.CheckBox
+		$modules.ArcDPS[$_.key]["UI"].Enabled = $false
+		$modules.ArcDPS[$_.key]["UI"].Text = $_.value.name
+		$modules.ArcDPS[$_.key]["UI"].Checked = $_.value.default
+		$modules.ArcDPS[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (20 * $i)))
+		$modules.ArcDPS[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 20)
+		$modules.ArcDPS[$_.key]["UI"].Add_CheckStateChanged({
+			Write-Host $this.Text
+		})
+		$tooltip.SetToolTip($modules.ArcDPS[$_.key]["UI"], $_.value.desc)
+		$groupPaths.Controls.Add($modules.ArcDPS[$_.key]["UI"])
+
+		$i++
+	}
+
+	$main_form.Controls.Add($groupPaths)
+
+# BLISH MODULES
+	$groupModules = New-Object System.Windows.Forms.GroupBox
+	$groupModules.Location = New-Object System.Drawing.Size(($groupBlish.Location.X), ($groupArc.Location.Y + $groupArc.height + 10))
+	$groupModules.AutoSize = $true
+	$groupModules.AutoSizeMode = 1
+	$groupModules.text = "Blish HUD modules"
+
+	$i = 0
+	$modules.ArcDPS.GetEnumerator() | foreach {
+		$modules.ArcDPS[$_.key]["UI"] = New-Object System.Windows.Forms.CheckBox
+		$modules.ArcDPS[$_.key]["UI"].Enabled = $false
+		$modules.ArcDPS[$_.key]["UI"].Text = $_.value.name
+		$modules.ArcDPS[$_.key]["UI"].Checked = $_.value.default
+		$modules.ArcDPS[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (20 * $i)))
+		$modules.ArcDPS[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 20)
+		$modules.ArcDPS[$_.key]["UI"].Add_CheckStateChanged({
+			Write-Host $this.Text
+		})
+		$tooltip.SetToolTip($modules.ArcDPS[$_.key]["UI"], $_.value.desc)
+		$groupModules.Controls.Add($modules.ArcDPS[$_.key]["UI"])
+
+		$i++
+	}
+
+	$main_form.Controls.Add($groupModules)
+
+
+
+# STUFF
+
+
+	if (
+		($groupBlish.Height -le $groupArc.Height) -and
+		($groupTaco.Height -le $groupArc.Height)
+	) {
+		$groupBlish.Height = $groupArc.Height
+		$groupTaco.Height = $groupArc.Height
+	} elseif (
+		($groupArc.Height -le $groupTaco.Height) -and
+		($groupBlish.Height -le $groupTaco.Height)
+	) {
+		$groupArc.Height = $groupTaco.Height
+		$groupBlish.Height = $groupTaco.Height
+	} else {
+		$groupArc.Height = $groupBlish.Height
+		$groupTaco.Height = $groupBlish.Height
+	}
+
+
+#groupArc
+	if (
+		($groupTaco.Width -le $groupArc.Width) -and
+		($groupBlish.Width -le $groupArc.Width) -and
+		($groupAddons.Width -le $groupArc.Width) -and
+		($groupPaths.Width -le $groupArc.Width) -and
+		($groupModules.Width -le $groupArc.Width)
+	) {
+		$groupTaco.Width = $groupArc.Width
+		$groupBlish.Width = $groupArc.Width
+		$groupAddons.Width = $groupArc.Width
+		$groupPaths.Width = $groupArc.Width
+		$groupModules.Width = $groupArc.Width
+#groupTaco
+	} elseif (
+		($groupArc.Width -le $groupTaco.Width) -and
+		($groupBlish.Width -le $groupTaco.Width) -and
+		($groupAddons.Width -le $groupTaco.Width) -and
+		($groupPaths.Width -le $groupTaco.Width) -and
+		($groupModules.Width -le $groupTaco.Width)
+	) {
+		$groupArc.Width = $groupTaco.Width
+		$groupBlish.Width = $groupTaco.Width
+		$groupAddons.Width = $groupTaco.Width
+		$groupPaths.Width = $groupTaco.Width
+		$groupModules.Width = $groupTaco.Width
+#groupBlish
+	} elseif (
+		($groupArc.Width -le $groupBlish.Width) -and
+		($groupTaco.Width -le $groupBlish.Width) -and
+		($groupAddons.Width -le $groupBlish.Width) -and
+		($groupPaths.Width -le $groupBlish.Width) -and
+		($groupModules.Width -le $groupBlish.Width)
+	) {
+		$groupArc.Width = $groupBlish.Width
+		$groupTaco.Width = $groupBlish.Width
+		$groupAddons.Width = $groupBlish.Width
+		$groupPaths.Width = $groupBlish.Width
+		$groupModules.Width = $groupBlish.Width
+#groupAddons
+	} elseif (
+		($groupArc.Width -le $groupAddons.Width) -and
+		($groupTaco.Width -le $groupAddons.Width) -and
+		($groupBlish.Width -le $groupAddons.Width) -and
+		($groupPaths.Width -le $groupAddons.Width) -and
+		($groupModules.Width -le $groupAddons.Width)
+	) {
+		$groupArc.Width = $groupAddons.Width
+		$groupTaco.Width = $groupAddons.Width
+		$groupBlish.Width = $groupAddons.Width
+		$groupPaths.Width = $groupAddons.Width
+		$groupModules.Width = $groupAddons.Width
+#groupPaths
+	} elseif (
+		($groupArc.Width -le $groupPaths.Width) -and
+		($groupTaco.Width -le $groupPaths.Width) -and
+		($groupBlish.Width -le $groupPaths.Width) -and
+		($groupAddons.Width -le $groupPaths.Width) -and
+		($groupModules.Width -le $groupPaths.Width)
+	) {
+		$groupArc.Width = $groupPaths.Width
+		$groupTaco.Width = $groupPaths.Width
+		$groupBlish.Width = $groupPaths.Width
+		$groupAddons.Width = $groupPaths.Width
+		$groupModules.Width = $groupPaths.Width
+#groupModules
+	} else {
+		$groupArc.Width = $groupModules.Width
+		$groupTaco.Width = $groupModules.Width
+		$groupBlish.Width = $groupModules.Width
+		$groupAddons.Width = $groupModules.Width
+		$groupPaths.Width = $groupModules.Width
+	}
+
+	$groupTaco.Location = New-Object System.Drawing.Size(($groupArc.Location.X + $groupArc.Width + 10) , $groupArc.Location.Y)
+	$groupBlish.Location = New-Object System.Drawing.Size(($groupTaco.Location.X + $groupTaco.Width + 10) , $groupArc.Location.Y)
+
+	$groupPaths.Location = New-Object System.Drawing.Size(($groupTaco.Location.X), ($groupArc.Location.Y + $groupArc.height + 10))
+	$groupModules.Location = New-Object System.Drawing.Size(($groupBlish.Location.X), ($groupArc.Location.Y + $groupArc.height + 10))
 
 	<#
 	$ComboBox = New-Object System.Windows.Forms.ComboBox
