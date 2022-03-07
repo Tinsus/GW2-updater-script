@@ -75,7 +75,7 @@ if ($false) {
 	$descriptionMain = New-Object System.Windows.Forms.Label
 	$descriptionMain.Text = "Here you can config the GW2start script to your own need. This config shows up when new options are available.
 	You can open this setting using the GW2start-config.bat placed next to your usual GW2start.bat"
-	$descriptionMain.Location  = New-Object System.Drawing.Point(0, 10)
+	$descriptionMain.Location  = New-Object System.Drawing.Point(10, 10)
 	$descriptionMain.AutoSize = $true
 	$main_form.Controls.Add($descriptionMain)
 
