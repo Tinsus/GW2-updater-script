@@ -1,6 +1,25 @@
 #testing stuff for dev only
 
 if ($false) {
+	Function DeGZip-File{
+		Param(
+			$infile,
+			$outfile = ($infile -replace '\.gz$','')
+			)
+		$input = New-Object System.IO.FileStream $inFile, ([IO.FileMode]::Open), ([IO.FileAccess]::Read), ([IO.FileShare]::Read)
+		$output = New-Object System.IO.FileStream $outFile, ([IO.FileMode]::Create), ([IO.FileAccess]::Write), ([IO.FileShare]::None)
+		$gzipStream = New-Object System.IO.Compression.GzipStream $input, ([IO.Compression.CompressionMode]::Decompress)
+		$buffer = New-Object byte[](1024)
+		while($true){
+			$read = $gzipstream.Read($buffer, 0, 1024)
+			if ($read -le 0){break}
+			$output.Write($buffer, 0, $read)
+			}
+		$gzipStream.Close()
+		$output.Close()
+		$input.Close()
+	}
+
 	cls
 
 # prepare stuff
@@ -86,6 +105,34 @@ if ($false) {
 			$modules.Path["xbr$i"].default = $true
 		} else {
 			$modules.Path["xbr$i"].default = $false
+		}
+
+		$i++
+	}
+
+	Invoke-WebRequest "https://pkgs.blishhud.com/packages.gz" -OutFile "$checkfile.gz"
+	DeGZip-File "$checkfile.gz"
+	Remove-Item "$checkfile.gz"
+	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+	Remove-Item "$checkfile"
+
+	$i = 0
+
+	$json | foreach {
+		$modules.BlishHud[$_.name] = @{}
+		$modules.BlishHud[$_.name].name = $_.name
+		$modules.BlishHud[$_.name].desc = $_.description
+		$modules.BlishHud[$_.name].targeturl = $_.location
+		$modules.BlishHud[$_.name].version = $_.version
+		$modules.BlishHud[$_.name].namespace = $_.namespace
+
+		if (
+			($_.Name -eq "Timers") -or
+			$false
+		) {
+			$modules.BlishHud[$_.name].default = $true
+		} else {
+			$modules.BlishHud[$_.name].default = $false
 		}
 
 		$i++
@@ -517,18 +564,18 @@ if ($false) {
 	$groupModules.text = "Blish HUD modules"
 
 	$i = 0
-	$modules.ArcDPS.GetEnumerator() | foreach {
-		$modules.ArcDPS[$_.key]["UI"] = New-Object System.Windows.Forms.CheckBox
-		$modules.ArcDPS[$_.key]["UI"].Enabled = $false
-		$modules.ArcDPS[$_.key]["UI"].Text = $_.value.name
-		$modules.ArcDPS[$_.key]["UI"].Checked = $_.value.default
-		$modules.ArcDPS[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (20 * $i)))
-		$modules.ArcDPS[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 20)
-		$modules.ArcDPS[$_.key]["UI"].Add_CheckStateChanged({
+	$modules.BlishHUD.GetEnumerator() | foreach {
+		$modules.BlishHUD[$_.key]["UI"] = New-Object System.Windows.Forms.CheckBox
+		$modules.BlishHUD[$_.key]["UI"].Enabled = $false
+		$modules.BlishHUD[$_.key]["UI"].Text = $_.value.name
+		$modules.BlishHUD[$_.key]["UI"].Checked = $_.value.default
+		$modules.BlishHUD[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (20 * $i)))
+		$modules.BlishHUD[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 20)
+		$modules.BlishHUD[$_.key]["UI"].Add_CheckStateChanged({
 			Write-Host $this.Text
 		})
-		$tooltip.SetToolTip($modules.ArcDPS[$_.key]["UI"], $_.value.desc)
-		$groupModules.Controls.Add($modules.ArcDPS[$_.key]["UI"])
+		$tooltip.SetToolTip($modules.BlishHUD[$_.key]["UI"], $_.value.desc)
+		$groupModules.Controls.Add($modules.BlishHUD[$_.key]["UI"])
 
 		$i++
 	}
