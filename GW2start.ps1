@@ -811,97 +811,20 @@ function showGUI {
 
 # STUFF
 
-	if (
-		($groupBlish.Height -le $groupArc.Height) -and
-		($groupTaco.Height -le $groupArc.Height)
-	) {
-		$groupBlish.Height = $groupArc.Height
-		$groupTaco.Height = $groupArc.Height
-	} elseif (
-		($groupArc.Height -le $groupTaco.Height) -and
-		($groupBlish.Height -le $groupTaco.Height)
-	) {
-		$groupArc.Height = $groupTaco.Height
-		$groupBlish.Height = $groupTaco.Height
-	} else {
-		$groupArc.Height = $groupBlish.Height
-		$groupTaco.Height = $groupBlish.Height
-	}
+	$max = (@($groupBlish.Height, $groupArc.Height, $groupTaco.Height) | measure -Maximum).Maximum
+	
+	$groupBlish.Height = $max
+	$groupTaco.Height = $max
+	$groupArc.Height = $max
+	
+	$max = (@($groupTaco.Width, $groupBlish.Width, $groupAddons.Width, $groupPaths.Width, $groupModules.Width, $groupArc.Width) | measure -Maximum).Maximum
 
-
-#groupArc
-	if (
-		($groupTaco.Width -le $groupArc.Width) -and
-		($groupBlish.Width -le $groupArc.Width) -and
-		($groupAddons.Width -le $groupArc.Width) -and
-		($groupPaths.Width -le $groupArc.Width) -and
-		($groupModules.Width -le $groupArc.Width)
-	) {
-		$groupTaco.Width = $groupArc.Width
-		$groupBlish.Width = $groupArc.Width
-		$groupAddons.Width = $groupArc.Width
-		$groupPaths.Width = $groupArc.Width
-		$groupModules.Width = $groupArc.Width
-#groupTaco
-	} elseif (
-		($groupArc.Width -le $groupTaco.Width) -and
-		($groupBlish.Width -le $groupTaco.Width) -and
-		($groupAddons.Width -le $groupTaco.Width) -and
-		($groupPaths.Width -le $groupTaco.Width) -and
-		($groupModules.Width -le $groupTaco.Width)
-	) {
-		$groupArc.Width = $groupTaco.Width
-		$groupBlish.Width = $groupTaco.Width
-		$groupAddons.Width = $groupTaco.Width
-		$groupPaths.Width = $groupTaco.Width
-		$groupModules.Width = $groupTaco.Width
-#groupBlish
-	} elseif (
-		($groupArc.Width -le $groupBlish.Width) -and
-		($groupTaco.Width -le $groupBlish.Width) -and
-		($groupAddons.Width -le $groupBlish.Width) -and
-		($groupPaths.Width -le $groupBlish.Width) -and
-		($groupModules.Width -le $groupBlish.Width)
-	) {
-		$groupArc.Width = $groupBlish.Width
-		$groupTaco.Width = $groupBlish.Width
-		$groupAddons.Width = $groupBlish.Width
-		$groupPaths.Width = $groupBlish.Width
-		$groupModules.Width = $groupBlish.Width
-#groupAddons
-	} elseif (
-		($groupArc.Width -le $groupAddons.Width) -and
-		($groupTaco.Width -le $groupAddons.Width) -and
-		($groupBlish.Width -le $groupAddons.Width) -and
-		($groupPaths.Width -le $groupAddons.Width) -and
-		($groupModules.Width -le $groupAddons.Width)
-	) {
-		$groupArc.Width = $groupAddons.Width
-		$groupTaco.Width = $groupAddons.Width
-		$groupBlish.Width = $groupAddons.Width
-		$groupPaths.Width = $groupAddons.Width
-		$groupModules.Width = $groupAddons.Width
-#groupPaths
-	} elseif (
-		($groupArc.Width -le $groupPaths.Width) -and
-		($groupTaco.Width -le $groupPaths.Width) -and
-		($groupBlish.Width -le $groupPaths.Width) -and
-		($groupAddons.Width -le $groupPaths.Width) -and
-		($groupModules.Width -le $groupPaths.Width)
-	) {
-		$groupArc.Width = $groupPaths.Width
-		$groupTaco.Width = $groupPaths.Width
-		$groupBlish.Width = $groupPaths.Width
-		$groupAddons.Width = $groupPaths.Width
-		$groupModules.Width = $groupPaths.Width
-#groupModules
-	} else {
-		$groupArc.Width = $groupModules.Width
-		$groupTaco.Width = $groupModules.Width
-		$groupBlish.Width = $groupModules.Width
-		$groupAddons.Width = $groupModules.Width
-		$groupPaths.Width = $groupModules.Width
-	}
+	$groupTaco.Width = $max
+	$groupBlish.Width = $max
+	$groupAddons.Width = $max
+	$groupPaths.Width = $max
+	$groupModules.Width = $max
+	$groupArc.Width = $max
 
 	$groupTaco.Location = New-Object System.Drawing.Size(($groupArc.Location.X + $groupArc.Width + 10) , $groupArc.Location.Y)
 	$groupBlish.Location = New-Object System.Drawing.Size(($groupTaco.Location.X + $groupTaco.Width + 10) , $groupArc.Location.Y)
@@ -924,7 +847,11 @@ function showGUI {
 	$main_form.ShowDialog()
 }
 
+do {
+	$r = showGUI
+} while ($r -ne "OK")
 
+exit
 
 # now the real magic:
 
