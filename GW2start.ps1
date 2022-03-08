@@ -385,7 +385,6 @@ function showGUI {
 	$descriptionMain.AutoSize = $true
 	$main_form.Controls.Add($descriptionMain)
 
-
 # ARCDPS
 	$groupArc = New-Object System.Windows.Forms.GroupBox
 	$groupArc.Location = New-Object System.Drawing.Size(10, 40)
@@ -403,23 +402,7 @@ function showGUI {
 	$enabledArc.Text = "install + update"
 	$enabledArc.Location = New-Object System.Drawing.Point(10, 30)
 	$enabledArc.Add_CheckStateChanged({
-		$pathArc.Enabled = $enabledArc.Checked
-		$pathArcLabel.Enabled = $enabledArc.Checked
-
-		if ($enabledArc.Checked) {
-			$enabledArc.Text = "install + update"
-		} else {
-			$enabledArc.Text = "uninstall"
-		}
-
-		$path = $pathArcLabel.Text
-		if ((Test-Path "$path\Gw2-64.exe")) {
-			$arcDx9.Enabled = $enabledArc.Checked
-			$arcDx11.Enabled = $enabledArc.Checked
-		} else {
-			$arcDx9.Enabled = $false
-			$arcDx11.Enabled = $false
-		}
+		changeGUI -category "enable" -key "arc" -value $this.checked
 	})
 	$groupArc.Controls.Add($enabledArc)
 
@@ -427,77 +410,37 @@ function showGUI {
 	$pathArc.Location = New-Object System.Drawing.Size(10, 55)
 	$pathArc.Size = New-Object System.Drawing.Size(50, 20)
 	$pathArc.Text = "Edit"
-	$pathArc.Enabled = $false
 	$pathArc.Add_Click({
-		$shell = New-Object -ComObject Shell.Application
-		$path = $shell.BrowseForFolder(0, "Select where Guildwars 2 is installed", 0).Self.Path
-
-		while (
-			-not (
-				(Test-Path "$path\Gw2-64.exe") -or
-				($path.length -lt 3)
-			)
-		) {
-			[System.Windows.Forms.MessageBox]::Show(
-				"Guildwars 2 was not detected in the selected folder. Select the folder where Guildwars 2 is installed",
-				"GW2-62.exe not found",
-				0,
-				"Error"
-			)
-
-			$path = $shell.BrowseForFolder(0, "Select where GW2 is installed", 0).Self.Path
-		}
-
-		if (-not (Test-Path "$path\Gw2-64.exe")) {
-			$path = "Select installation path"
-			$arcDx9.Enabled = $false
-			$arcDx11.Enabled = $false
-		} else {
-			$arcDx9.Enabled = $true
-			$arcDx11.Enabled = $true
-		}
-
-		$pathArcLabel.Text = $path
+		changeGUI -category "path" -key "arc"
 	})
 	$groupArc.Controls.Add($pathArc)
 
 	$pathArcLabel = New-Object System.Windows.Forms.Label
 	$pathArcLabel.Text = "Select installation path first"
-	$pathArcLabel.Enabled = $false
 	$pathArcLabel.Location = New-Object System.Drawing.Point(62, 58)
 	$pathArcLabel.AutoSize = $true
 	$groupArc.Controls.Add($pathArcLabel)
 
 	$arcDx9 = New-Object System.Windows.Forms.RadioButton
 	$arcDx9.Text = "DirectX 9"
-	$arcDx9.Enabled = $false
 	$arcDx9.Location = New-Object System.Drawing.Point(10, 80)
 	$arcDx9.AutoSize = $true
 	$arcDx9.Add_Click({
-		$arcDx11.Checked = $false
-
-		$modules.ArcDPS.GetEnumerator() | foreach {
-			$modules.ArcDPS[$_.key]["UI"].Enabled = $true
-		}
+		changeGUI -category "dx" -key "9" -value $this.checked
 	})
 	$tooltip.SetToolTip($arcDx9, "Did you set Guildwars2 to use DirectX9 (default) or DirectX11?")
 	$groupArc.Controls.Add($arcDx9)
 
 	$arcDx11 = New-Object System.Windows.Forms.RadioButton
 	$arcDx11.Text = "DirectX 11"
-	$arcDx11.Enabled = $false
 	$arcDx11.Location = New-Object System.Drawing.Point(90, 80)
 	$arcDx11.AutoSize = $true
 	$arcDx11.Add_Click({
-		$arcDx9.Checked = $false
+		changeGUI -category "dx" -key "11" -value $this.checked
 
-		$modules.ArcDPS.GetEnumerator() | foreach {
-			$modules.ArcDPS[$_.key]["UI"].Enabled = $true
-		}
 	})
 	$tooltip.SetToolTip($arcDx11, "Did you set Guildwars2 to use DirectX9 (default) or DirectX11?")
 	$groupArc.Controls.Add($arcDx11)
-
 
 	$main_form.Controls.Add($groupArc)
 
@@ -518,26 +461,7 @@ function showGUI {
 	$enabledTaco.Text = "install + update"
 	$enabledTaco.Location = New-Object System.Drawing.Point(10, 30)
 	$enabledTaco.Add_CheckStateChanged({
-		$pathTaco.Enabled = $enabledTaco.Checked
-		$pathTacoLabel.Enabled = $enabledTaco.Checked
-
-		if ($enabledTaco.Checked) {
-			$enabledTaco.Text = "install + update"
-		} else {
-			$enabledTaco.Text = "uninstall"
-		}
-
-		$path = $pathTacoLabel.Text
-
-		if (
-			(Test-Path "$path\GW2TacO.exe") -or
-			(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
-		) {
-			$path = "Select installation path"
-			$TacoRun.Enabled = $false
-		} else {
-			$TacoRun.Enabled = $true
-		}
+		changeGUI -category "enable" -key "taco" -value $this.checked
 	})
 	$groupTaco.Controls.Add($enabledTaco)
 
@@ -545,63 +469,26 @@ function showGUI {
 	$pathTaco.Location = New-Object System.Drawing.Size(10, 55)
 	$pathTaco.Size = New-Object System.Drawing.Size(50, 20)
 	$pathTaco.Text = "Edit"
-	$pathTaco.Enabled = $false
 	$pathTaco.Add_Click({
-		$shell = New-Object -ComObject Shell.Application
-		$path = $shell.BrowseForFolder(0, "Select where TacO gets installed", 0).Self.Path
-
-		while (
-			-not (
-				(Test-Path "$path\GW2TacO.exe") -or
-				(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
-			)
-		) {
-			[System.Windows.Forms.MessageBox]::Show(
-				"TacO was not detected in the selected folder or it is not empthy. Select the folder containing TacO. Or create a new empthy folder.",
-				"GW2TacO.exe not found or folder not empthy",
-				0,
-				"Error"
-			)
-
-			$path = $shell.BrowseForFolder(0, "Select where TacO gets installed", 0).Self.Path
-		}
-
-		if (
-			(Test-Path "$path\GW2TacO.exe") -or
-			(Get-ChildItem "$path" | Measure-Object | %{ return $_.Count -eq 0})
-		) {
-			$TacoRun.Enabled = $true
-		} else {
-			$path = "Select installation path"
-			$TacoRun.Enabled = $false
-		}
-
-		$pathTacoLabel.Text = $path
+		changeGUI -category "path" -key "taco"
 	})
 	$groupTaco.Controls.Add($pathTaco)
 
 	$pathTacoLabel = New-Object System.Windows.Forms.Label
 	$pathTacoLabel.Text = "Select installation path first"
-	$pathTacoLabel.Enabled = $false
 	$pathTacoLabel.Location = New-Object System.Drawing.Point(62, 58)
 	$pathTacoLabel.AutoSize = $true
 	$groupTaco.Controls.Add($pathTacoLabel)
 
 	$TacoRun = New-Object System.Windows.Forms.CheckBox
 	$TacoRun.Text = "auto start"
-	$TacoRun.Enabled = $false
 	$TacoRun.Size = New-Object System.Drawing.Point(200, 20)
 	$TacoRun.Location = New-Object System.Drawing.Point(10, 80)
 	$TacoRun.Add_CheckStateChanged({
-		if ($TacoRun.Checked) {
-			$TacoRun.Text = "auto start"
-		} else {
-			$TacoRun.Text = "manually started"
-		}
+		changeGUI -category "auto" -key "taco" -value $this.checked
 	})
 	$tooltip.SetToolTip($TacoRun, "Should TacO start automaticly when using this script?")
 	$groupTaco.Controls.Add($TacoRun)
-
 
 	$main_form.Controls.Add($groupTaco)
 
@@ -622,26 +509,7 @@ function showGUI {
 	$enabledBlish.Text = "install + update"
 	$enabledBlish.Location = New-Object System.Drawing.Point(10, 30)
 	$enabledBlish.Add_CheckStateChanged({
-		$pathBlish.Enabled = $enabledBlish.Checked
-		$pathBlishLabel.Enabled = $enabledBlish.Checked
-
-		if ($enabledBlish.Checked) {
-			$enabledBlish.Text = "install + update"
-		} else {
-			$enabledBlish.Text = "uninstall"
-		}
-
-		$path = $pathBlishLabel.Text
-
-		if (
-			(Test-Path "$path\Blish HUD.exe") -or
-			(Get-ChildItem "$path" | Measure-Object | %{ return $_.Count -eq 0})
-		) {
-			$path = "Select installation path"
-			$BlishRun.Enabled = $false
-		} else {
-			$BlishRun.Enabled = $true
-		}
+		changeGUI -category "enable" -key "blish" -value $this.checked
 	})
 	$groupBlish.Controls.Add($enabledBlish)
 
@@ -649,59 +517,23 @@ function showGUI {
 	$pathBlish.Location = New-Object System.Drawing.Size(10, 55)
 	$pathBlish.Size = New-Object System.Drawing.Size(50, 20)
 	$pathBlish.Text = "Edit"
-	$pathBlish.Enabled = $false
 	$pathBlish.Add_Click({
-		$shell = New-Object -ComObject Shell.Application
-		$path = $shell.BrowseForFolder(0, "Select where Blish HUD gets installed", 0).Self.Path
-
-		while (
-			-not (
-				(Test-Path "$path\Blish HUD.exe") -or
-				(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
-			)
-		) {
-			[System.Windows.Forms.MessageBox]::Show(
-				"Blish HUD was not detected in the selected folder or it is not empthy. Select the folder containing Blish HUD. Or create a new empthy folder.",
-				"Blish HUD.exe not found or folder not empthy",
-				0,
-				"Error"
-			)
-
-			$path = $shell.BrowseForFolder(0, "Select where Blish HUD gets installed", 0).Self.Path
-		}
-
-		if (
-			(Test-Path "$path\Blish HUD.exe") -or
-			(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
-		) {
-			$BlishRun.Enabled = $true
-		} else {
-			$path = "Select installation path"
-			$BlishRun.Enabled = $false
-		}
-
-		$pathBlishLabel.Text = $path
+		changeGUI -category "path" -key "blish"
 	})
 	$groupBlish.Controls.Add($pathBlish)
 
 	$pathBlishLabel = New-Object System.Windows.Forms.Label
 	$pathBlishLabel.Text = "Select installation path first"
-	$pathBlishLabel.Enabled = $false
 	$pathBlishLabel.Location = New-Object System.Drawing.Point(62, 58)
 	$pathBlishLabel.AutoSize = $true
 	$groupBlish.Controls.Add($pathBlishLabel)
 
 	$BlishRun = New-Object System.Windows.Forms.CheckBox
 	$BlishRun.Text = "auto start"
-	$BlishRun.Enabled = $false
 	$BlishRun.Size = New-Object System.Drawing.Point(200, 20)
 	$BlishRun.Location = New-Object System.Drawing.Point(10, 80)
 	$BlishRun.Add_CheckStateChanged({
-		if ($BlishRun.Checked) {
-			$BlishRun.Text = "auto start"
-		} else {
-			$BlishRun.Text = "manually started"
-		}
+		changeGUI -category "auto" -key "blish" -value $this.checked
 	})
 	$tooltip.SetToolTip($BlishRun, "Should Blish HUD start automaticly when using this script?")
 	$groupBlish.Controls.Add($BlishRun)
@@ -870,6 +702,198 @@ function changeGUI($category, $key, $value) {
 	Write-Host $category
 	Write-Host $key
 	Write-Host $value
+
+	<#
+
+	blish path
+
+	$shell = New-Object -ComObject Shell.Application
+		$path = $shell.BrowseForFolder(0, "Select where Blish HUD gets installed", 0).Self.Path
+
+		while (
+			-not (
+				(Test-Path "$path\Blish HUD.exe") -or
+				(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
+			)
+		) {
+			[System.Windows.Forms.MessageBox]::Show(
+				"Blish HUD was not detected in the selected folder or it is not empthy. Select the folder containing Blish HUD. Or create a new empthy folder.",
+				"Blish HUD.exe not found or folder not empthy",
+				0,
+				"Error"
+			)
+
+			$path = $shell.BrowseForFolder(0, "Select where Blish HUD gets installed", 0).Self.Path
+		}
+
+		if (
+			(Test-Path "$path\Blish HUD.exe") -or
+			(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
+		) {
+			$BlishRun.Enabled = $true
+		} else {
+			$path = "Select installation path"
+			$BlishRun.Enabled = $false
+		}
+
+		$pathBlishLabel.Text = $path
+
+
+	blish install
+
+	$pathBlish.Enabled = $enabledBlish.Checked
+		$pathBlishLabel.Enabled = $enabledBlish.Checked
+
+		if ($enabledBlish.Checked) {
+			$enabledBlish.Text = "install + update"
+		} else {
+			$enabledBlish.Text = "uninstall"
+		}
+
+		$path = $pathBlishLabel.Text
+
+		if (
+			(Test-Path "$path\Blish HUD.exe") -or
+			(Get-ChildItem "$path" | Measure-Object | %{ return $_.Count -eq 0})
+		) {
+			$path = "Select installation path"
+			$BlishRun.Enabled = $false
+		} else {
+			$BlishRun.Enabled = $true
+		}
+
+
+	taco path
+
+	$shell = New-Object -ComObject Shell.Application
+		$path = $shell.BrowseForFolder(0, "Select where TacO gets installed", 0).Self.Path
+
+		while (
+			-not (
+				(Test-Path "$path\GW2TacO.exe") -or
+				(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
+			)
+		) {
+			[System.Windows.Forms.MessageBox]::Show(
+				"TacO was not detected in the selected folder or it is not empthy. Select the folder containing TacO. Or create a new empthy folder.",
+				"GW2TacO.exe not found or folder not empthy",
+				0,
+				"Error"
+			)
+
+			$path = $shell.BrowseForFolder(0, "Select where TacO gets installed", 0).Self.Path
+		}
+
+		if (
+			(Test-Path "$path\GW2TacO.exe") -or
+			(Get-ChildItem "$path" | Measure-Object | %{ return $_.Count -eq 0})
+		) {
+			$TacoRun.Enabled = $true
+		} else {
+			$path = "Select installation path"
+			$TacoRun.Enabled = $false
+		}
+
+		$pathTacoLabel.Text = $path
+
+		taco install
+
+		$pathTaco.Enabled = $enabledTaco.Checked
+		$pathTacoLabel.Enabled = $enabledTaco.Checked
+
+		if ($enabledTaco.Checked) {
+			$enabledTaco.Text = "install + update"
+		} else {
+			$enabledTaco.Text = "uninstall"
+		}
+
+		$path = $pathTacoLabel.Text
+
+		if (
+			(Test-Path "$path\GW2TacO.exe") -or
+			(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
+		) {
+			$path = "Select installation path"
+			$TacoRun.Enabled = $false
+		} else {
+			$TacoRun.Enabled = $true
+		}
+
+		dx11
+		$arcDx9.Checked = $false
+
+		$modules.ArcDPS.GetEnumerator() | foreach {
+			$modules.ArcDPS[$_.key]["UI"].Enabled = $true
+		}
+
+		dx9
+
+		$arcDx11.Checked = $false
+
+		$modules.ArcDPS.GetEnumerator() | foreach {
+			$modules.ArcDPS[$_.key]["UI"].Enabled = $true
+		}
+
+		path arc
+
+		$shell = New-Object -ComObject Shell.Application
+		$path = $shell.BrowseForFolder(0, "Select where Guildwars 2 is installed", 0).Self.Path
+
+		while (
+			-not (
+				(Test-Path "$path\Gw2-64.exe") -or
+				($path.length -lt 3)
+			)
+		) {
+			[System.Windows.Forms.MessageBox]::Show(
+				"Guildwars 2 was not detected in the selected folder. Select the folder where Guildwars 2 is installed",
+				"GW2-62.exe not found",
+				0,
+				"Error"
+			)
+
+			$path = $shell.BrowseForFolder(0, "Select where GW2 is installed", 0).Self.Path
+		}
+
+		if (-not (Test-Path "$path\Gw2-64.exe")) {
+			$path = "Select installation path"
+			$arcDx9.Enabled = $false
+			$arcDx11.Enabled = $false
+		} else {
+			$arcDx9.Enabled = $true
+			$arcDx11.Enabled = $true
+		}
+
+		$pathArcLabel.Text = $path
+
+		enable arc
+				$pathArc.Enabled = $enabledArc.Checked
+		$pathArcLabel.Enabled = $enabledArc.Checked
+
+		if ($enabledArc.Checked) {
+			$enabledArc.Text = "install + update"
+		} else {
+			$enabledArc.Text = "uninstall"
+		}
+
+		$path = $pathArcLabel.Text
+		if ((Test-Path "$path\Gw2-64.exe")) {
+			$arcDx9.Enabled = $enabledArc.Checked
+			$arcDx11.Enabled = $enabledArc.Checked
+		} else {
+			$arcDx9.Enabled = $false
+			$arcDx11.Enabled = $false
+		}
+
+
+
+
+		dings
+
+			$pathBlish.Enabled = $false
+	$pathBlishLabel.Enabled = $false
+	$BlishRun.Enabled = $false
+	#>
 }
 
 do {
