@@ -59,6 +59,39 @@ if ($false) {
 	}
 
 
+	$Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
+	$checkfile = "$Script_path\checkfile"
+
+	Invoke-WebRequest "https://mp-repo.blishhud.com/repo.json" -OutFile "$checkfile"
+	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+	Remove-Item "$checkfile"
+
+	$i = 0
+
+	$json | foreach {
+		$modules.Path["xbr$i"] = @{}
+		$modules.Path["xbr$i"].name = $_.Name
+		$modules.Path["xbr$i"].desc = $_.Description
+		$modules.Path["xbr$i"].platform = "blishrepo"
+		$modules.Path["xbr$i"].targeturl = $_.Download
+		$modules.Path["xbr$i"].targetfile = $_.FileMane
+		$modules.Path["xbr$i"].version = $_.LastUpdate
+
+		if (
+			($_.Name -eq "ReActif EN") -or
+			($_.Name -eq "Hero's Marker Pack") -or
+			($_.Name -eq "Tekkit's All-In-One") -or
+			$false
+		) {
+			$modules.Path["xbr$i"].default = $true
+		} else {
+			$modules.Path["xbr$i"].default = $false
+		}
+
+		$i++
+	}
+
+
 	Add-Type -assembly System.Windows.Forms
 
 	$main_form = New-Object System.Windows.Forms.Form
@@ -442,28 +475,28 @@ if ($false) {
 		$modules.Path[$_.key]["UI"].Text = $_.value.name
 		#$modules.Path[$_.key]["UI"].Enabled = $false
 		#$modules.Path[$_.key]["UI"].Checked = $_.value.default
-		$modules.Path[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (70 * $i)))
+		$modules.Path[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (40 * $i)))
 		$modules.Path[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 15)
 		$tooltip.SetToolTip($modules.Path[$_.key]["UI"], $_.value.desc)
 		$groupPaths.Controls.Add($modules.Path[$_.key]["UI"])
-		
+
 		$modules.Path[$_.key]["UI1"] = New-Object System.Windows.Forms.CheckBox
 		#$modules.Path[$_.key]["UI1"].Enabled = $false
 		$modules.Path[$_.key]["UI1"].Text = "Blish HUD"
 		#$modules.Path[$_.key]["UI1"].Checked = $_.value.default
-		$modules.Path[$_.key]["UI1"].Location = New-Object System.Drawing.Point(30, (35 + (100 * $i)))
+		$modules.Path[$_.key]["UI1"].Location = New-Object System.Drawing.Point(30, (35 + (40 * $i)))
 		$modules.Path[$_.key]["UI1"].Size = New-Object System.Drawing.Point(80, 20)
 		$modules.Path[$_.key]["UI1"].Add_CheckStateChanged({
 			Write-Host $this.Text
 		})
 		$tooltip.SetToolTip($modules.Path[$_.key]["UI1"], $_.value.desc)
 		$groupPaths.Controls.Add($modules.Path[$_.key]["UI1"])
-		
+
 		$modules.Path[$_.key]["UI2"] = New-Object System.Windows.Forms.CheckBox
 		#$modules.Path[$_.key]["UI2"].Enabled = $false
 		$modules.Path[$_.key]["UI2"].Text = "TacO"
 		#$modules.Path[$_.key]["UI2"].Checked = $_.value.default
-		$modules.Path[$_.key]["UI2"].Location = New-Object System.Drawing.Point(120, (35 + (100 * $i)))
+		$modules.Path[$_.key]["UI2"].Location = New-Object System.Drawing.Point(120, (35 + (40 * $i)))
 		$modules.Path[$_.key]["UI2"].Size = New-Object System.Drawing.Point(80, 20)
 		$modules.Path[$_.key]["UI2"].Add_CheckStateChanged({
 			Write-Host $this.Text
