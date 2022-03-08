@@ -706,7 +706,6 @@ function showGUI {
 	$tooltip.SetToolTip($BlishRun, "Should Blish HUD start automaticly when using this script?")
 	$groupBlish.Controls.Add($BlishRun)
 
-
 	$main_form.Controls.Add($groupBlish)
 
 # ARCDPS ADDONS
@@ -719,13 +718,15 @@ function showGUI {
 	$i = 0
 	$modules.ArcDPS.GetEnumerator() | foreach {
 		$modules.ArcDPS[$_.key]["UI"] = New-Object System.Windows.Forms.CheckBox
-		$modules.ArcDPS[$_.key]["UI"].Enabled = $false
 		$modules.ArcDPS[$_.key]["UI"].Text = $_.value.name
-		$modules.ArcDPS[$_.key]["UI"].Checked = $_.value.default
 		$modules.ArcDPS[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (20 * $i)))
 		$modules.ArcDPS[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 20)
 		$modules.ArcDPS[$_.key]["UI"].Add_CheckStateChanged({
-			Write-Host $this.Text
+			$modules.ArcDPS.GetEnumerator() | foreach {
+				if ($modules.ArcDPS[$_.key]["UI"].Text -eq $this.Text) {
+					changeGUI -category "addons" -key $_.key -value $this.checked
+				}
+			}
 		})
 		$tooltip.SetToolTip($modules.ArcDPS[$_.key]["UI"], $_.value.desc)
 		$groupAddons.Controls.Add($modules.ArcDPS[$_.key]["UI"])
@@ -746,33 +747,30 @@ function showGUI {
 	$modules.Path.GetEnumerator() | foreach {
 		$modules.Path[$_.key]["UI"] = New-Object System.Windows.Forms.Label
 		$modules.Path[$_.key]["UI"].Text = $_.value.name
-		#$modules.Path[$_.key]["UI"].Enabled = $false
-		#$modules.Path[$_.key]["UI"].Checked = $_.value.default
 		$modules.Path[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (40 * $i)))
 		$modules.Path[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 15)
 		$tooltip.SetToolTip($modules.Path[$_.key]["UI"], $_.value.desc)
 		$groupPaths.Controls.Add($modules.Path[$_.key]["UI"])
 
 		$modules.Path[$_.key]["UI1"] = New-Object System.Windows.Forms.CheckBox
-		#$modules.Path[$_.key]["UI1"].Enabled = $false
+
 		$modules.Path[$_.key]["UI1"].Text = "Blish HUD"
-		#$modules.Path[$_.key]["UI1"].Checked = $_.value.default
+		$modules.Path[$_.key]["UI1"] | Add-Member -MemberType NoteProperty -Name 'Value' -Value $_.key
 		$modules.Path[$_.key]["UI1"].Location = New-Object System.Drawing.Point(30, (35 + (40 * $i)))
 		$modules.Path[$_.key]["UI1"].Size = New-Object System.Drawing.Point(80, 20)
 		$modules.Path[$_.key]["UI1"].Add_CheckStateChanged({
-			Write-Host $this.Text
+			changeGUI -category "blish" -key $this.value -value $this.checked
 		})
 		$tooltip.SetToolTip($modules.Path[$_.key]["UI1"], $_.value.desc)
 		$groupPaths.Controls.Add($modules.Path[$_.key]["UI1"])
 
 		$modules.Path[$_.key]["UI2"] = New-Object System.Windows.Forms.CheckBox
-		#$modules.Path[$_.key]["UI2"].Enabled = $false
+		$modules.Path[$_.key]["UI2"] | Add-Member -MemberType NoteProperty -Name 'Value' -Value $_.key
 		$modules.Path[$_.key]["UI2"].Text = "TacO"
-		#$modules.Path[$_.key]["UI2"].Checked = $_.value.default
 		$modules.Path[$_.key]["UI2"].Location = New-Object System.Drawing.Point(120, (35 + (40 * $i)))
 		$modules.Path[$_.key]["UI2"].Size = New-Object System.Drawing.Point(80, 20)
 		$modules.Path[$_.key]["UI2"].Add_CheckStateChanged({
-			Write-Host $this.Text
+			changeGUI -category "taco" -key $this.value -value $this.checked
 		})
 		$tooltip.SetToolTip($modules.Path[$_.key]["UI2"], $_.value.desc)
 		$groupPaths.Controls.Add($modules.Path[$_.key]["UI2"])
@@ -780,6 +778,7 @@ function showGUI {
 		$i++
 	}
 
+	$main_form.Topmost = $true
 	$main_form.Controls.Add($groupPaths)
 
 # BLISH MODULES
@@ -792,13 +791,15 @@ function showGUI {
 	$i = 0
 	$modules.BlishHUD.GetEnumerator() | foreach {
 		$modules.BlishHUD[$_.key]["UI"] = New-Object System.Windows.Forms.CheckBox
-		$modules.BlishHUD[$_.key]["UI"].Enabled = $false
 		$modules.BlishHUD[$_.key]["UI"].Text = $_.value.name
-		$modules.BlishHUD[$_.key]["UI"].Checked = $_.value.default
 		$modules.BlishHUD[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (20 * $i)))
 		$modules.BlishHUD[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 20)
 		$modules.BlishHUD[$_.key]["UI"].Add_CheckStateChanged({
-			Write-Host $this.Text
+			$modules.BlishHUD.GetEnumerator() | foreach {
+				if ($modules.BlishHUD[$_.key]["UI"].Text -eq $this.Text) {
+					changeGUI -category "module" -key $_.key -value $this.checked
+				}
+			}
 		})
 		$tooltip.SetToolTip($modules.BlishHUD[$_.key]["UI"], $_.value.desc)
 		$groupModules.Controls.Add($modules.BlishHUD[$_.key]["UI"])
@@ -808,15 +809,13 @@ function showGUI {
 
 	$main_form.Controls.Add($groupModules)
 
-
 # STUFF
-
 	$max = (@($groupBlish.Height, $groupArc.Height, $groupTaco.Height) | measure -Maximum).Maximum
-	
+
 	$groupBlish.Height = $max
 	$groupTaco.Height = $max
 	$groupArc.Height = $max
-	
+
 	$max = (@($groupTaco.Width, $groupBlish.Width, $groupAddons.Width, $groupPaths.Width, $groupModules.Width, $groupArc.Width) | measure -Maximum).Maximum
 
 	$groupTaco.Width = $max
@@ -840,11 +839,37 @@ function showGUI {
     $close.Size = New-Object System.Drawing.Size(70, 40)
     $close.Text = "Save and Run"
     $close.DialogResult = "OK"
-
+	$close.Add_Click({
+		Write-Host "save meeeeeeeeee"
+	})
     $main_form.Controls.Add($close)
 
 
 	$main_form.ShowDialog()
+
+	validateGUI
+}
+
+function validateGUI {
+
+}
+
+function changeGUI($category, $key, $value) {
+	#$modules.ArcDPS[$_.key]["UI"].Enabled = $false #arc
+	#$modules.ArcDPS[$_.key]["UI"].Checked = $_.value.default
+
+	#$modules.Path[$_.key]["UI"].Enabled = $false  #lable
+	#$modules.Path[$_.key]["UI1"].Enabled = $false  #blish
+	#$modules.Path[$_.key]["UI1"].Checked = $_.value.default
+	#$modules.Path[$_.key]["UI2"].Enabled = $false  #taco
+	#$modules.Path[$_.key]["UI2"].Checked = $_.value.default
+
+	#$modules.BlishHUD[$_.key]["UI"].Enabled = $false
+	#$modules.BlishHUD[$_.key]["UI"].Checked = $_.value.default
+
+	Write-Host $category
+	Write-Host $key
+	Write-Host $value
 }
 
 do {
