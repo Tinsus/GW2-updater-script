@@ -116,26 +116,35 @@ if ($false) {
 	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
 	Remove-Item "$checkfile"
 
-	$i = 0
-
 	$json | foreach {
-		$modules.BlishHud[$_.name] = @{}
-		$modules.BlishHud[$_.name].name = $_.name
-		$modules.BlishHud[$_.name].desc = $_.description
-		$modules.BlishHud[$_.name].targeturl = $_.location
-		$modules.BlishHud[$_.name].version = $_.version
-		$modules.BlishHud[$_.name].namespace = $_.namespace
+		$filtered = $true
 
-		if (
-			($_.Name -eq "Timers") -or
-			$false
-		) {
-			$modules.BlishHud[$_.name].default = $true
-		} else {
-			$modules.BlishHud[$_.name].default = $false
+		$_.dependencies.psobject.properties | Foreach {
+			if (
+				($_.Name -eq "bh.blishhud") -and
+				($_.Value -like "<*")
+			) {
+				$filtered = $false
+			}
 		}
 
-		$i++
+		if ($filtered) {
+			$modules.BlishHud[$_.name] = @{}
+			$modules.BlishHud[$_.name].name = $_.name
+			$modules.BlishHud[$_.name].desc = $_.description
+			$modules.BlishHud[$_.name].targeturl = $_.location
+			$modules.BlishHud[$_.name].version = $_.version
+			$modules.BlishHud[$_.name].namespace = $_.namespace
+
+			if (
+				($_.Name -eq "Timers") -or
+				$false
+			) {
+				$modules.BlishHud[$_.name].default = $true
+			} else {
+				$modules.BlishHud[$_.name].default = $false
+			}
+		}
 	}
 
 
