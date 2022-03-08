@@ -1,153 +1,370 @@
-#testing stuff for dev only
+#some magic stuff for pathes and options
 
-if ($false) {
-	Function DeGZip-File{
-		Param(
-			$infile,
-			$outfile = ($infile -replace '\.gz$','')
-			)
-		$input = New-Object System.IO.FileStream $inFile, ([IO.FileMode]::Open), ([IO.FileAccess]::Read), ([IO.FileShare]::Read)
-		$output = New-Object System.IO.FileStream $outFile, ([IO.FileMode]::Create), ([IO.FileAccess]::Write), ([IO.FileShare]::None)
-		$gzipStream = New-Object System.IO.Compression.GzipStream $input, ([IO.Compression.CompressionMode]::Decompress)
-		$buffer = New-Object byte[](1024)
-		while($true){
-			$read = $gzipstream.Read($buffer, 0, 1024)
-			if ($read -le 0){break}
-			$output.Write($buffer, 0, $read)
-			}
-		$gzipStream.Close()
-		$output.Close()
-		$input.Close()
+param($GW2_path_old, $TacO_path_old, $BlishHUD_path_old, $use_ArcDPS_old, $use_TacO_old, $use_BHud_old)
+
+$MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
+$Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
+$checkfile = "$Script_path\checkfile"
+
+# some functions for lazy people
+
+function stopprocesses() {
+	if ($conf.configuration.start_TacO) {
+		Stop-Process -Name "GW2TacO" -ErrorAction SilentlyContinue
 	}
 
-	cls
-
-# prepare stuff
-
-	$modules = @{}
-	$modules.Main = @{}
-	$modules.ArcDPS = @{}
-	$modules.Path = @{}
-	$modules.BlishHud = @{}
-
-	$modules.ArcDPS.killproof = @{
-		name = "killproof.me"
-		desc = "extences ArcDPS to show the killproof.me data of your group members. Shortcut to open that is Shift+Alt+K"
-		default = $true
-		checkurl = "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest"
-		targetfile = "bin64\d3d9_arcdps_killproof_me.dll"
-		platform = "github-normal"
+	if ($conf.configuration.start_BlishHUD) {
+		Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
 	}
 
-	$modules.ArcDPS.boon = @{
-		name = "Boon-Table"
-		desc = "extences ArcDPS to show the boons done by you and your group members. Shortcut to open that is Shift+Alt+B"
-		default = $true
-		checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest"
-		targetfile = "bin64\d3d9_arcdps_table.dll"
-		platform = "github-normal"
+	if ($conf.configuration.update_ArcDPS) {
+		Stop-Process -Name "RazerCortex" -ErrorAction SilentlyContinue
 	}
 
-	$modules.ArcDPS.healing = @{
-		name = "Healing-Stats"
-		desc = "extences ArcDPS to show your heal."
-		default = $true
-		checkurl = "https://api.github.com/repos/Krappa322/arcdps_healing_stats/releases/latest"
-		targetfile = "bin64\arcdps-healing-stats.dll"
-		platform = "github-normal"
+	Stop-Process -Name "Gw2-64" -ErrorAction SilentlyContinue
+}
+
+function removefile($path) {
+	if (Test-Path "$path") {
+		Remove-Item "$path"
+	}
+}
+
+function newdir($path) {
+	if (-not (Test-Path "$path")) {
+		New-Item "$path" -ItemType Directory
+	}
+}
+
+function startGW2() {
+	# start TacO
+	if ($conf.configuration.start_TacO) {
+		Start-Process -FilePath "$TacO_path\GW2TacO.exe" -WorkingDirectory "$TacO_path\" -ErrorAction SilentlyContinue
 	}
 
-	$modules.ArcDPS.mechanics = @{
-		name = "Mechanics-Logs"
-		desc = "extences ArcDPS to how good you or your group members perform with the mechanics in raids. Shortcut to open that is Shift+Alt+L"
-		default = $true
-		checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Mechanics-Log/releases/latest"
-		targetfile = "bin64\d3d9_arcdps_mechanics.dll"
-		platform = "github-normal"
+	# start BlishHUD
+	if ($conf.configuration.start_BlishHUD) {
+		Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
 	}
 
-	$modules.Path.schatten = @{
-		name = "Schattenfluegel"
-		desc = "map pack to show be better than TEKKIT. It adds shotcuts and way better pathes. Way better design, but not as complete as TEKKIT."
-		default = $true
-		checkurl = "https://api.github.com/repos/Schattenfluegel/SchattenfluegelTrails/contents/Download"
-		targeturl = "https://github.com/Schattenfluegel/SchattenfluegelTrails/raw/main/Download/SchattenfluegelTrails.taco"
-		targetfile = "SchattenfluegelTrails.taco"
-		platform = "github-raw"
-		blishonly = $false
+	# start Guild Wars 2
+	nls 2
+	Write-Host "have fun in Guild Wars 2"
+
+	Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+
+	# if GW2 has an update removes ArcDPS
+	if ($configuration.update_ArcDPS -and (Test-Path "$GW2_path\errorautocheck.txt") -and ((Get-Item "$GW2_path\errorautocheck.txt").length -ne 0)) {
+		nls 1
+		Write-Host "crash detected - removing ArcDPS" -ForegroundColor Red
+		nls 1
+
+		# UNTESTED (need update/crash to test this)
+		$gw2error = Get-Content -Path "$GW2_path\errorautocheck.txt"
+
+		removefile "$GW2_path\errorautocheck.txt"
+
+		if ($gw2error -ne 0) {
+			removefile "$GW2_path\bin64\d3d9.dll"
+			removefile "$GW2_path\bin64\d3d11.dll"
+			removefile "$GW2_path\d3d9.dll"
+			removefile "$GW2_path\d3d11.dll"
+
+			startGW2
+		}
+	} else {
+		removefile "$GW2_path\errorautocheck.txt"
 	}
+}
 
+function path_t($tag) {
+	return "$TacO_path\POIs\$tag"
+}
 
-	$Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
-	$checkfile = "$Script_path\checkfile"
+function path_b($tag) {
+	return "$MyDocuments_path\Guild Wars 2\addons\blishhud\markers\$tag"
+}
 
-	Invoke-WebRequest "https://mp-repo.blishhud.com/repo.json" -OutFile "$checkfile"
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	Remove-Item "$checkfile"
+function nls($total) {
+	for ($i = 0; $i -lt $total; $i++) {
+		Write-Host " "
+	}
+}
+
+function checkGithub() {
+	# check githubs API restrictions and waits until it's possible again
+
+	removefile "$Script_path\github.json"
+	Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json"
+
+	$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
+
+	if ($json.rate.remaining -lt 1) {
+		if (-not $older) {
+			$date = (Get-Date -Date "1970-01-01 00:00:00Z").toLocalTime().addSeconds($json.rate.reset)
+
+			nls 3
+			Write-Host "No more updates possible due to API limitations by github.com :(" -ForegroundColor Red
+			nls 1
+			Write-Host "The restrictions will be lifted on:"
+			Write-Host $date -ForegroundColor Yellow
+			nls 1
+			Write-Host "Sorry for that."
+			nls 2
+			Write-Host "This script will wait until updates are possible again. Of cause you can close this window everytime. The updates will be done the next you start this script."
+			nls 1
+		}
+
+		startGW2
+		stopprocesses
+
+		if ($older) {
+			exit
+		}
+
+		nls 1
+		Write-Host "OK - we will wait until the updates are possible again. You can close this window everytime. No data will be damaged or deleted." -ForegroundColor Yellow
+		nls 1
+
+		do {
+			Start-Sleep -Seconds 60
+
+			removefile "$Script_path\github.json"
+			Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json"
+
+			$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
+		} until ($json.rate.remaining -ge 1)
+	}
+}
+
+function Get-IniContent($filePath) {
+    $ini = @{}
+
+    Switch -regex -file $FilePath {
+		# Section
+        "^\[(.+)\]" {
+            $section = $matches[1]
+            $ini[$section] = @{}
+            $CommentCount = 0
+        }
+		# Comment
+        "^(;.*)$" {
+            $value = $matches[1]
+            $CommentCount = $CommentCount + 1
+            $name = "Comment" + $CommentCount
+            $ini[$section][$name] = $value
+        }
+		# Key
+        "(.+?)\s*=(.*)" {
+            $name, $value = $matches[1..2]
+            $ini[$section][$name] = $value
+        }
+    }
+
+    return $ini
+}
+
+function Out-IniFile($InputObject, $FilePath) {
+	removefile $FilePath
+
+    $outFile = New-Item -ItemType file -Path $Filepath
+
+    foreach ($i in $InputObject.keys) {
+        if (!($($InputObject[$i].GetType().Name) -eq "Hashtable")) {
+            #No Sections
+            Add-Content -Path $outFile -Value "$i=$($InputObject[$i])"
+        } else {
+            #Sections
+            Add-Content -Path $outFile -Value "[$i]"
+
+            Foreach ($j in ($InputObject[$i].keys | Sort-Object)) {
+                if ($j -match "^Comment[\d]+") {
+                    Add-Content -Path $outFile -Value "$($InputObject[$i][$j])"
+                } else {
+                    Add-Content -Path $outFile -Value "$j=$($InputObject[$i][$j])"
+                }
+            }
+
+            Add-Content -Path $outFile -Value ""
+        }
+    }
+}
+
+function enforceBHM($modulename) {
+	#generate settings.json
+	Write-Host "Generating default files. This takes about 10 seconds." -ForegroundColor DarkGray
+	Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
+	Start-Sleep -Seconds 12
+	Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
+
+	$data = Get-Content "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw | ConvertFrom-Json
 
 	$i = 0
 
-	$json | foreach {
-		$modules.Path["xbr$i"] = @{}
-		$modules.Path["xbr$i"].name = $_.Name
-		$modules.Path["xbr$i"].desc = $_.Description
-		$modules.Path["xbr$i"].platform = "blishrepo"
-		$modules.Path["xbr$i"].targeturl = $_.Download
-		$modules.Path["xbr$i"].targetfile = $_.FileMane
-		$modules.Path["xbr$i"].version = $_.LastUpdate
-
-		if (
-			($_.Name -eq "ReActif EN") -or
-			($_.Name -eq "Hero's Marker Pack") -or
-			($_.Name -eq "Tekkit's All-In-One") -or
-			$false
-		) {
-			$modules.Path["xbr$i"].default = $true
-		} else {
-			$modules.Path["xbr$i"].default = $false
+	$data.Entries | foreach {
+		if ($_.Key -eq "ModuleConfiguration") {
+			if (-not $data.Entries[$i].Value.Entries.Value[0]."$modulename") {
+				Add-Member -InputObject $data.Entries[$i].Value.Entries.Value[0] -NotePropertyName "$modulename"  -NotePropertyValue @{
+					"Enabled" = $true
+					"UserEnabledPermissions" = $null
+					"IgnoreDependencies" = $false
+					"Settings" = $null
+				}
+			} else {
+				$data.Entries[$i].Value.Entries.Value[0]."$modulename".Enabled = $true
+			}
 		}
 
 		$i++
 	}
 
-	Invoke-WebRequest "https://pkgs.blishhud.com/packages.gz" -OutFile "$checkfile.gz"
-	DeGZip-File "$checkfile.gz"
-	Remove-Item "$checkfile.gz"
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	Remove-Item "$checkfile"
+	$data | ConvertTo-Json -Depth 100 | Out-File "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json"
 
-	$json | foreach {
-		$filtered = $true
+	((Get-Content -path "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw).Replace("\u0027","'").Replace('   ', ' ').Replace('  ', ' ').Replace(":  ", ": ")) | Set-Content -Path "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json"
+}
 
-		$_.dependencies.psobject.properties | Foreach {
-			if (
-				($_.Name -eq "bh.blishhud") -and
-				($_.Value -like "<*")
-			) {
-				$filtered = $false
-			}
+function DeGZip-File($infile, $outfile = ($infile -replace '\.gz$','')) {
+	$input = New-Object System.IO.FileStream $inFile, ([IO.FileMode]::Open), ([IO.FileAccess]::Read), ([IO.FileShare]::Read)
+	$output = New-Object System.IO.FileStream $outFile, ([IO.FileMode]::Create), ([IO.FileAccess]::Write), ([IO.FileShare]::None)
+	$gzipStream = New-Object System.IO.Compression.GzipStream $input, ([IO.Compression.CompressionMode]::Decompress)
+	$buffer = New-Object byte[](1024)
+
+	while ($true) {
+		$read = $gzipstream.Read($buffer, 0, 1024)
+
+		if ($read -le 0) {
+			break
 		}
 
-		if ($filtered) {
-			$modules.BlishHud[$_.name] = @{}
-			$modules.BlishHud[$_.name].name = $_.name
-			$modules.BlishHud[$_.name].desc = $_.description
-			$modules.BlishHud[$_.name].targeturl = $_.location
-			$modules.BlishHud[$_.name].version = $_.version
-			$modules.BlishHud[$_.name].namespace = $_.namespace
+		$output.Write($buffer, 0, $read)
+	}
 
-			if (
-				($_.Name -eq "Timers") -or
-				$false
-			) {
-				$modules.BlishHud[$_.name].default = $true
-			} else {
-				$modules.BlishHud[$_.name].default = $false
-			}
+	$gzipStream.Close()
+	$output.Close()
+	$input.Close()
+}
+
+$modules = @{}
+$modules.Main = @{}
+$modules.ArcDPS = @{}
+$modules.Path = @{}
+$modules.BlishHud = @{}
+
+$modules.ArcDPS.killproof = @{
+	name = "killproof.me"
+	desc = "extences ArcDPS to show the killproof.me data of your group members. Shortcut to open that is Shift+Alt+K"
+	default = $true
+	checkurl = "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest"
+	targetfile = "bin64\d3d9_arcdps_killproof_me.dll"
+	platform = "github-normal"
+}
+
+$modules.ArcDPS.boon = @{
+	name = "Boon-Table"
+	desc = "extences ArcDPS to show the boons done by you and your group members. Shortcut to open that is Shift+Alt+B"
+	default = $true
+	checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest"
+	targetfile = "bin64\d3d9_arcdps_table.dll"
+	platform = "github-normal"
+}
+
+$modules.ArcDPS.healing = @{
+	name = "Healing-Stats"
+	desc = "extences ArcDPS to show your heal."
+	default = $true
+	checkurl = "https://api.github.com/repos/Krappa322/arcdps_healing_stats/releases/latest"
+	targetfile = "bin64\arcdps-healing-stats.dll"
+	platform = "github-normal"
+}
+
+$modules.ArcDPS.mechanics = @{
+	name = "Mechanics-Logs"
+	desc = "extences ArcDPS to how good you or your group members perform with the mechanics in raids. Shortcut to open that is Shift+Alt+L"
+	default = $true
+	checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Mechanics-Log/releases/latest"
+	targetfile = "bin64\d3d9_arcdps_mechanics.dll"
+	platform = "github-normal"
+}
+
+$modules.Path.schatten = @{
+	name = "Schattenfluegel"
+	desc = "map pack to show be better than TEKKIT. It adds shotcuts and way better pathes. Way better design, but not as complete as TEKKIT."
+	default = $true
+	checkurl = "https://api.github.com/repos/Schattenfluegel/SchattenfluegelTrails/contents/Download"
+	targeturl = "https://github.com/Schattenfluegel/SchattenfluegelTrails/raw/main/Download/SchattenfluegelTrails.taco"
+	targetfile = "SchattenfluegelTrails.taco"
+	platform = "github-raw"
+	blishonly = $false
+}
+
+Invoke-WebRequest "https://mp-repo.blishhud.com/repo.json" -OutFile "$checkfile"
+$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+Remove-Item "$checkfile"
+
+$i = 0
+
+$json | foreach {
+	$modules.Path["xbr$i"] = @{}
+	$modules.Path["xbr$i"].name = $_.Name
+	$modules.Path["xbr$i"].desc = $_.Description
+	$modules.Path["xbr$i"].platform = "blishrepo"
+	$modules.Path["xbr$i"].targeturl = $_.Download
+	$modules.Path["xbr$i"].targetfile = $_.FileMane
+	$modules.Path["xbr$i"].version = $_.LastUpdate
+
+	if (
+		($_.Name -eq "ReActif EN") -or
+		($_.Name -eq "Hero's Marker Pack") -or
+		($_.Name -eq "Tekkit's All-In-One") -or
+		$false
+	) {
+		$modules.Path["xbr$i"].default = $true
+	} else {
+		$modules.Path["xbr$i"].default = $false
+	}
+
+	$i++
+}
+
+Invoke-WebRequest "https://pkgs.blishhud.com/packages.gz" -OutFile "$checkfile.gz"
+DeGZip-File "$checkfile.gz"
+Remove-Item "$checkfile.gz"
+$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+Remove-Item "$checkfile"
+
+$json | foreach {
+	$filtered = $true
+
+	$_.dependencies.psobject.properties | Foreach {
+		if (
+			($_.Name -eq "bh.blishhud") -and
+			($_.Value -like "<*")
+		) {
+			$filtered = $false
 		}
 	}
 
+	if ($filtered) {
+		$modules.BlishHud[$_.name] = @{}
+		$modules.BlishHud[$_.name].name = $_.name
+		$modules.BlishHud[$_.name].desc = $_.description
+		$modules.BlishHud[$_.name].targeturl = $_.location
+		$modules.BlishHud[$_.name].version = $_.version
+		$modules.BlishHud[$_.name].namespace = $_.namespace
 
+		if (
+			($_.Name -eq "Timers") -or
+			$false
+		) {
+			$modules.BlishHud[$_.name].default = $true
+		} else {
+			$modules.BlishHud[$_.name].default = $false
+		}
+	}
+}
+
+function showGUI {
+# prepare stuff
 	Add-Type -assembly System.Windows.Forms
 
 	$main_form = New-Object System.Windows.Forms.Form
@@ -592,9 +809,7 @@ if ($false) {
 	$main_form.Controls.Add($groupModules)
 
 
-
 # STUFF
-
 
 	if (
 		($groupBlish.Height -le $groupArc.Height) -and
@@ -694,278 +909,21 @@ if ($false) {
 	$groupPaths.Location = New-Object System.Drawing.Size(($groupTaco.Location.X), ($groupArc.Location.Y + $groupArc.height + 10))
 	$groupModules.Location = New-Object System.Drawing.Size(($groupBlish.Location.X), ($groupArc.Location.Y + $groupArc.height + 10))
 
+	$x = $groupTaco.Width * 1.5 + $groupTaco.x -35
+	$y = (@($groupArc.Height, $groupBlish.Height, $groupTaco.Height) | measure -Maximum).Maximum + (@($groupAddons.Height, $groupPaths.Height, $groupModules.Height) | measure -Maximum).Maximum + $groupArc.y + 60
+
+    $close = New-Object System.Windows.Forms.Button
+    $close.Location = New-Object System.Drawing.Size($x, $y)
+    $close.Size = New-Object System.Drawing.Size(70, 40)
+    $close.Text = "Save and Run"
+    $close.DialogResult = "OK"
+
+    $main_form.Controls.Add($close)
 
 
 	$main_form.ShowDialog()
-
-<#
-    CheckBox – used to list some options and select them prior to running script;
-    RadioButton – lists some text options and allows to select only one of them;
-    TextBox – user can write some text. It can be used to get the value of the PoSh script parameter;
-    Label – used for labeling some parts of scripts’ GUI;
-    ChekedListBox – shows a list of items;
-    DataGridView – allows to view some tabular data;
-    GroupBox – allows viewing and grouping a set of controls together;
-    ListBox – can store several text items;
-    TabControl – allows you to split your form into different areas (tabs);
-    ListView – displays a list of items with text and (optionally) an icon;
-    TreeView – hierarchical objects view;
-    DateTimePicker – allows to select date and time;
-    TrackBar – scrollable control;
-    PictureBox – allows to show a picture on the form;
-    ProgressBar – indicates the operation progress;
-    HScrollBar – horizontal scroll bar;
-    VScrollBar – vertical scroll bar;
-    ContextMenu – right-click menus;
-    Menu – top menu in your form.
-#>
-
-	exit
 }
 
-#no more "big" testing stuff
-
-
-# you really really don't need to change anything here - except you know exactly what you are doing
-
-
-#some magic stuff for pathes and options
-
-param($GW2_path_old, $TacO_path_old, $BlishHUD_path_old, $use_ArcDPS_old, $use_TacO_old, $use_BHud_old)
-
-$MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
-$Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
-$checkfile = "$Script_path\checkfile"
-
-# some functions for lazy people
-
-function stopprocesses() {
-	if ($conf.configuration.start_TacO) {
-		Stop-Process -Name "GW2TacO" -ErrorAction SilentlyContinue
-	}
-
-	if ($conf.configuration.start_BlishHUD) {
-		Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
-	}
-
-	if ($conf.configuration.update_ArcDPS) {
-		Stop-Process -Name "RazerCortex" -ErrorAction SilentlyContinue
-	}
-
-	Stop-Process -Name "Gw2-64" -ErrorAction SilentlyContinue
-}
-
-function removefile($path) {
-	if (Test-Path "$path") {
-		Remove-Item "$path"
-	}
-}
-
-function newdir($path) {
-	if (-not (Test-Path "$path")) {
-		New-Item "$path" -ItemType Directory
-	}
-}
-
-function startGW2() {
-	# start TacO
-	if ($conf.configuration.start_TacO) {
-		Start-Process -FilePath "$TacO_path\GW2TacO.exe" -WorkingDirectory "$TacO_path\" -ErrorAction SilentlyContinue
-	}
-
-	# start BlishHUD
-	if ($conf.configuration.start_BlishHUD) {
-		Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
-	}
-
-	# start Guild Wars 2
-	nls 2
-	Write-Host "have fun in Guild Wars 2"
-
-	Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
-
-	# if GW2 has an update removes ArcDPS
-	if ($configuration.update_ArcDPS -and (Test-Path "$GW2_path\errorautocheck.txt") -and ((Get-Item "$GW2_path\errorautocheck.txt").length -ne 0)) {
-		nls 1
-		Write-Host "crash detected - removing ArcDPS" -ForegroundColor Red
-		nls 1
-
-		# UNTESTED (need update/crash to test this)
-		$gw2error = Get-Content -Path "$GW2_path\errorautocheck.txt"
-
-		removefile "$GW2_path\errorautocheck.txt"
-
-		if ($gw2error -ne 0) {
-			removefile "$GW2_path\bin64\d3d9.dll"
-			removefile "$GW2_path\bin64\d3d11.dll"
-			removefile "$GW2_path\d3d9.dll"
-			removefile "$GW2_path\d3d11.dll"
-
-			startGW2
-		}
-	} else {
-		removefile "$GW2_path\errorautocheck.txt"
-	}
-}
-
-function path_t($tag) {
-	return "$TacO_path\POIs\$tag"
-}
-
-function path_b($tag) {
-	return "$MyDocuments_path\Guild Wars 2\addons\blishhud\markers\$tag"
-}
-
-function nls($total) {
-	for ($i = 0; $i -lt $total; $i++) {
-		Write-Host " "
-	}
-}
-
-function checkGithub() {
-	# check githubs API restrictions and waits until it's possible again
-
-	removefile "$Script_path\github.json"
-	Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json"
-
-	$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
-
-	if ($json.rate.remaining -lt 1) {
-		if (-not $older) {
-			$date = (Get-Date -Date "1970-01-01 00:00:00Z").toLocalTime().addSeconds($json.rate.reset)
-
-			nls 3
-			Write-Host "No more updates possible due to API limitations by github.com :(" -ForegroundColor Red
-			nls 1
-			Write-Host "The restrictions will be lifted on:"
-			Write-Host $date -ForegroundColor Yellow
-			nls 1
-			Write-Host "Sorry for that."
-			nls 2
-			Write-Host "This script will wait until updates are possible again. Of cause you can close this window everytime. The updates will be done the next you start this script."
-			nls 1
-		}
-
-		startGW2
-		stopprocesses
-
-		if ($older) {
-			exit
-		}
-
-		nls 1
-		Write-Host "OK - we will wait until the updates are possible again. You can close this window everytime. No data will be damaged or deleted." -ForegroundColor Yellow
-		nls 1
-
-		do {
-			Start-Sleep -Seconds 60
-
-			removefile "$Script_path\github.json"
-			Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json"
-
-			$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
-		} until ($json.rate.remaining -ge 1)
-	}
-}
-
-function Get-IniContent($filePath) {
-    $ini = @{}
-
-    Switch -regex -file $FilePath {
-		# Section
-        "^\[(.+)\]" {
-            $section = $matches[1]
-            $ini[$section] = @{}
-            $CommentCount = 0
-        }
-		# Comment
-        "^(;.*)$" {
-            $value = $matches[1]
-            $CommentCount = $CommentCount + 1
-            $name = "Comment" + $CommentCount
-            $ini[$section][$name] = $value
-        }
-		# Key
-        "(.+?)\s*=(.*)" {
-            $name, $value = $matches[1..2]
-            $ini[$section][$name] = $value
-        }
-    }
-
-    return $ini
-}
-
-function Out-IniFile($InputObject, $FilePath) {
-	removefile $FilePath
-
-    $outFile = New-Item -ItemType file -Path $Filepath
-
-    foreach ($i in $InputObject.keys) {
-        if (!($($InputObject[$i].GetType().Name) -eq "Hashtable")) {
-            #No Sections
-            Add-Content -Path $outFile -Value "$i=$($InputObject[$i])"
-        } else {
-            #Sections
-            Add-Content -Path $outFile -Value "[$i]"
-
-            Foreach ($j in ($InputObject[$i].keys | Sort-Object)) {
-                if ($j -match "^Comment[\d]+") {
-                    Add-Content -Path $outFile -Value "$($InputObject[$i][$j])"
-                } else {
-                    Add-Content -Path $outFile -Value "$j=$($InputObject[$i][$j])"
-                }
-            }
-
-            Add-Content -Path $outFile -Value ""
-        }
-    }
-}
-
-function enforceBHM($modulename) {
-	#generate settings.json
-	Write-Host "Generating default files. This takes about 10 seconds." -ForegroundColor DarkGray
-	Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
-	Start-Sleep -Seconds 12
-	Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
-
-	$data = Get-Content "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw | ConvertFrom-Json
-
-	$i = 0
-
-	$data.Entries | foreach {
-		if ($_.Key -eq "ModuleConfiguration") {
-			if (-not $data.Entries[$i].Value.Entries.Value[0]."$modulename") {
-				Add-Member -InputObject $data.Entries[$i].Value.Entries.Value[0] -NotePropertyName "$modulename"  -NotePropertyValue @{
-					"Enabled" = $true
-					"UserEnabledPermissions" = $null
-					"IgnoreDependencies" = $false
-					"Settings" = $null
-				}
-			} else {
-				$data.Entries[$i].Value.Entries.Value[0]."$modulename".Enabled = $true
-			}
-
-			<#
-			if (-not $data.Entries[$i].Value.Entries.Value[0]."bh.general.events") {
-				Add-Member -InputObject $data.Entries[$i].Value.Entries.Value[0] -NotePropertyName "bh.general.events"  -NotePropertyValue @{
-					"Enabled" = $true
-					"UserEnabledPermissions" = $null
-					"IgnoreDependencies" = $false
-					"Settings" = $null
-				}
-			} else {
-				$data.Entries[$i].Value.Entries.Value[0]."bh.general.events".Enabled = $true
-			}
-			#>
-		}
-
-		$i++
-	}
-
-	$data | ConvertTo-Json -Depth 100 | Out-File "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json"
-
-	((Get-Content -path "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw).Replace("\u0027","'").Replace('   ', ' ').Replace('  ', ' ').Replace(":  ", ": ")) | Set-Content -Path "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json"
-}
 
 
 # now the real magic:
