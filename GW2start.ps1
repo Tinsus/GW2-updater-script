@@ -918,28 +918,35 @@ if (-not (Test-Path "$Script_path\GW2start.ini")) {
 }
 
 if ($conf.paths -eq $null) {
+	$conf.main = @{}
+	$conf.addons = @{}
 	$conf.paths = @{}
+	$conf.modules = @{}
+	$conf.versions_main = @{}
+	$conf.versions_addons = @{}
+	$conf.versions_paths = @{}
+	$conf.versions_modules = @{}
 
 	$forceGUI = $true
 }
 
 if ($conf.paths.Guildwars2 -eq $null) {
 	@(
-		"C:\Program Files\Guild Wars 2",
-		"D:\Program Files\Guild Wars 2",
-		"E:\Program Files\Guild Wars 2",
-		"F:\Program Files\Guild Wars 2",
-		"C:\Games\Guild Wars 2",
-		"D:\Games\Guild Wars 2",
-		"E:\Games\Guild Wars 2",
-		"F:\Games\Guild Wars 2",
-		"C:\Guild Wars 2",
-		"D:\Guild Wars 2",
-		"E:\Guild Wars 2",
-		"F:\Guild Wars 2"
+		"C:\Program Files",
+		"D:\Program Files",
+		"E:\Program Files",
+		"F:\Program Files",
+		"C:\Games",
+		"D:\Games",
+		"E:\Games",
+		"F:\Games",
+		"C:",
+		"D:",
+		"E:",
+		"F:"
 	) | foreach {
-		if (Test-Path ($_ + "\Gw2-64.exe")) {
-			$conf.paths.Guildwars2 = $_
+		if (Test-Path ($_ + "\Guild Wars 2\Gw2-64.exe")) {
+			$conf.paths.Guildwars2 = ($_ + "\Guild Wars 2")
 		}
 	}
 
@@ -948,41 +955,26 @@ if ($conf.paths.Guildwars2 -eq $null) {
 
 if (
 	($conf.paths.TacO -eq $null) -or
-	($conf.paths.BlishHUD -eq $null)
+	($conf.paths.BlishHUD -eq $null) -or
+
+	($conf.installation_paths -ne $null) -or
+	($conf.configuration -ne $null) -or
+	($conf.settings_ArcDPS -ne $null) -or
+	($conf.settings_BlishHUD -ne $null) -or
+	($conf.settings_Mappacks)
 ) {
 	$forceGUI = $true
+
+	$conf.psobject.properties.remove('installation_paths')
+	$conf.psobject.properties.remove('configuration')
+	$conf.psobject.properties.remove('settings_ArcDPS')
+	$conf.psobject.properties.remove('settings_BlishHUD')
+	$conf.psobject.properties.remove('settings_Mappacks')
+	$conf.psobject.properties.remove('versions')
 }
 
-#$conf.installation_paths
-#$conf.configuration
-#$conf.configuration.update_ArcDPS
-#$conf.configuration.update_TacO
-#$conf.configuration.update_BlishHUD
-#$conf.configuration.start_TacO
-#$conf.configuration.start_BlishHUD
-#$conf.settings_ArcDPS
-#$conf.settings_ArcDPS.dx9
-#$conf.settings_ArcDPS.killproof
-#$conf.settings_ArcDPS.boon_table
-#$conf.settings_ArcDPS.healing_stats
-#$conf.settings_ArcDPS.mechanics_log
-#$conf.settings_BlishHUD
-#$conf.settings_BlishHUD.ArcDPS_Bridge
-#$conf.settings_BlishHUD.Pathing
-#$conf.settings_BlishHUD.KillProof_Module
-#$conf.settings_BlishHUD.Quick_Surrender
-#$conf.settings_BlishHUD.Mistwar
-#$conf.settings_BlishHUD.HPGrid
-#$conf.settings_BlishHUD.Timers
-#$conf.settings_Mappacks
-#$conf.settings_Mappacks.use_TacO
-#$conf.settings_Mappacks.use_BlishHUD
-#$conf.settings_Mappacks.tekkit
-#$conf.settings_Mappacks.schattenfluegel
-#$conf.settings_Mappacks.czokalapik
-#$conf.settings_Mappacks.reactif
-#$conf.settings_Mappacks.heromarkers
-#$conf.versions
+
+
 
 
 
