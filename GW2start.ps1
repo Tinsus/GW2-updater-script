@@ -685,14 +685,73 @@ function showGUI {
 	})
     $form.main_form.Controls.Add($form.close)
 
+	validateGUI
 
 	$form.main_form.ShowDialog()
-
-	validateGUI
 }
 
 function validateGUI {
+# ARCDPS
+	$form.enabledArc.checked = $true
 
+	$form.pathArc.enabled = $false
+	$form.pathArcLabel.enabled = $false
+
+	$form.arcDx9.enabled = $false
+	$form.arcDx9.checked = $true
+	$form.arcDx11.enabled = $false
+	$form.arcDx11.checked = $false
+
+# TACO
+	$form.enabledTaco.checked = $true
+
+	$form.pathTaco.enabled = $false
+	$form.pathTacoLabel.enabled = $false
+
+	$form.TacoRun.enabled = $false
+	$form.TacoRun.checked = $true
+
+# BLISH
+	$form.enabledBlish.checked = $true
+
+	$form.pathBlish.enabled = $false
+	$form.pathBlishLabel.enabled = $false
+
+	$form.BlishRun.enabled = $false
+	$form.BlishRun.checked = $true
+
+# ARCDPS ADDONS
+	$i = 0
+	
+	$modules.ArcDPS.GetEnumerator() | foreach {
+		$modules.ArcDPS[$_.key]["UI"].enabled = $false
+		$modules.ArcDPS[$_.key]["UI"].checked = $true
+
+		$i++
+	}
+
+# PATHS
+	$i = 0
+	
+	$modules.Path.GetEnumerator() | foreach {
+		$modules.Path[$_.key]["UI"].enabled = $false
+		$modules.Path[$_.key]["UI1"].enabled = $false
+		$modules.Path[$_.key]["UI1"].checked = $true
+		$modules.Path[$_.key]["UI2"].enabled = $false
+		$modules.Path[$_.key]["UI2"].checked = $true
+
+		$i++
+	}
+
+# BLISH MODULES
+	$i = 0
+
+	$modules.BlishHUD.GetEnumerator() | foreach {
+		$modules.BlishHUD[$_.key]["UI"].enabled = $false
+		$modules.BlishHUD[$_.key]["UI"].checked = $true
+
+		$i++
+	}
 }
 
 function changeGUI($category, $key = 0, $value = 0) {
@@ -702,7 +761,8 @@ function changeGUI($category, $key = 0, $value = 0) {
 		}
 	}
 	
-	validateGUI
+	### -> 1. variable speichern
+	### -> 2. Reaktion auf die UI (oder geht das in der validateGUI?
 
 	#$modules.ArcDPS[$_.key]["UI"].Enabled = $false #arc
 	#$modules.ArcDPS[$_.key]["UI"].Checked = $_.value.default
