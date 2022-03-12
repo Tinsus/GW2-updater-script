@@ -1007,25 +1007,17 @@ $json | foreach {
 	$modules.Path[$name].targetfile = $_.FileMane
 	$modules.Path[$name].version = $_.LastUpdate
 
-	if (
-		($_.Name -eq "ReActif EN") -or
-		($_.Name -eq "Hero's Marker Pack") -or
-		($_.Name -eq "Tekkit's All-In-One") -or
+	$modules.Path[$name].default = (
+		($name -eq "ReActifEN") -or
+		($name -eq "HerosMarkerPack") -or
+		($name -eq "TekkitsAllInOne") -or
 		$false
-	) {
-		$modules.Path[$name].default = $true
-	} else {
-		$modules.Path[$name].default = $false
-	}
+	)
 
-	if (
-		($_.Name -eq "Hero's Marker Pack") -or
+	$modules.Path[$name].blishonly = (
+		($name -eq "HerosMarkerPack") -or
 		$false
-	) {
-		$modules.Path[$name].blishonly = $true
-	} else {
-		$modules.Path[$name].blishonly = $false
-	}
+	)
 }
 
 Invoke-WebRequest "https://pkgs.blishhud.com/packages.gz" -OutFile "$checkfile.gz"
@@ -1056,14 +1048,10 @@ $json | foreach {
 		$modules.BlishHud[$name].version = $_.version
 		$modules.BlishHud[$name].namespace = $_.namespace
 
-		if (
+		$modules.BlishHud[$name].default = (
 			($name -eq "Timers") -or
 			$false
-		) {
-			$modules.BlishHud[$name].default = $true
-		} else {
-			$modules.BlishHud[$name].default = $false
-		}
+		)
 	}
 }
 
