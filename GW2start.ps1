@@ -312,16 +312,16 @@ Invoke-WebRequest "https://mp-repo.blishhud.com/repo.json" -OutFile "$checkfile"
 $json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
 Remove-Item "$checkfile"
 
-$i = 0
-
 $json | foreach {
-	$modules.Path["xbr$i"] = @{}
-	$modules.Path["xbr$i"].name = $_.Name
-	$modules.Path["xbr$i"].desc = $_.Description
-	$modules.Path["xbr$i"].platform = "blishrepo"
-	$modules.Path["xbr$i"].targeturl = $_.Download
-	$modules.Path["xbr$i"].targetfile = $_.FileMane
-	$modules.Path["xbr$i"].version = $_.LastUpdate
+	$name = $_.Name -replace '[^a-zA-Z]', ''
+
+	$modules.Path[$name] = @{}
+	$modules.Path[$name].name = $_.Name
+	$modules.Path[$name].desc = $_.Description
+	$modules.Path[$name].platform = "blishrepo"
+	$modules.Path[$name].targeturl = $_.Download
+	$modules.Path[$name].targetfile = $_.FileMane
+	$modules.Path[$name].version = $_.LastUpdate
 
 	if (
 		($_.Name -eq "ReActif EN") -or
@@ -329,12 +329,19 @@ $json | foreach {
 		($_.Name -eq "Tekkit's All-In-One") -or
 		$false
 	) {
-		$modules.Path["xbr$i"].default = $true
+		$modules.Path[$name].default = $true
 	} else {
-		$modules.Path["xbr$i"].default = $false
+		$modules.Path[$name].default = $false
 	}
 
-	$i++
+	if (
+		($_.Name -eq "Hero's Marker Pack") -or
+		$false
+	) {
+		$modules.Path[$name].blishonly = $true
+	} else {
+		$modules.Path[$name].blishonly = $false
+	}
 }
 
 Invoke-WebRequest "https://pkgs.blishhud.com/packages.gz" -OutFile "$checkfile.gz"
@@ -366,7 +373,7 @@ $json | foreach {
 		$modules.BlishHud[$name].namespace = $_.namespace
 
 		if (
-			($_.Name -eq "Timers") -or
+			($name -eq "Timers") -or
 			$false
 		) {
 			$modules.BlishHud[$name].default = $true
@@ -377,6 +384,7 @@ $json | foreach {
 }
 
 $form = @{}
+$initGUI = $true
 
 function showGUI {
 # prepare stuff
@@ -431,7 +439,6 @@ function showGUI {
 	$form.groupArc.Controls.Add($form.pathArc)
 
 	$form.pathArcLabel = New-Object System.Windows.Forms.Label
-	$form.pathArcLabel.Text = "Select installation path first"
 	$form.pathArcLabel.Location = New-Object System.Drawing.Point(62, 58)
 	$form.pathArcLabel.AutoSize = $true
 	$form.groupArc.Controls.Add($form.pathArcLabel)
@@ -490,7 +497,6 @@ function showGUI {
 	$form.groupTaco.Controls.Add($form.pathTaco)
 
 	$form.pathTacoLabel = New-Object System.Windows.Forms.Label
-	$form.pathTacoLabel.Text = "Select installation path first"
 	$form.pathTacoLabel.Location = New-Object System.Drawing.Point(62, 58)
 	$form.pathTacoLabel.AutoSize = $true
 	$form.groupTaco.Controls.Add($form.pathTacoLabel)
@@ -538,7 +544,6 @@ function showGUI {
 	$form.groupBlish.Controls.Add($form.pathBlish)
 
 	$form.pathBlishLabel = New-Object System.Windows.Forms.Label
-	$form.pathBlishLabel.Text = "Select installation path first"
 	$form.pathBlishLabel.Location = New-Object System.Drawing.Point(62, 58)
 	$form.pathBlishLabel.AutoSize = $true
 	$form.groupBlish.Controls.Add($form.pathBlishLabel)
@@ -565,7 +570,7 @@ function showGUI {
 	$i = 0
 	$modules.ArcDPS.GetEnumerator() | foreach {
 		$modules.ArcDPS[$_.key]["UI"] = New-Object System.Windows.Forms.CheckBox
-		$modules.ArcDPS[$_.key]["UI"].Text = $_.value.name
+		$modules.ArcDPS[$_.key]["UI"].Text = ($(if ($_.value.default) { "* " } else { "" }) + $_.value.name)
 		$modules.ArcDPS[$_.key]["UI"] | Add-Member -MemberType NoteProperty -Name 'Value' -Value $_.key
 		$modules.ArcDPS[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (20 * $i)))
 		$modules.ArcDPS[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 20)
@@ -588,6 +593,7 @@ function showGUI {
 	$form.groupPaths.text = "Paths for Blish HUD and TacO"
 
 	$i = 0
+
 	$modules.Path.GetEnumerator() | foreach {
 		$modules.Path[$_.key]["UI"] = New-Object System.Windows.Forms.Label
 		$modules.Path[$_.key]["UI"].Text = $_.value.name
@@ -597,11 +603,10 @@ function showGUI {
 		$form.groupPaths.Controls.Add($modules.Path[$_.key]["UI"])
 
 		$modules.Path[$_.key]["UI1"] = New-Object System.Windows.Forms.CheckBox
-
-		$modules.Path[$_.key]["UI1"].Text = "Blish HUD"
 		$modules.Path[$_.key]["UI1"] | Add-Member -MemberType NoteProperty -Name 'Value' -Value $_.key
+		$modules.Path[$_.key]["UI1"].Text =  ($(if ($_.value.default) { "* " } else { "" }) + "Blish HUD")
 		$modules.Path[$_.key]["UI1"].Location = New-Object System.Drawing.Point(30, (35 + (40 * $i)))
-		$modules.Path[$_.key]["UI1"].Size = New-Object System.Drawing.Point(80, 20)
+		$modules.Path[$_.key]["UI1"].Size = New-Object System.Drawing.Point(90, 20)
 		$modules.Path[$_.key]["UI1"].Add_CheckStateChanged({
 			changeGUI -category "blish" -key $this.value -value $this.checked
 		})
@@ -611,18 +616,21 @@ function showGUI {
 		$modules.Path[$_.key]["UI2"] = New-Object System.Windows.Forms.CheckBox
 		$modules.Path[$_.key]["UI2"] | Add-Member -MemberType NoteProperty -Name 'Value' -Value $_.key
 		$modules.Path[$_.key]["UI2"].Text = "TacO"
-		$modules.Path[$_.key]["UI2"].Location = New-Object System.Drawing.Point(120, (35 + (40 * $i)))
+		$modules.Path[$_.key]["UI2"].Location = New-Object System.Drawing.Point(130, (35 + (40 * $i)))
 		$modules.Path[$_.key]["UI2"].Size = New-Object System.Drawing.Point(80, 20)
 		$modules.Path[$_.key]["UI2"].Add_CheckStateChanged({
 			changeGUI -category "taco" -key $this.value -value $this.checked
 		})
+		if ($_.value.blishonly) {
+			$modules.Path[$_.key]["UI2"].Visible = $false
+		}
 		$form.tooltip.SetToolTip($modules.Path[$_.key]["UI2"], $_.value.desc)
 		$form.groupPaths.Controls.Add($modules.Path[$_.key]["UI2"])
 
 		$i++
 	}
 
-	$form.main_form.Topmost = $true
+	#$form.main_form.Topmost = $true
 	$form.main_form.Controls.Add($form.groupPaths)
 
 # BLISH MODULES
@@ -635,7 +643,7 @@ function showGUI {
 	$i = 0
 	$modules.BlishHUD.GetEnumerator() | foreach {
 		$modules.BlishHUD[$_.key]["UI"] = New-Object System.Windows.Forms.CheckBox
-		$modules.BlishHUD[$_.key]["UI"].Text = $_.value.name
+		$modules.BlishHUD[$_.key]["UI"].Text = ($(if ($_.value.default) { "* " } else { "" }) + $_.value.name)
 		$modules.BlishHUD[$_.key]["UI"] | Add-Member -MemberType NoteProperty -Name 'Value' -Value $_.key
 		$modules.BlishHUD[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (20 * $i)))
 		$modules.BlishHUD[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 20)
@@ -687,80 +695,303 @@ function showGUI {
 
 	validateGUI
 
+	$initGUI = $false
 	$form.main_form.ShowDialog()
 }
 
 function validateGUI {
 # ARCDPS
-	$form.enabledArc.checked = $true
+Write-Host "GUI"
+Write-Host $conf.main.enabledArc
 
-	$form.pathArc.enabled = $false
-	$form.pathArcLabel.enabled = $false
+	if ($conf.main.enabledArc -eq $null) {
+		$form.enabledArc.Checked = $true
+		$form.pathArc.Enabled = $true
+		$form.pathArcLabel.Enabled = $true
+	} else {############################################################################################################################################################################################################
+Write-Host ($conf.main.enabledArc -eq $null)
+Write-Host ($conf.main.enabledArc -eq $true)
+Write-Host ($conf.main.enabledArc -eq "TRUE")
+		#$form.enabledArc.Checked = $conf.main.enabledArc
+		$form.enabledArc.Checked = ($conf.main.enabledArc -eq $true)
+		$form.pathArc.Enabled = $conf.main.enabledArc
+		$form.pathArcLabel.Enabled = $conf.main.enabledArc
+	}
 
-	$form.arcDx9.enabled = $false
-	$form.arcDx9.checked = $true
-	$form.arcDx11.enabled = $false
-	$form.arcDx11.checked = $false
+	if ($conf.main.pathArc -eq $null) {
+		$form.pathArcLabel.Text = "Select installation path first"
+	} else {
+		$form.pathArcLabel.Text = $conf.main.pathArc
+	}
 
 # TACO
-	$form.enabledTaco.checked = $true
+	if ($conf.main.enabledTaco -eq $null) {
+		$form.enabledTaco.checked = $true
+		$form.pathTaco.enabled = $true
+		$form.pathTacoLabel.enabled = $true
+	} else {
+		$form.enabledTaco.checked = $conf.main.enabledTaco
+		$form.pathTaco.enabled = $conf.main.enabledTaco
+		$form.pathTacoLabel.enabled = $conf.main.enabledTaco
+	}
 
-	$form.pathTaco.enabled = $false
-	$form.pathTacoLabel.enabled = $false
-
-	$form.TacoRun.enabled = $false
-	$form.TacoRun.checked = $true
+	if ($conf.main.pathTaco -eq $null) {
+		$form.pathTacoLabel.Text = "Select installation path first"
+	} else {
+		$form.pathTacoLabel.Text = $conf.main.pathTaco
+	}
 
 # BLISH
-	$form.enabledBlish.checked = $true
+	if ($conf.main.enabledBlish -eq $null) {
+		$form.enabledBlish.checked = $true
+		$form.pathBlish.enabled = $true
+		$form.pathBlishLabel.enabled = $true
+	} else {
+		$form.enabledBlish.checked = $conf.main.enabledBlish
+		$form.pathBlish.enabled = $conf.main.enabledBlish
+		$form.pathBlishLabel.enabled = $conf.main.enabledBlish
+	}
 
-	$form.pathBlish.enabled = $false
-	$form.pathBlishLabel.enabled = $false
+	if ($conf.main.pathBlish -eq $null) {
+		$form.pathBlishLabel.Text = "Select installation path first"
+	} else {
+		$form.pathBlishLabel.text = $conf.main.pathBlish
+	}
+
+# ARCDPS ADDONS
+	$valid = (Test-Path ($form.pathArcLabel.Text + "\Gw2-64.exe"))
+
+	$form.arcDx9.enabled = $valid
+	$form.arcDx11.enabled = $valid
+
+	if ($conf.main.dx -eq $null) {
+		$form.arcDx9.checked = $false
+		$form.arcDx11.checked = $false
+	} else {
+		$form.arcDx9.checked = ($conf.main.dx -eq 9)
+		$form.arcDx11.checked = ($conf.main.dx -eq 11)
+	}
+
+	$modules.ArcDPS.GetEnumerator() | foreach {
+		$modules.ArcDPS[$_.key]["UI"].enabled = (($valid) -and ($conf.main.dx -ne $null))
+
+		if ($conf.addons[$_.key] -eq $null) {
+			$modules.ArcDPS[$_.key]["UI"].checked = $modules.ArcDPS[$_.key]["UI"].default
+		} else {
+			$modules.ArcDPS[$_.key]["UI"].checked = $conf.addons[$_key]
+		}
+	}
+
+# BLISH MODULES
+# $conf.main.pathBlish
+							#(Test-Path "$path\Blish HUD.exe") -or
+							#(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
+
+
 
 	$form.BlishRun.enabled = $false
 	$form.BlishRun.checked = $true
 
-# ARCDPS ADDONS
-	$i = 0
-	
-	$modules.ArcDPS.GetEnumerator() | foreach {
-		$modules.ArcDPS[$_.key]["UI"].enabled = $false
-		$modules.ArcDPS[$_.key]["UI"].checked = $true
-
-		$i++
+	$modules.BlishHUD.GetEnumerator() | foreach {
+		$modules.BlishHUD[$_.key]["UI"].enabled = $false
+		$modules.BlishHUD[$_.key]["UI"].checked = $true
 	}
 
 # PATHS
-	$i = 0
-	
+
+
+
+	$form.TacoRun.enabled = $false
+	$form.TacoRun.checked = $true
+# $conf.main.pathTaco
+							#(Test-Path "$path\GW2TacO.exe") -or
+							#(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
 	$modules.Path.GetEnumerator() | foreach {
 		$modules.Path[$_.key]["UI"].enabled = $false
 		$modules.Path[$_.key]["UI1"].enabled = $false
 		$modules.Path[$_.key]["UI1"].checked = $true
 		$modules.Path[$_.key]["UI2"].enabled = $false
 		$modules.Path[$_.key]["UI2"].checked = $true
-
-		$i++
-	}
-
-# BLISH MODULES
-	$i = 0
-
-	$modules.BlishHUD.GetEnumerator() | foreach {
-		$modules.BlishHUD[$_.key]["UI"].enabled = $false
-		$modules.BlishHUD[$_.key]["UI"].checked = $true
-
-		$i++
 	}
 }
 
 function changeGUI($category, $key = 0, $value = 0) {
+	if ($initGUI) {
+		return
+	}
+
 	switch($category) {
 		"save" {
+			$conf.main.pathArc = $form.pathArcLabel.Text
+			$conf.main.pathTaco = $form.pathTacoLabel.Text
+			$conf.main.pathBlish = $form.pathBlishLabel.Text
+
+			$conf.main.enabledArc = $form.enabledArc.checked
+			$conf.main.enabledTaco = $form.enabledTaco.checked
+			$conf.main.enabledBlish = $form.enabledBlish.checked
+
+			if ($form.arcDx9.checked) {
+				$conf.main.dx = 9
+			} elseif ($form.arcDx11.checked) {
+				$conf.main.dx = 11
+			}
+
 			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+			break
+		}
+		"enable" {
+			switch($key) {
+				"arc" {
+					$form.pathArc.enabled = $value
+					$form.pathArcLabel.enabled = $value
+
+					if ((Test-Path ($form.pathArcLabel.Text + "\Gw2-64.exe"))) {
+						$form.arcDx9.Enabled = $value
+						$form.arcDx11.Enabled = $value
+					} else {
+						$form.arcDx9.Enabled = $false
+						$form.arcDx11.Enabled = $false
+					}
+
+					$modules.ArcDPS.GetEnumerator() | foreach {
+						$modules.ArcDPS[$_.key]["UI"].enabled = $value
+					}
+
+					break
+				}
+				"blish" {
+					$form.pathBlish.enabled = $value
+					$form.pathBlishLabel.enabled = $value
+
+					break
+				}
+				"taco" {
+					$form.pathTaco.enabled = $value
+					$form.pathTacoLabel.enabled = $value
+
+					break
+				}
+			}
+			break
+		}
+		"dx" {
+			$modules.ArcDPS.GetEnumerator() | foreach {
+				$modules.ArcDPS[$_.key]["UI"].enabled = $true
+			}
+			break
+		}
+		"path" {
+			switch($key) {
+				"arc" {
+					$shell = New-Object -ComObject Shell.Application
+					$path = $shell.BrowseForFolder(0, "Select where Guildwars 2 is installed", 0).Self.Path
+
+					while (
+						-not (
+							(Test-Path "$path\Gw2-64.exe") -or
+							($path.length -lt 3)
+						)
+					) {
+						[System.Windows.Forms.MessageBox]::Show(
+							"Guildwars 2 was not detected in the selected folder. Select the folder where Guildwars 2 is installed",
+							"GW2-62.exe not found",
+							0,
+							"Error"
+						)
+
+						$path = $shell.BrowseForFolder(0, "Select where GW2 is installed", 0).Self.Path
+					}
+
+					if (-not (Test-Path "$path\Gw2-64.exe")) {
+						$path = "Select installation path"
+						$form.arcDx9.Enabled = $false
+						$form.arcDx11.Enabled = $false
+					} else {
+						$form.arcDx9.Enabled = $true
+						$form.arcDx11.Enabled = $true
+					}
+
+					$form.pathArcLabel.Text = $path
+
+					break
+				}
+				"blish" {
+					$shell = New-Object -ComObject Shell.Application
+					$path = $shell.BrowseForFolder(0, "Select where Blish HUD gets installed", 0).Self.Path
+
+					while (
+						-not (
+							(Test-Path "$path\Blish HUD.exe") -or
+							(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
+						)
+					) {
+						[System.Windows.Forms.MessageBox]::Show(
+							"Blish HUD was not detected in the selected folder or it is not empthy. Select the folder containing Blish HUD. Or create a new empthy folder.",
+							"Blish HUD.exe not found or folder not empthy",
+							0,
+							"Error"
+						)
+
+						$path = $shell.BrowseForFolder(0, "Select where Blish HUD gets installed", 0).Self.Path
+					}
+
+					if (
+						(Test-Path "$path\Blish HUD.exe") -or
+						(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
+					) {
+						$form.BlishRun.Enabled = $true
+					} else {
+						$path = "Select installation path"
+						$form.BlishRun.Enabled = $false
+					}
+
+					$form.pathBlishLabel.Text = $path
+
+					break
+				}
+				"taco" {
+					$shell = New-Object -ComObject Shell.Application
+					$path = $shell.BrowseForFolder(0, "Select where TacO gets installed", 0).Self.Path
+
+					while (
+						-not (
+							(Test-Path "$path\GW2TacO.exe") -or
+							(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
+						)
+					) {
+						[System.Windows.Forms.MessageBox]::Show(
+							"TacO was not detected in the selected folder or it is not empthy. Select the folder containing TacO. Or create a new empthy folder.",
+							"GW2TacO.exe not found or folder not empthy",
+							0,
+							"Error"
+						)
+
+						$path = $shell.BrowseForFolder(0, "Select where TacO gets installed", 0).Self.Path
+					}
+
+					if (
+						(Test-Path "$path\GW2TacO.exe") -or
+						(Get-ChildItem "$path" | Measure-Object | %{ return $_.Count -eq 0})
+					) {
+						$form.TacoRun.Enabled = $true
+					} else {
+						$path = "Select installation path"
+						$form.TacoRun.Enabled = $false
+					}
+
+					$form.pathTacoLabel.Text = $path
+
+					break
+				}
+			}
+			break
 		}
 	}
-	
+
+	Write-Host $category
+	Write-Host $key
+	Write-Host $value
+
 	### -> 1. variable speichern
 	### -> 2. Reaktion auf die UI (oder geht das in der validateGUI?
 
@@ -776,46 +1007,10 @@ function changeGUI($category, $key = 0, $value = 0) {
 	#$modules.BlishHUD[$_.key]["UI"].Enabled = $false
 	#$modules.BlishHUD[$_.key]["UI"].Checked = $_.value.default
 
-	Write-Host $category
-	Write-Host $key
-	Write-Host $value
 
 	<#
 
 	blish path
-
-	$shell = New-Object -ComObject Shell.Application
-		$path = $shell.BrowseForFolder(0, "Select where Blish HUD gets installed", 0).Self.Path
-
-		while (
-			-not (
-				(Test-Path "$path\Blish HUD.exe") -or
-				(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
-			)
-		) {
-			[System.Windows.Forms.MessageBox]::Show(
-				"Blish HUD was not detected in the selected folder or it is not empthy. Select the folder containing Blish HUD. Or create a new empthy folder.",
-				"Blish HUD.exe not found or folder not empthy",
-				0,
-				"Error"
-			)
-
-			$path = $shell.BrowseForFolder(0, "Select where Blish HUD gets installed", 0).Self.Path
-		}
-
-		if (
-			(Test-Path "$path\Blish HUD.exe") -or
-			(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
-		) {
-			$BlishRun.Enabled = $true
-		} else {
-			$path = "Select installation path"
-			$BlishRun.Enabled = $false
-		}
-
-		$pathBlishLabel.Text = $path
-
-
 	blish install
 
 	$pathBlish.Enabled = $enabledBlish.Checked
@@ -841,38 +1036,6 @@ function changeGUI($category, $key = 0, $value = 0) {
 
 
 	taco path
-
-	$shell = New-Object -ComObject Shell.Application
-		$path = $shell.BrowseForFolder(0, "Select where TacO gets installed", 0).Self.Path
-
-		while (
-			-not (
-				(Test-Path "$path\GW2TacO.exe") -or
-				(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
-			)
-		) {
-			[System.Windows.Forms.MessageBox]::Show(
-				"TacO was not detected in the selected folder or it is not empthy. Select the folder containing TacO. Or create a new empthy folder.",
-				"GW2TacO.exe not found or folder not empthy",
-				0,
-				"Error"
-			)
-
-			$path = $shell.BrowseForFolder(0, "Select where TacO gets installed", 0).Self.Path
-		}
-
-		if (
-			(Test-Path "$path\GW2TacO.exe") -or
-			(Get-ChildItem "$path" | Measure-Object | %{ return $_.Count -eq 0})
-		) {
-			$TacoRun.Enabled = $true
-		} else {
-			$path = "Select installation path"
-			$TacoRun.Enabled = $false
-		}
-
-		$pathTacoLabel.Text = $path
-
 		taco install
 
 		$pathTaco.Enabled = $enabledTaco.Checked
@@ -912,37 +1075,6 @@ function changeGUI($category, $key = 0, $value = 0) {
 		}
 
 		path arc
-
-		$shell = New-Object -ComObject Shell.Application
-		$path = $shell.BrowseForFolder(0, "Select where Guildwars 2 is installed", 0).Self.Path
-
-		while (
-			-not (
-				(Test-Path "$path\Gw2-64.exe") -or
-				($path.length -lt 3)
-			)
-		) {
-			[System.Windows.Forms.MessageBox]::Show(
-				"Guildwars 2 was not detected in the selected folder. Select the folder where Guildwars 2 is installed",
-				"GW2-62.exe not found",
-				0,
-				"Error"
-			)
-
-			$path = $shell.BrowseForFolder(0, "Select where GW2 is installed", 0).Self.Path
-		}
-
-		if (-not (Test-Path "$path\Gw2-64.exe")) {
-			$path = "Select installation path"
-			$arcDx9.Enabled = $false
-			$arcDx11.Enabled = $false
-		} else {
-			$arcDx9.Enabled = $true
-			$arcDx11.Enabled = $true
-		}
-
-		$pathArcLabel.Text = $path
-
 		enable arc
 				$pathArc.Enabled = $enabledArc.Checked
 		$pathArcLabel.Enabled = $enabledArc.Checked
@@ -983,7 +1115,7 @@ if (-not (Test-Path "$Script_path\GW2start.ini")) {
 	$conf = Get-IniContent "$Script_path\GW2start.ini"
 }
 
-if ($conf.paths -eq $null) {
+if ($conf.main -eq $null) {
 	$conf.main = @{}
 	$conf.addons = @{}
 	$conf.paths = @{}
@@ -996,7 +1128,7 @@ if ($conf.paths -eq $null) {
 	$forceGUI = $true
 }
 
-if ($conf.paths.Guildwars2 -eq $null) {
+if ($conf.main.pathArc -eq $null) {
 	@(
 		"C:\Program Files",
 		"D:\Program Files",
@@ -1012,7 +1144,7 @@ if ($conf.paths.Guildwars2 -eq $null) {
 		"F:"
 	) | foreach {
 		if (Test-Path ($_ + "\Guild Wars 2\Gw2-64.exe")) {
-			$conf.paths.Guildwars2 = ($_ + "\Guild Wars 2")
+			$conf.main.pathArc = ($_ + "\Guild Wars 2")
 		}
 	}
 
@@ -1020,8 +1152,8 @@ if ($conf.paths.Guildwars2 -eq $null) {
 }
 
 if (
-	($conf.paths.TacO -eq $null) -or
-	($conf.paths.BlishHUD -eq $null) -or
+	($conf.main.pathTaco -eq $null) -or
+	($conf.main.pathBlish -eq $null) -or
 
 	($conf.installation_paths -ne $null) -or
 	($conf.configuration -ne $null) -or
@@ -1048,6 +1180,7 @@ if (
 
 
 
+$forceGUI = $true; cls ############################################### TESTING ##############################################################################
 
 if ($forceGUI) {
 	do {
@@ -1072,9 +1205,9 @@ exit
 
 # now the real magic:
 
-$GW2_path = $conf.paths.Guildwars2
-$TacO_path = $conf.paths.TacO
-$BlishHUD_path = $conf.paths.BlishHUD
+$GW2_path = $conf.main.pathArc
+$TacO_path = $conf.main.pathTaco
+$BlishHUD_path = $conf.main.pathBlish
 
 Clear-Host
 
