@@ -247,149 +247,33 @@ function DeGZip-File($infile, $outfile = ($infile -replace '\.gz$','')) {
 	$input.Close()
 }
 
-# collect packages
+function placingGUI {
+	$max = (@($form.groupBlish.Height, $form.groupArc.Height, $form.groupTaco.Height) | measure -Maximum).Maximum
 
-$modules = @{}
-$modules.Main = @{}
-$modules.ArcDPS = @{}
-$modules.Path = @{}
-$modules.BlishHud = @{}
+	$form.groupBlish.Height = $max
+	$form.groupTaco.Height = $max
+	$form.groupArc.Height = $max
 
-$modules.ArcDPS.killproof = @{
-	name = "killproof.me"
-	desc = "extences ArcDPS to show the killproof.me data of your group members. Shortcut to open that is Shift+Alt+K"
-	default = $true
-	checkurl = "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest"
-	targetfile = "bin64\d3d9_arcdps_killproof_me.dll"
-	platform = "github-normal"
+	$max = (@($form.groupTaco.Width, $form.groupBlish.Width, $form.groupAddons.Width, $form.groupPaths.Width, $form.groupModules.Width, $form.groupArc.Width) | measure -Maximum).Maximum
+
+	$form.groupTaco.Width = $max
+	$form.groupBlish.Width = $max
+	$form.groupAddons.Width = $max
+	$form.groupPaths.Width = $max
+	$form.groupModules.Width = $max
+	$form.groupArc.Width = $max
+
+	$form.groupTaco.Location = New-Object System.Drawing.Size(($form.groupArc.Location.X + $form.groupArc.Width + 10) , $form.groupArc.Location.Y)
+	$form.groupBlish.Location = New-Object System.Drawing.Size(($form.groupTaco.Location.X + $form.groupTaco.Width + 10) , $form.groupArc.Location.Y)
+
+	$form.groupPaths.Location = New-Object System.Drawing.Size(($form.groupTaco.Location.X), ($form.groupArc.Location.Y + $form.groupArc.height + 10))
+	$form.groupModules.Location = New-Object System.Drawing.Size(($form.groupBlish.Location.X), ($form.groupArc.Location.Y + $form.groupArc.height + 10))
+
+	$x = $form.groupTaco.Width * 1.5 + $form.groupTaco.x -35
+	$y = (@($form.groupArc.Height, $form.groupBlish.Height, $form.groupTaco.Height) | measure -Maximum).Maximum + (@($form.groupAddons.Height, $form.groupPaths.Height, $form.groupModules.Height) | measure -Maximum).Maximum + $form.groupArc.y + 60
+
+    $form.close.Location = New-Object System.Drawing.Size($x, $y)
 }
-
-$modules.ArcDPS.boon = @{
-	name = "Boon-Table"
-	desc = "extences ArcDPS to show the boons done by you and your group members. Shortcut to open that is Shift+Alt+B"
-	default = $true
-	checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest"
-	targetfile = "bin64\d3d9_arcdps_table.dll"
-	platform = "github-normal"
-}
-
-$modules.ArcDPS.healing = @{
-	name = "Healing-Stats"
-	desc = "extences ArcDPS to show your heal."
-	default = $true
-	checkurl = "https://api.github.com/repos/Krappa322/arcdps_healing_stats/releases/latest"
-	targetfile = "bin64\arcdps-healing-stats.dll"
-	platform = "github-normal"
-}
-
-$modules.ArcDPS.mechanics = @{
-	name = "Mechanics-Logs"
-	desc = "extences ArcDPS to how good you or your group members perform with the mechanics in raids. Shortcut to open that is Shift+Alt+L"
-	default = $true
-	checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Mechanics-Log/releases/latest"
-	targetfile = "bin64\d3d9_arcdps_mechanics.dll"
-	platform = "github-normal"
-}
-
-$modules.Path.schattenfluegel = @{
-	name = "Schattenfluegel"
-	desc = "map pack to show be better than TEKKIT. It adds shotcuts and way better pathes. Way better design, but not as complete as TEKKIT."
-	default = $true
-	checkurl = "https://api.github.com/repos/Schattenfluegel/SchattenfluegelTrails/contents/Download"
-	targeturl = "https://github.com/Schattenfluegel/SchattenfluegelTrails/raw/main/Download/SchattenfluegelTrails.taco"
-	targetfile = "SchattenfluegelTrails.taco"
-	platform = "github-raw"
-	blishonly = $false
-}
-
-$modules.Path.czokalapiks = @{
-	name = "Czokalapiks"
-	desc = "map pack for easy hero points farm runs. Includes all needed waypoints, easy to follow."
-	default = $true
-	checkurl = "https://api.bitbucket.org/2.0/repositories/czokalapik/czokalapiks-guides-for-gw2taco/commits"
-	targeturl = "https://bitbucket.org/czokalapik/czokalapiks-guides-for-gw2taco/get"
-	targetfile = "czokalapiks-guides.taco"
-	platform = "bitbucket"
-	blishonly = $false
-}
-
-Invoke-WebRequest "https://mp-repo.blishhud.com/repo.json" -OutFile "$checkfile"
-$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-Remove-Item "$checkfile"
-
-$json | foreach {
-	$name = $_.Name -replace '[^a-zA-Z]', ''
-
-	$modules.Path[$name] = @{}
-	$modules.Path[$name].name = $_.Name
-	$modules.Path[$name].desc = $_.Description
-	$modules.Path[$name].platform = "blishrepo"
-	$modules.Path[$name].targeturl = $_.Download
-	$modules.Path[$name].targetfile = $_.FileMane
-	$modules.Path[$name].version = $_.LastUpdate
-
-	if (
-		($_.Name -eq "ReActif EN") -or
-		($_.Name -eq "Hero's Marker Pack") -or
-		($_.Name -eq "Tekkit's All-In-One") -or
-		$false
-	) {
-		$modules.Path[$name].default = $true
-	} else {
-		$modules.Path[$name].default = $false
-	}
-
-	if (
-		($_.Name -eq "Hero's Marker Pack") -or
-		$false
-	) {
-		$modules.Path[$name].blishonly = $true
-	} else {
-		$modules.Path[$name].blishonly = $false
-	}
-}
-
-Invoke-WebRequest "https://pkgs.blishhud.com/packages.gz" -OutFile "$checkfile.gz"
-DeGZip-File "$checkfile.gz"
-Remove-Item "$checkfile.gz"
-$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-Remove-Item "$checkfile"
-
-$json | foreach {
-	$filtered = $true
-
-	$_.dependencies.psobject.properties | Foreach {
-		if (
-			($_.Name -eq "bh.blishhud") -and
-			($_.Value -like "<*")
-		) {
-			$filtered = $false
-		}
-	}
-
-	$name = $_.name -replace '[^a-zA-Z]', ''
-
-	if ($filtered) {
-		$modules.BlishHud[$name] = @{}
-		$modules.BlishHud[$name].name = $_.name
-		$modules.BlishHud[$name].desc = $_.description
-		$modules.BlishHud[$name].targeturl = $_.location
-		$modules.BlishHud[$name].version = $_.version
-		$modules.BlishHud[$name].namespace = $_.namespace
-
-		if (
-			($name -eq "Timers") -or
-			$false
-		) {
-			$modules.BlishHud[$name].default = $true
-		} else {
-			$modules.BlishHud[$name].default = $false
-		}
-	}
-}
-
-$form = @{}
-$initGUI = $true
 
 function showGUI {
 # prepare stuff
@@ -664,32 +548,7 @@ function showGUI {
 	$form.main_form.Controls.Add($form.groupModules)
 
 # STUFF
-	$max = (@($form.groupBlish.Height, $form.groupArc.Height, $form.groupTaco.Height) | measure -Maximum).Maximum
-
-	$form.groupBlish.Height = $max
-	$form.groupTaco.Height = $max
-	$form.groupArc.Height = $max
-
-	$max = (@($form.groupTaco.Width, $form.groupBlish.Width, $form.groupAddons.Width, $form.groupPaths.Width, $form.groupModules.Width, $form.groupArc.Width) | measure -Maximum).Maximum
-
-	$form.groupTaco.Width = $max
-	$form.groupBlish.Width = $max
-	$form.groupAddons.Width = $max
-	$form.groupPaths.Width = $max
-	$form.groupModules.Width = $max
-	$form.groupArc.Width = $max
-
-	$form.groupTaco.Location = New-Object System.Drawing.Size(($form.groupArc.Location.X + $form.groupArc.Width + 10) , $form.groupArc.Location.Y)
-	$form.groupBlish.Location = New-Object System.Drawing.Size(($form.groupTaco.Location.X + $form.groupTaco.Width + 10) , $form.groupArc.Location.Y)
-
-	$form.groupPaths.Location = New-Object System.Drawing.Size(($form.groupTaco.Location.X), ($form.groupArc.Location.Y + $form.groupArc.height + 10))
-	$form.groupModules.Location = New-Object System.Drawing.Size(($form.groupBlish.Location.X), ($form.groupArc.Location.Y + $form.groupArc.height + 10))
-
-	$x = $form.groupTaco.Width * 1.5 + $form.groupTaco.x -35
-	$y = (@($form.groupArc.Height, $form.groupBlish.Height, $form.groupTaco.Height) | measure -Maximum).Maximum + (@($form.groupAddons.Height, $form.groupPaths.Height, $form.groupModules.Height) | measure -Maximum).Maximum + $form.groupArc.y + 60
-
     $form.close = New-Object System.Windows.Forms.Button
-    $form.close.Location = New-Object System.Drawing.Size($x, $y)
     $form.close.Size = New-Object System.Drawing.Size(70, 40)
     $form.close.Text = "Save and Run"
     $form.close.DialogResult = "OK"
@@ -697,6 +556,8 @@ function showGUI {
 		changeGUI -category "save" -key "default" -value $false
 	})
     $form.main_form.Controls.Add($form.close)
+
+	placingGUI
 
 	validateGUI
 
@@ -842,6 +703,8 @@ function validateGUI {
 			$modules.Path[$_.key]["UI2"].checked = $conf.paths[$_.key + "_taco"]
 		}
 	}
+
+	placingGUI
 }
 
 function changeGUI($category, $key = 0, $value = 0) {
@@ -882,6 +745,7 @@ function changeGUI($category, $key = 0, $value = 0) {
 			}
 
 			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+
 			break
 		}
 		"enable" {
@@ -1054,126 +918,157 @@ function changeGUI($category, $key = 0, $value = 0) {
 					break
 				}
 			}
+
+			placingGUI
+
 			break
 		}
 	}
-
-	Write-Host $category
-	Write-Host $key
-	Write-Host $value
-
-	### -> 1. variable speichern
-	### -> 2. Reaktion auf die UI (oder geht das in der validateGUI?
-
-	#$modules.ArcDPS[$_.key]["UI"].Enabled = $false #arc
-	#$modules.ArcDPS[$_.key]["UI"].Checked = $_.value.default
-
-	#$modules.Path[$_.key]["UI"].Enabled = $false  #lable
-	#$modules.Path[$_.key]["UI1"].Enabled = $false  #blish
-	#$modules.Path[$_.key]["UI1"].Checked = $_.value.default
-	#$modules.Path[$_.key]["UI2"].Enabled = $false  #taco
-	#$modules.Path[$_.key]["UI2"].Checked = $_.value.default
-
-	#$modules.BlishHUD[$_.key]["UI"].Enabled = $false
-	#$modules.BlishHUD[$_.key]["UI"].Checked = $_.value.default
-
-
-	<#
-
-	blish path
-	blish install
-
-	$pathBlish.Enabled = $enabledBlish.Checked
-		$pathBlishLabel.Enabled = $enabledBlish.Checked
-
-		if ($enabledBlish.Checked) {
-			$enabledBlish.Text = "install + update"
-		} else {
-			$enabledBlish.Text = "uninstall"
-		}
-
-		$path = $pathBlishLabel.Text
-
-		if (
-			(Test-Path "$path\Blish HUD.exe") -or
-			(Get-ChildItem "$path" | Measure-Object | %{ return $_.Count -eq 0})
-		) {
-			$path = "Select installation path"
-			$BlishRun.Enabled = $false
-		} else {
-			$BlishRun.Enabled = $true
-		}
-
-
-	taco path
-		taco install
-
-		$pathTaco.Enabled = $enabledTaco.Checked
-		$pathTacoLabel.Enabled = $enabledTaco.Checked
-
-		if ($enabledTaco.Checked) {
-			$enabledTaco.Text = "install + update"
-		} else {
-			$enabledTaco.Text = "uninstall"
-		}
-
-		$path = $pathTacoLabel.Text
-
-		if (
-			(Test-Path "$path\GW2TacO.exe") -or
-			(Get-ChildItem "$path" -Recurse -File | Measure-Object | %{ return $_.Count -eq 0})
-		) {
-			$path = "Select installation path"
-			$TacoRun.Enabled = $false
-		} else {
-			$TacoRun.Enabled = $true
-		}
-
-		dx11
-		$arcDx9.Checked = $false
-
-		$modules.ArcDPS.GetEnumerator() | foreach {
-			$modules.ArcDPS[$_.key]["UI"].Enabled = $true
-		}
-
-		dx9
-
-		$arcDx11.Checked = $false
-
-		$modules.ArcDPS.GetEnumerator() | foreach {
-			$modules.ArcDPS[$_.key]["UI"].Enabled = $true
-		}
-
-		path arc
-		enable arc
-				$pathArc.Enabled = $enabledArc.Checked
-		$pathArcLabel.Enabled = $enabledArc.Checked
-
-		if ($enabledArc.Checked) {
-			$enabledArc.Text = "install + update"
-		} else {
-			$enabledArc.Text = "uninstall"
-		}
-
-		$path = $pathArcLabel.Text
-		if ((Test-Path "$path\Gw2-64.exe")) {
-			$arcDx9.Enabled = $enabledArc.Checked
-			$arcDx11.Enabled = $enabledArc.Checked
-		} else {
-			$arcDx9.Enabled = $false
-			$arcDx11.Enabled = $false
-		}
-
-
-
-
-		dings
-
-			$pathBlish.Enabled = $false
-	$pathBlishLabel.Enabled = $false
-	$BlishRun.Enabled = $false
-	#>
 }
+
+# collect packages
+
+$modules = @{}
+$modules.Main = @{}
+$modules.ArcDPS = @{}
+$modules.Path = @{}
+$modules.BlishHud = @{}
+
+$modules.ArcDPS.killproof = @{
+	name = "killproof.me"
+	desc = "extences ArcDPS to show the killproof.me data of your group members. Shortcut to open that is Shift+Alt+K"
+	default = $true
+	checkurl = "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest"
+	targetfile = "bin64\d3d9_arcdps_killproof_me.dll"
+	platform = "github-normal"
+}
+
+$modules.ArcDPS.boon = @{
+	name = "Boon-Table"
+	desc = "extences ArcDPS to show the boons done by you and your group members. Shortcut to open that is Shift+Alt+B"
+	default = $true
+	checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest"
+	targetfile = "bin64\d3d9_arcdps_table.dll"
+	platform = "github-normal"
+}
+
+$modules.ArcDPS.healing = @{
+	name = "Healing-Stats"
+	desc = "extences ArcDPS to show your heal."
+	default = $true
+	checkurl = "https://api.github.com/repos/Krappa322/arcdps_healing_stats/releases/latest"
+	targetfile = "bin64\arcdps-healing-stats.dll"
+	platform = "github-normal"
+}
+
+$modules.ArcDPS.mechanics = @{
+	name = "Mechanics-Logs"
+	desc = "extences ArcDPS to how good you or your group members perform with the mechanics in raids. Shortcut to open that is Shift+Alt+L"
+	default = $true
+	checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Mechanics-Log/releases/latest"
+	targetfile = "bin64\d3d9_arcdps_mechanics.dll"
+	platform = "github-normal"
+}
+
+$modules.Path.schattenfluegel = @{
+	name = "Schattenfluegel"
+	desc = "map pack to show be better than TEKKIT. It adds shotcuts and way better pathes. Way better design, but not as complete as TEKKIT."
+	default = $true
+	checkurl = "https://api.github.com/repos/Schattenfluegel/SchattenfluegelTrails/contents/Download"
+	targeturl = "https://github.com/Schattenfluegel/SchattenfluegelTrails/raw/main/Download/SchattenfluegelTrails.taco"
+	targetfile = "SchattenfluegelTrails.taco"
+	platform = "github-raw"
+	blishonly = $false
+}
+
+$modules.Path.czokalapiks = @{
+	name = "Czokalapiks"
+	desc = "map pack for easy hero points farm runs. Includes all needed waypoints, easy to follow."
+	default = $true
+	checkurl = "https://api.bitbucket.org/2.0/repositories/czokalapik/czokalapiks-guides-for-gw2taco/commits"
+	targeturl = "https://bitbucket.org/czokalapik/czokalapiks-guides-for-gw2taco/get"
+	targetfile = "czokalapiks-guides.taco"
+	platform = "bitbucket"
+	blishonly = $false
+}
+
+Invoke-WebRequest "https://mp-repo.blishhud.com/repo.json" -OutFile "$checkfile"
+$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+Remove-Item "$checkfile"
+
+$json | foreach {
+	$name = $_.Name -replace '[^a-zA-Z]', ''
+
+	$modules.Path[$name] = @{}
+	$modules.Path[$name].name = $_.Name
+	$modules.Path[$name].desc = $_.Description
+	$modules.Path[$name].platform = "blishrepo"
+	$modules.Path[$name].targeturl = $_.Download
+	$modules.Path[$name].targetfile = $_.FileMane
+	$modules.Path[$name].version = $_.LastUpdate
+
+	if (
+		($_.Name -eq "ReActif EN") -or
+		($_.Name -eq "Hero's Marker Pack") -or
+		($_.Name -eq "Tekkit's All-In-One") -or
+		$false
+	) {
+		$modules.Path[$name].default = $true
+	} else {
+		$modules.Path[$name].default = $false
+	}
+
+	if (
+		($_.Name -eq "Hero's Marker Pack") -or
+		$false
+	) {
+		$modules.Path[$name].blishonly = $true
+	} else {
+		$modules.Path[$name].blishonly = $false
+	}
+}
+
+Invoke-WebRequest "https://pkgs.blishhud.com/packages.gz" -OutFile "$checkfile.gz"
+DeGZip-File "$checkfile.gz"
+Remove-Item "$checkfile.gz"
+$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+Remove-Item "$checkfile"
+
+$json | foreach {
+	$filtered = $true
+
+	$_.dependencies.psobject.properties | Foreach {
+		if (
+			($_.Name -eq "bh.blishhud") -and
+			($_.Value -like "<*")
+		) {
+			$filtered = $false
+		}
+	}
+
+	$name = $_.name -replace '[^a-zA-Z]', ''
+
+	if ($filtered) {
+		$modules.BlishHud[$name] = @{}
+		$modules.BlishHud[$name].name = $_.name
+		$modules.BlishHud[$name].desc = $_.description
+		$modules.BlishHud[$name].targeturl = $_.location
+		$modules.BlishHud[$name].version = $_.version
+		$modules.BlishHud[$name].namespace = $_.namespace
+
+		if (
+			($name -eq "Timers") -or
+			$false
+		) {
+			$modules.BlishHud[$name].default = $true
+		} else {
+			$modules.BlishHud[$name].default = $false
+		}
+	}
+}
+
+$form = @{}
+$initGUI = $true
 
 #build config
 
