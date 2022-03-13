@@ -1,5 +1,9 @@
 param($forceGUIfromBat = "")
 
+#TODO:
+# Warnung, wenn die Grafikeinstellungen falsch sind
+# DX selbst erkennen
+
 $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
 $Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
 $checkfile = "$Script_path\checkfile"
@@ -195,9 +199,9 @@ function Out-IniFile($InputObject, $FilePath) {
 
 function enforceBHM($modulename) {
 	#generate settings.json
-	Write-Host "Generating default files. This takes about 10 seconds." -ForegroundColor DarkGray
+	Write-Host "Generating default files. This takes about 15 seconds." -ForegroundColor DarkGray
 	Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
-	Start-Sleep -Seconds 12
+	Start-Sleep -Seconds 18
 	Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
 
 	$data = Get-Content "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw | ConvertFrom-Json
@@ -957,7 +961,7 @@ $modules.ArcDPS.healing = @{
 	desc = "extences ArcDPS to show your heal."
 	default = $true
 	repo = "Krappa322/arcdps_healing_stats"
-	targetfile = "arcdps-healing-stats.dll"
+	targetfile = "arcdps_healing_stats.dll"
 	platform = "github-normal"
 }
 
@@ -1050,6 +1054,11 @@ $json | foreach {
 
 		$modules.BlishHud[$name].default = (
 			($name -eq "Timers") -or
+			($name -eq "Pathing") -or
+			($name -eq "KillProofModule") -or
+			($name -eq "QuickSurrender") -or
+			($name -eq "Mistwar") -or
+			($name -eq "HPGrids") -or
 			$false
 		)
 	}
@@ -1272,89 +1281,6 @@ if ($conf.main.enabledArc) {
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
-
-
-
-####################################################################################################################################################################################################
-####################################################################################################################################################################################################
-$modules.ArcDPS.GetEnumerator() | foreach {
-	if ($conf.addons[$_.key] -and $conf.main.enabledArc) {
-		switch($_.value.platform) {
-			"github-normal" {
-				$checkurl = ("https://api.github.com/repos/" + $_.value.repo + "/releases/latest")
-				$targetfile = ("$GW2_path\bin64\" + $_.value.targetfile)
-Write-Host "--------"
-Write-Host $_.key
-Write-Host $_.value
-Write-Host $modules.ArcDPS[$_.key]
-Write-Host $_.value.repo
-Write-Host $checkurl
-Write-Host $targetfile
-Write-Host "--------"
-exit
-				checkGithub
-				Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-
-				$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-				$new = $json.name
-				removefile "$checkfile"
-
-				if (
-					($conf.versions_addons[$_.key] -eq $null) -or
-					($conf.versions_addons[$_.key] -ne $new)
-				) {
-					Write-Host $_.value.name -NoNewline -ForegroundColor White
-					Write-Host " is being updated" -ForegroundColor Green
-
-Write-Host $targetfile
-Write-Host $json.assets.browser_download_url
-					removefile "$targetfile"
-					Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile"
-
-					$conf.versions_addons[$_.key] = $new
-					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-				} else {
-					Write-Host $_.value.name -NoNewline -ForegroundColor White
-					Write-Host " is up-to-date"
-				}
-
-				break
-			}
-		}
-	} else {
-		removefile ("$GW2_path\bin64\" + $_.value.targetfile)
-	}
-}
-
-
-
-
-exit ###############################################################################################################################################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # auto update TacO
 if ($conf.main.enabledTaco) {
 	checkGithub
@@ -1440,475 +1366,127 @@ if ($conf.main.enabledBlish) {
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
-# auto update arcdps-killproof.me-plugin
+# auto update BlishHUD_ArcDPS_Bridge
 if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
-	checkGithub
-
-	$checkurl = "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest"
-	$targetfile = "$GW2_path\bin64\d3d9_arcdps_killproof_me.dll"
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.name
-	removefile "$checkfile"
-
-	if (
-		($conf.versions_main.ArcDPS_killproof -eq $null) -or
-		($conf.versions_main.ArcDPS_killproof -ne $new)
-	) {
-		Write-Host "ArcDps-killproof.me-plugin " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
-
-		removefile "$targetfile"
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile"
-
-		$conf.versions_main.ArcDPS_killproof = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		Write-Host "ArcDps-killproof.me-plugin " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
-	}
-} else {
-	removefile "$GW2_path\bin64\d3d9_arcdps_killproof_me.dll"
-
-	$conf.versions_main.ArcDPS_killproof = $null
-	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-}
-
-
-exit ###############################################################################################################################################################################################
-exit ###############################################################################################################################################################################################
-exit ###############################################################################################################################################################################################
-exit ###############################################################################################################################################################################################
-exit ###############################################################################################################################################################################################
-exit ###############################################################################################################################################################################################
-# auto update arcdps-Boon-Table-plugin
-if ($conf.configuration.update_ArcDPS -and $conf.settings_ArcDPS.boon_table) {
-
-
-	if (
-		($conf.versions.ArcDPS_boontable -eq $null) -or
-		($conf.versions.ArcDPS_boontable -ne $new)
-	) {
-
-	}
-
-}
-
-
-# auto update arcdps-healing-stats
-if ($conf.configuration.update_ArcDPS -and $conf.settings_ArcDPS.healing_stats) {
-	checkGithub
-
-	$checkurl = "https://api.github.com/repos/Krappa322/arcdps_healing_stats/releases/latest"
-	$targetfile = "$GW2_path\bin64\arcdps_healing_stats.dll"
-
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.name
-
-	if (
-		($conf.versions.ArcDPS_healingstats -eq $null) -or
-		($conf.versions.ArcDPS_healingstats -ne $new)
-	) {
-		Write-Host "arcdps-healing-stats " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
-
-		removefile "$targetfile"
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile"
-
-		$conf["versions"]["ArcDPS_healingstats"] = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		Write-Host "arcdps-healing-stats " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
-	}
-
-	removefile "$checkfile"
-}
-
-
-# auto update GW2-ArcDPS-Mechanics-Log
-if ($conf.configuration.update_ArcDPS -and $conf.settings_ArcDPS.mechanics_log) {
-	checkGithub
-
-	$checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Mechanics-Log/releases/latest"
-	$targetfile = "$GW2_path\bin64\d3d9_arcdps_mechanics.dll"
-
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.name
-
-	if (
-		($conf.versions.ArcDPS_mechanicslog -eq $null) -or
-		($conf.versions.ArcDPS_mechanicslog -ne $new)
-	) {
-		Write-Host "GW2-ArcDPS-Mechanics-Log " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
-
-		removefile "$targetfile"
-		Invoke-WebRequest $json.assets[0].browser_download_url -OutFile "$targetfile"
-
-		$conf["versions"]["ArcDPS_mechanicslog"] = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		Write-Host "GW2-ArcDPS-Mechanics-Log " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
-	}
-
-	removefile "$checkfile"
-}
-
-
-# auto update BlishHUD-ArcDPS Bridge
-if ($conf.configuration.update_ArcDPS -and $conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.ArcDPS_Bridge) {
 	checkGithub
 
 	$checkurl = "https://api.github.com/repos/blish-hud/arcdps-bhud/releases/latest"
 	$targetfile = "$GW2_path\bin64\arcdps_bhud.dll"
 
 	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
+
 	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.node_id
+	$new = $json.name
+	removefile "$checkfile"
 
 	if (
-		($conf.versions.BlishHUD_ArcDPS_Bridge -eq $null) -or
-		($conf.versions.BlishHUD_ArcDPS_Bridge -ne $new)
+		($conf.versions_main.BlishHUD_ArcDPS_Bridge -eq $null) -or
+		($conf.versions_main.BlishHUD_ArcDPS_Bridge -ne $new)
 	) {
 		Write-Host "BlishHUD-ArcDPS Bridge " -NoNewline -ForegroundColor White
 		Write-Host "is being updated" -ForegroundColor Green
 
-		Invoke-WebRequest $json.assets.browser_download_url[1] -OutFile "$checkfile.zip"
-
 		removefile "$targetfile"
+		Invoke-WebRequest $json.assets.browser_download_url[1] -OutFile "$checkfile.zip"
 		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$GW2_path\bin64\" -Force
 		removefile "$checkfile.zip"
 
-		$conf["versions"]["BlishHUD_ArcDPS_Bridge"] = $new
+		$conf.versions_main.BlishHUD_ArcDPS_Bridge = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		Write-Host "BlishHUD-ArcDPS Bridge " -NoNewline -ForegroundColor White
+		Write-Host "BlishHUD_ArcDPS_Bridge " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
 	}
+} else {
+	removefile "$GW2_path\bin64\d3d9_arcdps_killproof_me.dll"
 
-	removefile "$checkfile"
+	$conf.versions_main.BlishHUD_ArcDPS_Bridge = $null
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
+# auto update all ArcDPS modules
+$modules.ArcDPS.GetEnumerator() | foreach {
+	if ($conf.addons[$_.key] -and $conf.main.enabledArc) {
+		if ($_.value.platform -eq "github-normal") {
+			Write-Host $_.value.name -NoNewline -ForegroundColor White
+			Write-Host " is being updated" -ForegroundColor Green
+
+			$checkurl = "https://api.github.com/repos/" + $_.value.repo + "/releases/latest"
+			$targetfile = "$GW2_path\bin64\" + $_.value.targetfile
+
+			checkGithub
+			Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
+
+			$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+			$new = $json.name
+			removefile "$checkfile"
+
+			if (
+				($conf.versions_addons[$_.key] -eq $null) -or
+				($conf.versions_addons[$_.key] -ne $new)
+			) {
+				$name = $_.value.targetfile
+				$download = $json.assets | foreach { if ($_.name -eq $name) { return $_.browser_download_url }}
+
+				removefile "$targetfile"
+				Invoke-WebRequest $download -OutFile "$targetfile"
+
+				$conf.versions_addons[$_.key] = $new
+				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+			} else {
+				Write-Host $_.value.name -NoNewline -ForegroundColor White
+				Write-Host " is up-to-date"
+			}
+		}
+	} else {
+		removefile ("$GW2_path\bin64\" + $_.value.targetfile)
+
+		$conf.versions_addons[$_.key] = $null
+		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+	}
+}
 
 # auto update BlishHUD-Modules
-
-# Pathing
-if ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Pathing) {
-	checkGithub
-
-	$checkurl = "https://api.github.com/repos/blish-hud/Pathing/releases/latest"
-	$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
-
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $($json.tag_name).Substring(1)
-
-	if (
-		($conf.versions.BlishHUD_Pathing -eq $null) -or
-		($conf.versions.BlishHUD_Pathing -ne $new)
-	) {
-		$old = 0
-
-		if ($conf.versions.BlishHUD_Pathing -ne $null) {
-			$old = $conf.versions.BlishHUD_Pathing
-		}
-
-		Write-Host "BlishHUD-Module Pathing " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
-
-		# remove old version
-		removefile "$checkpath\bh.community.pathing_$old.bhm"
-		removefile "$checkpath\Pathing_v$old.bhm"
-
-		#  get new version
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkpath\bh.community.pathing_$new.bhm"
-
-		# enable this version
-		enforceBHM "bh.community.pathing"
-
-		$conf["versions"]["BlishHUD_Pathing"] = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		Write-Host "BlishHUD-Module Pathing " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
-	}
-
-	removefile "$checkfile"
-}
-
-
-# KillProof-Module
-if ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.KillProof_Module) {
-	checkGithub
-
-	$checkurl = "https://api.github.com/repos/blish-hud/KillProof-Module/releases/latest"
-	$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
-	$targetfile = "$checkpath\KillProof.bhm"
-
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $($json.tag_name).Substring(1)
-
-	if (
-		($conf.versions.BlishHUD_KillProof_Module -eq $null) -or
-		($conf.versions.BlishHUD_KillProof_Module -ne $new)
-	) {
-		Write-Host "BlishHUD-Module KillProof " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
-
-		# remove old version
-		removefile "$targetfile"
-
-		#  get new version
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile"
-
-		# enable this version
-		enforceBHM "KillProofModule"
-
-		$conf["versions"]["BlishHUD_KillProof_Module"] = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		Write-Host "BlishHUD-Module KillProof " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
-	}
-
-	removefile "$checkfile"
-}
-
-
-# Quick-Surrender and/or Mistwar
-
-if (
-	($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Quick_Surrender) -or
-	($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Mistwar)
-) {
-	checkGithub
-
-	$checkurl = "https://api.github.com/repos/agaertner/Blish-HUD-Modules-Releases/releases"
-	$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
-
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-
-	$jsonb = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-
-	$WantQuickSurrender = ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Quick_Surrender)
-	$WantMistwar = ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Mistwar)
-
-	# Quick-Surrender
-	$jsonb | foreach-object {
-		$json = $_
-
-		$targeturl = ""
-
-		$json.assets | foreach-object {
-			if ($_.name -match "Surrender") {
-				$targeturl = $_
-			}
-		}
+$modules.BlishHUD.GetEnumerator() | foreach {
+	if ($conf.modules[$_.key] -and $conf.main.enabledBlish) {
+		$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules\"
+		$new = $_.value.version
 
 		if (
-			($targeturl -ne "") -and
-			($WantQuickSurrender)
+			($conf.versions_modules[$_.key] -eq $null) -or
+			($conf.versions_modules[$_.key] -ne $new)
 		) {
-			$WantQuickSurrender = $false
+			Write-Host $_.value.name -NoNewline -ForegroundColor White
+			Write-Host " is being updated" -ForegroundColor Green
 
-			$new = $($targeturl.name)
-			$new = $new.Substring($new.Length - 9, 5)
-			$name = $targeturl.name
-			$targeturl = $targeturl.browser_download_url
-
-			if (
-				($conf.versions.BlishHUD_QuickSurrender -eq $null) -or
-				($conf.versions.BlishHUD_QuickSurrender -ne $new)
-			) {
-				$old = 0
-
-				if ($conf.versions.BlishHUD_QuickSurrender -ne $null) {
-					$old = $conf.versions.BlishHUD_QuickSurrender
-				}
-
-				Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
-				Write-Host "is being updated" -ForegroundColor Green
-
-				# remove old version
-				removefile "$checkpath\Nekres.Quick_Surrender_Module_$old.bhm"
-				removefile "$checkpath\$name"
-
-				#  get new version
-				Invoke-WebRequest $targeturl -OutFile "$checkpath\Nekres.Quick_Surrender_Module_$new.bhm"
-
-				# enable this version
-				enforceBHM "Nekres.Quick_Surrender_Module"
-
-				$conf["versions"]["BlishHUD_QuickSurrender"] = $new
-				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-			} else {
-				Write-Host "BlishHUD-Module Quick-Surrender " -NoNewline -ForegroundColor White
-				Write-Host "is up-to-date"
+			if ($conf.versions_modules[$_.key] -ne $null) {
+				removefile ("$checkpath\" + $_.value.namespace + "_" + $conf.versions_modules[$_.key] + ".bhm")
 			}
+
+			Invoke-WebRequest $_.value.targeturl -OutFile ("$checkpath\" + $_.value.namespace + "_" + $_.value.version + ".bhm")
+
+			enforceBHM $_.value.namespace
+
+			$conf.versions_modules[$_.key] = $new
+			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+		} else {
+			Write-Host $_.value.name -NoNewline -ForegroundColor White
+			Write-Host " is up-to-date"
 		}
-	}
-
-	# Mistwar
-	$jsonb | foreach-object {
-		$json = $_
-
-		$targeturl = ""
-
-		$json.assets | foreach-object {
-			if ($_.name -match "Mistwar") {
-				$targeturl = $_
-			}
-		}
-
-		if (
-			($targeturl -ne "") -and
-			($WantMistwar)
-		) {
-			$WantMistwar = $false
-
-			$new = $($targeturl.name)
-			$new = $new.Substring($new.Length - 9, 5)
-			$name = $targeturl.name
-			$targeturl = $targeturl.browser_download_url
-
-			if (
-				($conf.versions.BlishHUD_MistWar -eq $null) -or
-				($conf.versions.BlishHUD_MistWar -ne $new)
-			) {
-				$old = 0
-
-				if ($conf.versions.BlishHUD_MistWar -ne $null) {
-					$old = $conf.versions.BlishHUD_MistWar
-				}
-
-				Write-Host "BlishHUD-Module Mistwar " -NoNewline -ForegroundColor White
-				Write-Host "is being updated" -ForegroundColor Green
-
-				# remove old version
-				removefile "$checkpath\Nekres.Mistwar_$old.bhm"
-				removefile "$checkpath\$name"
-
-				#  get new version
-				Invoke-WebRequest $targeturl -OutFile "$checkpath\Nekres.Mistwar_$new.bhm"
-
-				# enable this version
-				enforceBHM "Nekres.Mistwar"
-
-				$conf["versions"]["BlishHUD_MistWar"] = $new
-				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-			} else {
-				Write-Host "BlishHUD-Module Mistwar " -NoNewline -ForegroundColor White
-				Write-Host "is up-to-date"
-			}
-		}
-	}
-
-	removefile "$checkfile"
-}
-
-
-# BlishHud-HPGrid
-if ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.HPGrid) {
-	checkGithub
-
-	$checkurl = "https://api.github.com/repos/manlaan/BlishHud-HPGrid/releases/latest"
-	$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
-
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.name
-	$name = $json.assets.name
-
-	if (
-		($conf.versions.BlishHUD_HPGrid -eq $null) -or
-		($conf.versions.BlishHUD_HPGrid -ne $new)
-	) {
-		$old = 0
-
-		if ($conf.versions.BlishHUD_HPGrid -ne $null) {
-			$old = $conf.versions.BlishHUD_HPGrid
-		}
-
-		Write-Host "BlishHUD-Module HPGrid " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
-
-		# remove old version
-		removefile "$checkpath\Manlaan.HPGrid_$old.bhm"
-		removefile "$checkpath\$name"
-
-		#  get new version
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkpath\Manlaan.HPGrid_$new.bhm"
-
-		# enable this version
-		enforceBHM "Manlaan.HPGrid"
-
-		$conf["versions"]["BlishHUD_HPGrid"] = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		Write-Host "BlishHUD-Module HPGrid " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
-	}
+		removefile ("$checkpath\" + $_.value.namespace + "_" + $_.value.version + ".bhm")
 
-	removefile "$checkfile"
-}
-
-
-# BlishHud-Timers
-if ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Timers) {
-	checkGithub
-
-	$checkurl = "https://api.github.com/repos/Dev-Zhao/Timers_BlishHUD/releases/latest"
-	$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
-
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.name
-	$new = $new.Substring($new.Length - 5, 5)
-	$name = $json.assets.name
-
-	if (
-		($conf.versions.BlishHUD_Timers -eq $null) -or
-		($conf.versions.BlishHUD_Timers -ne $new)
-	) {
-		$old = 0
-
-		if ($conf.versions.BlishHUD_Pathing -ne $null) {
-			$old = $conf.versions.BlishHUD_Pathing
-		}
-
-		Write-Host "BlishHUD-Module Timers " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
-
-		# remove old version
-		removefile "$checkpath\Charr.Timers_BlishHUD_$old.bhm"
-		removefile "$checkpath\$name"
-
-		#  get new version
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkpath\Charr.Timers_BlishHUD_$new.bhm"
-
-		# enable this version
-		enforceBHM "Charr.Timers_BlishHUD"
-
-		$conf["versions"]["BlishHUD_Timers"] = $new
+		$conf.versions_modules[$_.key] = $null
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		Write-Host "BlishHUD-Module Timers " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
 	}
-
-	removefile "$checkfile"
 }
 
+####################################################################################################################################################################################################
+####################################################################################################################################################################################################
+
+
+
+exit ###############################################################################################################################################################################################
 
 # auto update TEKKIT
 if (
