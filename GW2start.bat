@@ -11,6 +11,10 @@ if %policy% EQU 1 (
 
 powershell.exe -Command "Invoke-WebRequest https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.ps1 -OutFile GW2start.ps1"
 
-powershell.exe -file "GW2start.ps1"
+IF "%~1"=="" (
+	powershell.exe -file "GW2start.ps1"
+) else (
+	powershell.exe -file "GW2start.ps1" "config"
+)
 
 del "GW2start.ps1"
