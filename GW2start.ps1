@@ -1,10 +1,10 @@
-#param($GW2_path_old, $TacO_path_old, $BlishHUD_path_old, $use_ArcDPS_old, $use_TacO_old, $use_BHud_old)
+param($forceGUIfromBat = "")
 
 $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
 $Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
 $checkfile = "$Script_path\checkfile"
 
-$forceGUI = $false
+$forceGUI = ($forceGUIfromBat.length -ne 0)
 
 function stopprocesses() {
 	if ($conf.configuration.start_TacO) {
@@ -652,7 +652,7 @@ function validateGUI {
 
 # ARCDPS ADDONS
 	$modules.ArcDPS.GetEnumerator() | foreach {
-		$modules.ArcDPS[$_.key]["UI"].enabled = (($validArc) -and ($form.arcDx9.checked -or $form.arcDx11.checked))
+		$modules.ArcDPS[$_.key]["UI"].enabled = ($validArc -and $form.enabledArc.checked -and ($form.arcDx9.checked -or $form.arcDx11.checked))
 
 		if ($conf.addons[$_.key] -eq $null) {
 			$modules.ArcDPS[$_.key]["UI"].checked = $_.value.default
@@ -773,7 +773,7 @@ function changeGUI($category, $key = 0, $value = 0) {
 					$form.pathBlish.enabled = $value
 					$form.pathBlishLabel.enabled = $value
 
-					$validBlish = ((Test-Path ($form.pathBlishLabel.Text + "\Blish HUD.exe")) -or (Get-ChildItem $form.pathBlishLabel.Text -Recurse -File | Measure-Object | %{ return $_.Count -eq 0 }))
+					$validBlish = ((Test-Path ($form.pathBlishLabel.Text + "\Blish HUD.exe")) -or ((Test-Path ($form.pathBlishLabel.Text + "\Blish HUD.exe")) -and (Get-ChildItem $form.pathBlishLabel.Text -Recurse -File | Measure-Object | %{ return $_.Count -eq 0 })))
 					$validTaco = ((Test-Path ($form.pathTacoLabel.Text + "\GW2TacO.exe")) -or ((Test-Path $form.pathTacoLabel.Text) -and (Get-ChildItem $form.pathTacoLabel.Text -Recurse -File | Measure-Object | %{ return $_.Count -eq 0 })))
 
 					$form.BlishRun.enabled = ($validBlish -and $value)
@@ -793,7 +793,7 @@ function changeGUI($category, $key = 0, $value = 0) {
 					$form.pathTaco.enabled = $value
 					$form.pathTacoLabel.enabled = $value
 
-					$validBlish = ((Test-Path ($form.pathBlishLabel.Text + "\Blish HUD.exe")) -or (Get-ChildItem $form.pathBlishLabel.Text -Recurse -File | Measure-Object | %{ return $_.Count -eq 0 }))
+					$validBlish = ((Test-Path ($form.pathBlishLabel.Text + "\Blish HUD.exe")) -or ((Test-Path ($form.pathBlishLabel.Text + "\Blish HUD.exe")) -and (Get-ChildItem $form.pathBlishLabel.Text -Recurse -File | Measure-Object | %{ return $_.Count -eq 0 })))
 					$validTaco = ((Test-Path ($form.pathTacoLabel.Text + "\GW2TacO.exe")) -or ((Test-Path $form.pathTacoLabel.Text) -and (Get-ChildItem $form.pathTacoLabel.Text -Recurse -File | Measure-Object | %{ return $_.Count -eq 0 })))
 
 					$form.TacoRun.enabled = ($validTaco -and $value)
@@ -994,7 +994,7 @@ $modules.Path.czokalapiks = @{
 
 Invoke-WebRequest "https://mp-repo.blishhud.com/repo.json" -OutFile "$checkfile"
 $json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-Remove-Item "$checkfile"
+removefile "$checkfile"
 
 $json | foreach {
 	$name = $_.Name -replace '[^a-zA-Z]', ''
@@ -1022,9 +1022,9 @@ $json | foreach {
 
 Invoke-WebRequest "https://pkgs.blishhud.com/packages.gz" -OutFile "$checkfile.gz"
 DeGZip-File "$checkfile.gz"
-Remove-Item "$checkfile.gz"
+removefile "$checkfile.gz"
 $json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-Remove-Item "$checkfile"
+removefile "$checkfile"
 
 $json | foreach {
 	$filtered = $true
@@ -1125,21 +1125,45 @@ if (
 }
 
 
-
-
-
-
-
-
-
-
-$forceGUI = $true; cls ############################################### TESTING ##############################################################################
-
-if ($forceGUI) {
+if (
+	($forceGUI) -or
+	(
+		($conf.main.enabledArc) -and
+		(-not (Test-Path ($conf.main.pathArc + "\Gw2-64.exe")))
+	) -or (
+		($conf.main.enabledBlish) -and
+		(
+			-not (
+				(Test-Path ($conf.main.pathBlish + "\Blish HUD.exe")) -or
+				(
+					(Test-Path $conf.main.pathBlish) -and
+					(Get-ChildItem $conf.main.pathBlish -Recurse -File | Measure-Object | %{ return $_.Count -eq 0 })
+				)
+			)
+		)
+	) -or (
+		($conf.main.enabledTaco) -and
+		(
+			-not (
+				(Test-Path ($form.pathTacoLabel.Text + "\GW2TacO.exe")) -or
+				(
+					(Test-Path $form.pathTacoLabel.Text) -and
+					(Get-ChildItem $form.pathTacoLabel.Text -Recurse -File | Measure-Object | %{ return $_.Count -eq 0 })
+				)
+			)
+		)
+	)
+) {
 	do {
 		$r = showGUI
 	} while ($r -ne "OK")
-} else {
+}
+
+$GW2_path = $conf.main.pathArc
+$TacO_path = $conf.main.pathTaco
+$BlishHUD_path = $conf.main.pathBlish
+
+if (-not $forceGUI) {
 	# dings  das prüft, ob die config passt oder was fehlt oder hinzugefügt wurde. Message immer: ja nein ignore
 
 	# info mit timeout für arcdps
@@ -1152,23 +1176,12 @@ if ($forceGUI) {
 }
 
 
-
-
-exit
-
 # now the real magic:
 
-$GW2_path = $conf.main.pathArc
-$TacO_path = $conf.main.pathTaco
-$BlishHUD_path = $conf.main.pathBlish
-
 Clear-Host
-
 stopprocesses
 
 nls 7
-
-###############################################################################################################################################################################################
 
 $older = $false
 
@@ -1176,59 +1189,59 @@ if (Test-Path "$Script_path\github.json") {
 	$older = $true
 } else {
 	nls 3
-	Write-Host "To change any settings for this script checkout the GW2start.ini file located " -NoNewline
-	Write-Host "$Script_path\GW2start.ini" -ForegroundColor White
+	Write-Host "To change any settings for this script checkout the GW2start-config.bat file located " -NoNewline
+	Write-Host "$Script_path\GW2start-config.bat" -ForegroundColor White
 }
 
 
 # give message about GW2 build id
 $checkurl = "https://api.guildwars2.com/v2/build"
-
 Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
 $json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
 $new = $json.id
+removefile "$checkfile"
 
 if (
-	($conf.versions.GW2 -eq $null) -or
-	($conf.versions.GW2 -ne $new)
+	($conf.versions_main.GW2 -eq $null) -or
+	($conf.versions_main.GW2 -ne $new)
 ) {
 	Write-Host "Guildwars 2 " -NoNewline -ForegroundColor White
 	Write-Host "will update itself to build $new" -ForegroundColor Green
 
-	$conf["versions"]["GW2"] = $new
+	$conf.versions_main.GW2 = $new
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 } else {
 	Write-Host "Guildwars 2 " -NoNewline -ForegroundColor White
 	Write-Host "is up-to-date"
 }
 
-removefile "$checkfile"
-
-
 # auto update this script itself (prepare the update to be done by the .bat file with the next start)
-removefile "$Script_path\GW2start.txt"
 removefile "$Script_path\GW2start.bat"
-
-Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.bat" -OutFile "$Script_path/GW2start.bat"
+removefile "$Script_path\GW2start-config.bat"
 
 Write-Host "GW2start.bat " -NoNewline -ForegroundColor White
-Write-Host "is " -NoNewline
+Write-Host "and " -NoNewline
+Write-Host "GW2start-config.bat " -NoNewline -ForegroundColor White
+Write-Host "are " -NoNewline
 Write-Host "updated " -NoNewline -ForegroundColor Green
 Write-Host "every time"
 
+Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.bat" -OutFile "$Script_path/GW2start.bat"
+Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start-config.bat" -OutFile "$Script_path/GW2start-config.bat"
 
 # auto update ArcDPS
-if ($conf.configuration.update_ArcDPS) {
+if ($conf.main.enabledArc) {
 	$checkurl = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum"
 	$targeturl = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll"
-
 	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-	$new = (Get-Content "$checkfile" -Raw).Trim()
+
+	$new = ((Get-Content "$checkfile" -Raw).Trim() + " for DirectX " + $conf.main.dx)
+	removefile "$checkfile"
 
 	if (
-		($conf.versions.ArcDPS -eq $null) -or
-		($conf.versions.ArcDPS -ne $new)
+		($conf.versions_main.ArcDPS -eq $null) -or
+		($conf.versions_main.ArcDPS -ne $new)
 	) {
 		Write-Host "ArcDPS " -NoNewline -ForegroundColor White
 		Write-Host "is being updated" -ForegroundColor Green
@@ -1238,41 +1251,39 @@ if ($conf.configuration.update_ArcDPS) {
 		removefile "$GW2_path\d3d9.dll"
 		removefile "$GW2_path\d3d11.dll"
 
-		$targetfile = "$GW2_path\d3d11.dll"
+		$targetfile = "$GW2_path\bin64\d3d9.dll"
 
-		if ($conf.settings_ArcDPS.dx9) {
-			$targetfile = "$GW2_path\bin64\d3d9.dll"
+		if ($conf.main.dx -eq 11) {
+			$targetfile = "$GW2_path\d3d11.dll"
 		}
 
 		Invoke-WebRequest "$targeturl" -OutFile "$targetfile"
 
-		$conf["versions"]["ArcDPS"] = $new
+		$conf.versions_main.ArcDPS = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
 		Write-Host "ArcDPS " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
 	}
-
-	removefile "$checkfile"
 }
 
-
 # auto update TacO
-if ($conf.configuration.update_TacO) {
+if ($conf.main.enabledTaco) {
 	checkGithub
 
 	newdir "$TacO_path"
 
 	$checkurl = "https://api.github.com/repos/BoyC/GW2TacO/releases/latest"
 	$targetfile = "$TacO_path\"
-
 	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
+
 	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
 	$new = $json.node_id
+	removefile "$checkfile"
 
 	if (
-		($conf.versions.TacO -eq $null) -or
-		($conf.versions.TacO -ne $new) -or
+		($conf.versions_main.TacO -eq $null) -or
+		($conf.versions_main.TacO -ne $new) -or
 		(-not (Test-Path "$targetfile\GW2TacO.exe"))
 	) {
 		Write-Host "TacO " -NoNewline -ForegroundColor White
@@ -1283,15 +1294,76 @@ if ($conf.configuration.update_TacO) {
 		Expand-Archive -Path "$checkfile.temp.zip" -DestinationPath "$targetfile" -Force
 		removefile "$checkfile.temp.zip"
 
-		$conf["versions"]["TacO"] = $new
+		$conf.versions_main.TacO = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
 		Write-Host "TacO " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
 	}
-
-	removefile "$checkfile"
 }
+
+# auto update BlishHUD
+if ($conf.main.enabledBlish) {
+	newdir "$BlishHUD_path"
+	newdir "$MyDocuments_path\Guild Wars 2"
+	newdir "$MyDocuments_path\Guild Wars 2\addons"
+	newdir "$MyDocuments_path\Guild Wars 2\addons\blishhud"
+	newdir "$MyDocuments_path\Guild Wars 2\addons\blishhud\markers"
+	newdir "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
+
+	checkGithub
+
+	$checkurl = "https://api.github.com/repos/blish-hud/Blish-HUD/releases/latest"
+	$targetfile = "$BlishHUD_path"
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
+
+	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+	$new = $json.node_id
+	removefile "$checkfile"
+
+	if (
+		($conf.versions_main.BlishHUD -eq $null) -or
+		($conf.versions_main.BlishHUD -ne $new) -or
+		(-not (Test-Path "$targetfile\Blish HUD.exe"))
+	) {
+		Write-Host "BlishHUD " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
+
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
+
+		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$targetfile\" -Force
+		removefile "$checkfile.zip"
+
+		$conf.versions_main.BlishHUD = $new
+		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+	} else {
+		Write-Host "BlishHUD " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
+	}
+}
+
+####################################################################################################################################################################################################
+####################################################################################################################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exit ###############################################################################################################################################################################################
+
+
+
 
 
 # auto update arcdps-killproof.me-plugin
@@ -1416,48 +1488,6 @@ if ($conf.configuration.update_ArcDPS -and $conf.settings_ArcDPS.mechanics_log) 
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
 		Write-Host "GW2-ArcDPS-Mechanics-Log " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
-	}
-
-	removefile "$checkfile"
-}
-
-
-# auto update BlishHUD
-if ($conf.configuration.update_BlishHUD) {
-	newdir "$BlishHUD_path"
-	newdir "$MyDocuments_path\Guild Wars 2"
-	newdir "$MyDocuments_path\Guild Wars 2\addons"
-	newdir "$MyDocuments_path\Guild Wars 2\addons\blishhud"
-	newdir "$MyDocuments_path\Guild Wars 2\addons\blishhud\markers"
-	newdir "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules"
-
-	checkGithub
-
-	$checkurl = "https://api.github.com/repos/blish-hud/Blish-HUD/releases/latest"
-	$targetfile = "$BlishHUD_path"
-
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.node_id
-
-	if (
-		($conf.versions.BlishHUD -eq $null) -or
-		($conf.versions.BlishHUD -ne $new) -or
-		(-not (Test-Path "$targetfile\Blish HUD.exe"))
-	) {
-		Write-Host "BlishHUD " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
-
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
-
-		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$targetfile\" -Force
-		removefile "$checkfile.zip"
-
-		$conf["versions"]["BlishHUD"] = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		Write-Host "BlishHUD " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
 	}
 
