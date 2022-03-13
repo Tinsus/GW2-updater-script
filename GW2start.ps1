@@ -938,8 +938,8 @@ $modules.ArcDPS.killproof = @{
 	name = "killproof.me"
 	desc = "extences ArcDPS to show the killproof.me data of your group members. Shortcut to open that is Shift+Alt+K"
 	default = $true
-	checkurl = "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest"
-	targetfile = "bin64\d3d9_arcdps_killproof_me.dll"
+	repo = "knoxfighter/arcdps-killproof.me-plugin"
+	targetfile = "d3d9_arcdps_killproof_me.dll"
 	platform = "github-normal"
 }
 
@@ -947,8 +947,8 @@ $modules.ArcDPS.boon = @{
 	name = "Boon-Table"
 	desc = "extences ArcDPS to show the boons done by you and your group members. Shortcut to open that is Shift+Alt+B"
 	default = $true
-	checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest"
-	targetfile = "bin64\d3d9_arcdps_table.dll"
+	repo = "knoxfighter/GW2-ArcDPS-Boon-Table"
+	targetfile = "d3d9_arcdps_table.dll"
 	platform = "github-normal"
 }
 
@@ -956,8 +956,8 @@ $modules.ArcDPS.healing = @{
 	name = "Healing-Stats"
 	desc = "extences ArcDPS to show your heal."
 	default = $true
-	checkurl = "https://api.github.com/repos/Krappa322/arcdps_healing_stats/releases/latest"
-	targetfile = "bin64\arcdps-healing-stats.dll"
+	repo = "Krappa322/arcdps_healing_stats"
+	targetfile = "arcdps-healing-stats.dll"
 	platform = "github-normal"
 }
 
@@ -965,8 +965,8 @@ $modules.ArcDPS.mechanics = @{
 	name = "Mechanics-Logs"
 	desc = "extences ArcDPS to how good you or your group members perform with the mechanics in raids. Shortcut to open that is Shift+Alt+L"
 	default = $true
-	checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Mechanics-Log/releases/latest"
-	targetfile = "bin64\d3d9_arcdps_mechanics.dll"
+	repo = "knoxfighter/GW2-ArcDPS-Mechanics-Log"
+	targetfile = "d3d9_arcdps_mechanics.dll"
 	platform = "github-normal"
 }
 
@@ -1124,7 +1124,6 @@ if (
 	$forceGUI = $true
 }
 
-
 if (
 	($forceGUI) -or
 	(
@@ -1175,9 +1174,7 @@ if (-not $forceGUI) {
 	# scan mit wildcard auf modules
 }
 
-
 # now the real magic:
-
 Clear-Host
 stopprocesses
 
@@ -1265,7 +1262,98 @@ if ($conf.main.enabledArc) {
 		Write-Host "ArcDPS " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
 	}
+} else {
+	removefile "$GW2_path\bin64\d3d9.dll"
+	removefile "$GW2_path\bin64\d3d11.dll"
+	removefile "$GW2_path\d3d9.dll"
+	removefile "$GW2_path\d3d11.dll"
+
+	$conf.versions_main.ArcDPS = $null
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
+
+
+
+
+####################################################################################################################################################################################################
+####################################################################################################################################################################################################
+$modules.ArcDPS.GetEnumerator() | foreach {
+	if ($conf.addons[$_.key] -and $conf.main.enabledArc) {
+		switch($_.value.platform) {
+			"github-normal" {
+				$checkurl = ("https://api.github.com/repos/" + $_.value.repo + "/releases/latest")
+				$targetfile = ("$GW2_path\bin64\" + $_.value.targetfile)
+Write-Host "--------"
+Write-Host $_.key
+Write-Host $_.value
+Write-Host $modules.ArcDPS[$_.key]
+Write-Host $_.value.repo
+Write-Host $checkurl
+Write-Host $targetfile
+Write-Host "--------"
+exit
+				checkGithub
+				Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
+
+				$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+				$new = $json.name
+				removefile "$checkfile"
+
+				if (
+					($conf.versions_addons[$_.key] -eq $null) -or
+					($conf.versions_addons[$_.key] -ne $new)
+				) {
+					Write-Host $_.value.name -NoNewline -ForegroundColor White
+					Write-Host " is being updated" -ForegroundColor Green
+
+Write-Host $targetfile
+Write-Host $json.assets.browser_download_url
+					removefile "$targetfile"
+					Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile"
+
+					$conf.versions_addons[$_.key] = $new
+					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				} else {
+					Write-Host $_.value.name -NoNewline -ForegroundColor White
+					Write-Host " is up-to-date"
+				}
+
+				break
+			}
+		}
+	} else {
+		removefile ("$GW2_path\bin64\" + $_.value.targetfile)
+	}
+}
+
+
+
+
+exit ###############################################################################################################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # auto update TacO
 if ($conf.main.enabledTaco) {
@@ -1300,6 +1388,11 @@ if ($conf.main.enabledTaco) {
 		Write-Host "TacO " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
 	}
+} else {
+	Remove-Item -Path "$TacO_path\*" -force -recurse
+
+	$conf.versions_main.TacO = $null
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
 # auto update BlishHUD
@@ -1340,47 +1433,28 @@ if ($conf.main.enabledBlish) {
 		Write-Host "BlishHUD " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
 	}
+} else {
+	Remove-Item -Path "$BlishHUD_path\*" -force -recurse
+
+	$conf.versions_main.BlishHUD = $null
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
-####################################################################################################################################################################################################
-####################################################################################################################################################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-exit ###############################################################################################################################################################################################
-
-
-
-
-
 # auto update arcdps-killproof.me-plugin
-if ($conf.configuration.update_ArcDPS -and $conf.settings_ArcDPS.killproof) {
+if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
 	checkGithub
 
 	$checkurl = "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest"
 	$targetfile = "$GW2_path\bin64\d3d9_arcdps_killproof_me.dll"
-
 	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
 	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
 	$new = $json.name
+	removefile "$checkfile"
 
 	if (
-		($conf.versions.ArcDPS_killproof -eq $null) -or
-		($conf.versions.ArcDPS_killproof -ne $new)
+		($conf.versions_main.ArcDPS_killproof -eq $null) -or
+		($conf.versions_main.ArcDPS_killproof -ne $new)
 	) {
 		Write-Host "ArcDps-killproof.me-plugin " -NoNewline -ForegroundColor White
 		Write-Host "is being updated" -ForegroundColor Green
@@ -1388,46 +1462,37 @@ if ($conf.configuration.update_ArcDPS -and $conf.settings_ArcDPS.killproof) {
 		removefile "$targetfile"
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile"
 
-		$conf["versions"]["ArcDPS_killproof"] = $new
+		$conf.versions_main.ArcDPS_killproof = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
 		Write-Host "ArcDps-killproof.me-plugin " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
 	}
+} else {
+	removefile "$GW2_path\bin64\d3d9_arcdps_killproof_me.dll"
 
-	removefile "$checkfile"
+	$conf.versions_main.ArcDPS_killproof = $null
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
 
+exit ###############################################################################################################################################################################################
+exit ###############################################################################################################################################################################################
+exit ###############################################################################################################################################################################################
+exit ###############################################################################################################################################################################################
+exit ###############################################################################################################################################################################################
+exit ###############################################################################################################################################################################################
 # auto update arcdps-Boon-Table-plugin
 if ($conf.configuration.update_ArcDPS -and $conf.settings_ArcDPS.boon_table) {
-	checkGithub
 
-	$checkurl = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest"
-	$targetfile = "$GW2_path\bin64\d3d9_arcdps_table.dll"
-
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.name
 
 	if (
 		($conf.versions.ArcDPS_boontable -eq $null) -or
 		($conf.versions.ArcDPS_boontable -ne $new)
 	) {
-		Write-Host "GW2-ArcDps-Boon-Table " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
 
-		removefile "$targetfile"
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile"
-
-		$conf["versions"]["ArcDPS_boontable"] = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		Write-Host "GW2-ArcDps-Boon-Table " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
 	}
 
-	removefile "$checkfile"
 }
 
 
