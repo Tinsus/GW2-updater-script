@@ -1008,7 +1008,7 @@ $json | foreach {
 	$modules.Path[$name].desc = $_.Description
 	$modules.Path[$name].platform = "blishrepo"
 	$modules.Path[$name].targeturl = $_.Download
-	$modules.Path[$name].targetfile = $_.FileMane
+	$modules.Path[$name].targetfile = $_.FileName
 	$modules.Path[$name].version = $_.LastUpdate
 
 	$modules.Path[$name].default = (
@@ -1277,7 +1277,7 @@ if ($conf.main.enabledArc) {
 	removefile "$GW2_path\d3d9.dll"
 	removefile "$GW2_path\d3d11.dll"
 
-	$conf.versions_main.ArcDPS = $null
+	$conf.version_main.psobject.properties.remove('ArcDPS')
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
@@ -1317,7 +1317,7 @@ if ($conf.main.enabledTaco) {
 } else {
 	Remove-Item -Path "$TacO_path\*" -force -recurse
 
-	$conf.versions_main.TacO = $null
+	$conf.versions_main.psobject.properties.remove('TacO')
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
@@ -1349,7 +1349,6 @@ if ($conf.main.enabledBlish) {
 		Write-Host "is being updated" -ForegroundColor Green
 
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
-
 		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$targetfile\" -Force
 		removefile "$checkfile.zip"
 
@@ -1362,7 +1361,7 @@ if ($conf.main.enabledBlish) {
 } else {
 	Remove-Item -Path "$BlishHUD_path\*" -force -recurse
 
-	$conf.versions_main.BlishHUD = $null
+	$conf.versions_main.psobject.properties.remove('BlishHUD')
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
@@ -1386,7 +1385,6 @@ if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
 		Write-Host "BlishHUD-ArcDPS Bridge " -NoNewline -ForegroundColor White
 		Write-Host "is being updated" -ForegroundColor Green
 
-		removefile "$targetfile"
 		Invoke-WebRequest $json.assets.browser_download_url[1] -OutFile "$checkfile.zip"
 		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$GW2_path\bin64\" -Force
 		removefile "$checkfile.zip"
@@ -1400,7 +1398,7 @@ if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
 } else {
 	removefile "$GW2_path\bin64\d3d9_arcdps_killproof_me.dll"
 
-	$conf.versions_main.BlishHUD_ArcDPS_Bridge = $null
+	$conf.versions_main.psobject.properties.remove('BlishHUD_ArcDPS_Bridge')
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
@@ -1408,9 +1406,6 @@ if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
 $modules.ArcDPS.GetEnumerator() | foreach {
 	if ($conf.addons[$_.key] -and $conf.main.enabledArc) {
 		if ($_.value.platform -eq "github-normal") {
-			Write-Host $_.value.name -NoNewline -ForegroundColor White
-			Write-Host " is being updated" -ForegroundColor Green
-
 			$checkurl = "https://api.github.com/repos/" + $_.value.repo + "/releases/latest"
 			$targetfile = "$GW2_path\bin64\" + $_.value.targetfile
 
@@ -1425,6 +1420,10 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 				($conf.versions_addons[$_.key] -eq $null) -or
 				($conf.versions_addons[$_.key] -ne $new)
 			) {
+				Write-Host "ArcDPS addon '" -NoNewline
+				Write-Host $_.value.name -NoNewline -ForegroundColor White
+				Write-Host "' is being updated" -ForegroundColor Green
+
 				$name = $_.value.targetfile
 				$download = $json.assets | foreach { if ($_.name -eq $name) { return $_.browser_download_url }}
 
@@ -1434,14 +1433,15 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 				$conf.versions_addons[$_.key] = $new
 				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 			} else {
+				Write-Host "ArcDPS addon '" -NoNewline
 				Write-Host $_.value.name -NoNewline -ForegroundColor White
-				Write-Host " is up-to-date"
+				Write-Host "' is up-to-date"
 			}
 		}
 	} else {
 		removefile ("$GW2_path\bin64\" + $_.value.targetfile)
 
-		$conf.versions_addons[$_.key] = $null
+		$conf.versions_addons.psobject.properties.remove($_.key)
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	}
 }
@@ -1456,8 +1456,9 @@ $modules.BlishHUD.GetEnumerator() | foreach {
 			($conf.versions_modules[$_.key] -eq $null) -or
 			($conf.versions_modules[$_.key] -ne $new)
 		) {
+			Write-Host "BlishHUD module '" -NoNewline
 			Write-Host $_.value.name -NoNewline -ForegroundColor White
-			Write-Host " is being updated" -ForegroundColor Green
+			Write-Host "' is being updated" -ForegroundColor Green
 
 			if ($conf.versions_modules[$_.key] -ne $null) {
 				removefile ("$checkpath\" + $_.value.namespace + "_" + $conf.versions_modules[$_.key] + ".bhm")
@@ -1470,84 +1471,119 @@ $modules.BlishHUD.GetEnumerator() | foreach {
 			$conf.versions_modules[$_.key] = $new
 			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 		} else {
+			Write-Host "BlishHUD module '" -NoNewline
 			Write-Host $_.value.name -NoNewline -ForegroundColor White
-			Write-Host " is up-to-date"
+			Write-Host "' is up-to-date"
 		}
 	} else {
 		removefile ("$checkpath\" + $_.value.namespace + "_" + $_.value.version + ".bhm")
 
-		$conf.versions_modules[$_.key] = $null
+		$conf.versions_modules.psobject.properties.remove($_.key)
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	}
 }
 
+# auto update Paths
 ####################################################################################################################################################################################################
 ####################################################################################################################################################################################################
 
-
-
-exit ###############################################################################################################################################################################################
-
-# auto update TEKKIT
-if (
-	($conf.configuration.update_ArcDPS -or ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Pathing)) -and
-	($conf.settings_Mappacks.use_TacO -or $conf.settings_Mappacks.use_BlishHUD) -and
-	$conf.settings_Mappacks.tekkit
-) {
-	$checkurl = "http://tekkitsworkshop.net/index.php/gw2-taco/changelog"
-	$targeturl = "http://tekkitsworkshop.net/index.php/component/jdownloads/send/2-taco-marker-packs/32-all-in-one"
-	$targetfile = "tw_ALL_IN_ONE.taco"
-
-	$path_t = path_t $targetfile
-	$path_b = path_b $targetfile
-
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-	$new = $(Get-FileHash "$checkfile" -Algorithm MD5).Hash
-
-	if (
-		(
-			$conf.settings_Mappacks.use_TacO -and
-			(
-				($conf.versions.Mappack_T_tekkit -eq $null) -or
-				($conf.versions.Mappack_T_tekkit -ne $new)
-			)
-		) -or (
-			$conf.settings_Mappacks.use_BlishHUD -and
-			(
-				($conf.versions.Mappack_B_tekkit -eq $null) -or
-				($conf.versions.Mappack_B_tekkit -ne $new)
-			)
-		)
-	) {
-		Write-Host "TEKKIT " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
-
-		removefile "$checkfile"
-		Invoke-WebRequest "$targeturl" -OutFile "$checkfile"
-
-		if ($conf.settings_Mappacks.use_BlishHUD) {
-			removefile "$path_b"
-			Copy-Item "$checkfile" -Destination "$path_b"
-
-			$conf["versions"]["Mappack_B_tekkit"] = $new
-			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-		}
-
-		if ($conf.settings_Mappacks.use_TacO) {
-			removefile "$path_t"
-			Copy-Item "$checkfile" -Destination "$path_t"
-
-			$conf["versions"]["Mappack_T_tekkit"] = $new
-			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-		}
-	} else {
-		Write-Host "TEKKIT " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
-	}
-
-	removefile "$checkfile"
+<#
+$modules.Path.schattenfluegel = @{
+	name = "Schattenfluegel"
+	desc = "map pack to show be better than TEKKIT. It adds shotcuts and way better pathes. Way better design, but not as complete as TEKKIT."
+	default = $true
+	checkurl = "https://api.github.com/repos/Schattenfluegel/SchattenfluegelTrails/contents/Download"
+	targeturl = "https://github.com/Schattenfluegel/SchattenfluegelTrails/raw/main/Download/SchattenfluegelTrails.taco"
+	targetfile = "SchattenfluegelTrails.taco"
+	platform = "github-raw"
+	blishonly = $false
 }
 
+$modules.Path.czokalapiks = @{
+	name = "Czokalapiks"
+	desc = "map pack for easy hero points farm runs. Includes all needed waypoints, easy to follow."
+	default = $true
+	checkurl = "https://api.bitbucket.org/2.0/repositories/czokalapik/czokalapiks-guides-for-gw2taco/commits"
+	targeturl = "https://bitbucket.org/czokalapik/czokalapiks-guides-for-gw2taco/get"
+	targetfile = "czokalapiks-guides.taco"
+	platform = "bitbucket"
+	blishonly = $false
+}
+
+	$modules.Path[$name] = @{}
+	$modules.Path[$name].name = $_.Name
+	$modules.Path[$name].platform = "blishrepo"
+	$modules.Path[$name].targeturl = $_.Download
+	$modules.Path[$name].targetfile = $_.FileMane
+	$modules.Path[$name].version = $_.LastUpdate
+}
+#>
+
+$modules.Path.GetEnumerator() | foreach {
+	if (
+		($conf.paths[$_.key + "_blish"] -and $conf.main.enabledBlish) -or
+		($conf.paths[$_.key + "_taco"] -and $conf.main.enabledTaco)
+	) {
+		if ($_.value.platform -eq "blishrepo") {
+			$path_t = path_t $_.value.targetfile
+			$path_b = path_b $_.value.targetfile
+
+			$new = $_.value.version
+
+			if (
+				($conf.versions_paths[$_.key] -eq $null) -or
+				($conf.versions_paths[$_.key] -ne $new)
+			) {
+				Write-Host "Path '" -NoNewline
+				Write-Host $_.value.name -NoNewline -ForegroundColor White
+				Write-Host "' is being updated" -ForegroundColor Green
+
+				Invoke-WebRequest $_.value.targeturl -OutFile "$checkfile"
+
+				if (Test-Path $checkfile) {
+					if ($conf.paths[$_.key + "_blish"]) {
+						removefile "$path_b"
+
+						Copy-Item "$checkfile" -Destination "$path_b"
+					}
+
+					if ($conf.paths[$_.key + "_taco"]) {
+						removefile "$path_t"
+
+						Copy-Item "$checkfile" -Destination "$path_t"
+					}
+
+					removefile "$checkfile"
+
+					$conf.versions_paths[$_.key] = $new
+					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				}
+			} else {
+				Write-Host "Path '" -NoNewline
+				Write-Host $_.value.name -NoNewline -ForegroundColor White
+				Write-Host "' is up-to-date"
+			}
+		}
+	}
+
+	if (-not ($conf.paths[$_.key + "_blish"] -and $conf.main.enabledBlish)) {
+		removefile (path_b $_.value.targetfile)
+	}
+
+	if (-not ($conf.paths[$_.key + "_taco"] -and $conf.main.enabledTaco)) {
+		removefile (path_t $_.value.targetfile)
+	}
+
+	if (
+		(-not ($conf.paths[$_.key + "_blish"] -and $conf.main.enabledBlish)) -and
+		(-not ($conf.paths[$_.key + "_taco"] -and $conf.main.enabledTaco))
+	) {
+		$conf.versions_paths.psobject.properties.remove($_.key)
+		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+	}
+}
+
+exit ###############################################################################################################################################################################################
 
 # auto update SCHATTENFLUEGEL
 if (
@@ -1605,46 +1641,6 @@ if (
 		}
 	} else {
 		Write-Host "SCHATTENFLUEGEL " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
-	}
-
-	removefile "$checkfile"
-}
-
-
-# auto update HEROMARKERS
-# update for BlishHUD (no TacO support)
-if (
-	($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Pathing) -and
-	$conf.settings_Mappacks.use_BlishHUD -and
-	$conf.settings_Mappacks.heromarkers
-) {
-	checkGithub
-
-	$checkurl = "https://api.github.com/repos/QuitarHero/Heros-Marker-Pack/releases/latest"
-	$targetfile = "Hero.Blish.Pack.zip"
-
-	$path_b = path_b $targetfile
-
-	removefile "$checkfile"
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.node_id
-
-	if (
-		($conf.versions.Mappack_B_heromarkers -eq $null) -or
-		($conf.versions.Mappack_B_heromarkers -ne $new)
-	) {
-		Write-Host "HEROMARKERS " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
-
-		removefile "$path_b"
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$path_b"
-
-		$conf["versions"]["Mappack_B_heromarkers"] = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		Write-Host "HEROMARKERS " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
 	}
 
@@ -1717,79 +1713,13 @@ if (
 	removefile "$checkfile"
 }
 
-# auto update REACTIF
-if (
-	($conf.configuration.update_ArcDPS -or ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Pathing)) -and
-	($conf.settings_Mappacks.use_TacO -or $conf.settings_Mappacks.use_BlishHUD) -and
-	$conf.settings_Mappacks.reactif
-) {
-	$targeturl = "https://www.heinze.fr/taco/download.php?f=3"
-	$targetfile = "reactif_en.taco"
-
-	$new = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-en.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
-
-	$path_t = path_t $targetfile
-	$path_b = path_b $targetfile
-
-	if (
-		(
-			$conf.settings_Mappacks.use_TacO -and
-			(
-				($conf.versions.Mappack_T_reactif -eq $null) -or
-				($conf.versions.Mappack_T_reactif -ne $new)
-			)
-		) -or (
-			$conf.settings_Mappacks.use_BlishHUD -and
-			(
-				($conf.versions.Mappack_B_reactif -eq $null) -or
-				($conf.versions.Mappack_B_reactif -ne $new)
-			)
-		)
-	) {
-		Write-Host "REACTIF " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
-
-		removefile "$checkfile"
-		Invoke-WebRequest "$targeturl" -OutFile "$checkfile"
-
-		if ($conf.configuration.start_TacO) {
-			removefile "$path_t"
-			Copy-Item "$checkfile" -Destination "$path_t"
-
-			$conf["versions"]["Mappack_T_reactif"] = $new
-			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-		}
-
-		if ($conf.settings_Mappacks.use_BlishHUD) {
-			removefile "$path_b"
-			Copy-Item "$checkfile" -Destination "$path_b"
-
-			$conf["versions"]["Mappack_B_reactif"] = $new
-			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-		}
-	} else {
-		Write-Host "REACTIF " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
-	}
-
-	removefile "$checkfile"
-}
-
-# cleanup for older version of this script
-
-removefile "$Script_path/LICENSE"
-removefile "$Script_path/README.md"
-Remove-Item "$Script_path/version_control/" -Recurse -force -ErrorAction SilentlyContinue
-
 # done with updating
-
 if (-not $older) {
 	startGW2
 	stopprocesses
 }
 
 removefile "$Script_path\github.json"
-
 
 nls 1
 Write-Host "see you soon"
