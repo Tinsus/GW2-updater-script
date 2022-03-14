@@ -8,8 +8,6 @@ $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
 $Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
 $checkfile = "$Script_path\checkfile"
 
-$forceGUI = ($forceGUIfromBat.length -ne 0)
-
 function stopprocesses() {
 	if ($conf.main.runTaco) {
 		Stop-Process -Name "GW2TacO" -ErrorAction SilentlyContinue
@@ -1061,6 +1059,7 @@ $form = @{}
 $initGUI = $true
 
 #build config
+$forceGUI = ($forceGUIfromBat.length -ne 0)
 
 if (-not (Test-Path "$Script_path\GW2start.ini")) {
 	$conf = @{}
@@ -1105,27 +1104,6 @@ if ($conf.main.pathArc -eq $null) {
 
 	$forceGUI = $true
 }
-
-if (
-	($conf.main.pathTaco -eq $null) -or
-	($conf.main.pathBlish -eq $null) -or
-
-	($conf.installation_paths -ne $null) -or
-	($conf.configuration -ne $null) -or
-	($conf.settings_ArcDPS -ne $null) -or
-	($conf.settings_BlishHUD -ne $null) -or
-	($conf.settings_Mappacks -ne $null)
-) {
-	$conf.psobject.properties.remove('installation_paths')
-	$conf.psobject.properties.remove('configuration')
-	$conf.psobject.properties.remove('settings_ArcDPS')
-	$conf.psobject.properties.remove('settings_BlishHUD')
-	$conf.psobject.properties.remove('settings_Mappacks')
-	$conf.psobject.properties.remove('versions')
-
-	$forceGUI = $true
-}
-
 if (
 	($forceGUI) -or
 	(
