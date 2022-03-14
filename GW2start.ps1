@@ -327,6 +327,9 @@ function showGUI {
 	$form.pathArcLabel = New-Object System.Windows.Forms.Label
 	$form.pathArcLabel.Location = New-Object System.Drawing.Point(62, 58)
 	$form.pathArcLabel.AutoSize = $true
+	$form.pathArcLabel.Add_Click({
+		changeGUI -category "path" -key "arc"
+	})
 	$form.groupArc.Controls.Add($form.pathArcLabel)
 
 	$form.arcDx9 = New-Object System.Windows.Forms.RadioButton
@@ -385,6 +388,9 @@ function showGUI {
 	$form.pathTacoLabel = New-Object System.Windows.Forms.Label
 	$form.pathTacoLabel.Location = New-Object System.Drawing.Point(62, 58)
 	$form.pathTacoLabel.AutoSize = $true
+	$form.pathTacoLabel.Add_Click({
+		changeGUI -category "path" -key "taco"
+	})
 	$form.groupTaco.Controls.Add($form.pathTacoLabel)
 
 	$form.TacoRun = New-Object System.Windows.Forms.CheckBox
@@ -432,6 +438,9 @@ function showGUI {
 	$form.pathBlishLabel = New-Object System.Windows.Forms.Label
 	$form.pathBlishLabel.Location = New-Object System.Drawing.Point(62, 58)
 	$form.pathBlishLabel.AutoSize = $true
+	$form.pathBlishLabel.Add_Click({
+		changeGUI -category "path" -key "blish"
+	})
 	$form.groupBlish.Controls.Add($form.pathBlishLabel)
 
 	$form.BlishRun = New-Object System.Windows.Forms.CheckBox
@@ -821,8 +830,7 @@ function changeGUI($category, $key = 0, $value = 0) {
 
 					while (
 						-not (
-							(Test-Path "$path\Gw2-64.exe") -or
-							($path.length -lt 3)
+							(Test-Path "$path\Gw2-64.exe")
 						)
 					) {
 						[System.Windows.Forms.MessageBox]::Show(
