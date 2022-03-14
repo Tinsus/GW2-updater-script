@@ -1196,9 +1196,6 @@ if (
 }
 
 # auto update this script itself (prepare the update to be done by the .bat file with the next start)
-removefile "$Script_path\GW2start.bat"
-removefile "$Script_path\GW2start-config.bat"
-
 Write-Host "GW2start.bat " -NoNewline -ForegroundColor White
 Write-Host "and " -NoNewline
 Write-Host "GW2start-config.bat " -NoNewline -ForegroundColor White
@@ -1206,7 +1203,9 @@ Write-Host "are " -NoNewline
 Write-Host "updated " -NoNewline -ForegroundColor Green
 Write-Host "every time"
 
+removefile "$Script_path\GW2start.bat"
 Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.bat" -OutFile "$Script_path/GW2start.bat"
+removefile "$Script_path\GW2start-config.bat"
 Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start-config.bat" -OutFile "$Script_path/GW2start-config.bat"
 
 # auto update ArcDPS
