@@ -1310,7 +1310,7 @@ if ($conf.main.enabledBlish) {
 	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
 	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.node_id
+	$new = $json.tag_name
 	removefile "$checkfile"
 
 	if (
