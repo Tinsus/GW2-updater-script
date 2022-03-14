@@ -11,15 +11,15 @@ $checkfile = "$Script_path\checkfile"
 $forceGUI = ($forceGUIfromBat.length -ne 0)
 
 function stopprocesses() {
-	if ($conf.configuration.start_TacO) {
+	if ($conf.main.runTaco) {
 		Stop-Process -Name "GW2TacO" -ErrorAction SilentlyContinue
 	}
 
-	if ($conf.configuration.start_BlishHUD) {
+	if ($conf.main.runBlish) {
 		Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
 	}
 
-	if ($conf.configuration.update_ArcDPS) {
+	if ($conf.main.enabledArc) {
 		Stop-Process -Name "RazerCortex" -ErrorAction SilentlyContinue
 	}
 
@@ -40,12 +40,12 @@ function newdir($path) {
 
 function startGW2() {
 	# start TacO
-	if ($conf.configuration.start_TacO) {
+	if ($conf.main.runTaco) {
 		Start-Process -FilePath "$TacO_path\GW2TacO.exe" -WorkingDirectory "$TacO_path\" -ErrorAction SilentlyContinue
 	}
 
 	# start BlishHUD
-	if ($conf.configuration.start_BlishHUD) {
+	if ($conf.main.runBlish) {
 		Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
 	}
 
@@ -56,7 +56,7 @@ function startGW2() {
 	Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
 
 	# if GW2 has an update removes ArcDPS
-	if ($configuration.update_ArcDPS -and (Test-Path "$GW2_path\errorautocheck.txt") -and ((Get-Item "$GW2_path\errorautocheck.txt").length -ne 0)) {
+	if ($configuration.main.enabledArc -and (Test-Path "$GW2_path\errorautocheck.txt") -and ((Get-Item "$GW2_path\errorautocheck.txt").length -ne 0)) {
 		nls 1
 		Write-Host "crash detected - removing ArcDPS" -ForegroundColor Red
 		nls 1
@@ -1585,8 +1585,8 @@ $modules.Path.GetEnumerator() | foreach {
 				if (Test-Path $checkfile) {
 					Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Script_path\" -Force
 					removefile "$checkfile.zip"
-					Compress-Archive -Path ("$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$hash\" + $_.value.subfolder + "*") -DestinationPath "$checkfile.zip"
-					Remove-Item "$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$hash" -Recurse -force
+					Compress-Archive -Path ("$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$new\" + $_.value.subfolder + "*") -DestinationPath "$checkfile.zip"
+					Remove-Item "$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$new" -Recurse -force
 
 					if ($conf.paths[$_.key + "_blish"]) {
 						removefile "$path_b"
