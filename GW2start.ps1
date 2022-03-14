@@ -95,34 +95,26 @@ function nls($total) {
 
 function checkGithub() {
 	# check githubs API restrictions and waits until it's possible again
-
-	removefile "$Script_path\github.json"
 	Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json"
-
 	$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
+	removefile "$Script_path\github.json"
 
 	if ($json.rate.remaining -lt 1) {
-		if (-not $older) {
-			$date = (Get-Date -Date "1970-01-01 00:00:00Z").toLocalTime().addSeconds($json.rate.reset)
+		$date = (Get-Date -Date "1970-01-01 00:00:00Z").toLocalTime().addSeconds($json.rate.reset)
 
-			nls 3
-			Write-Host "No more updates possible due to API limitations by github.com :(" -ForegroundColor Red
-			nls 1
-			Write-Host "The restrictions will be lifted on:"
-			Write-Host $date -ForegroundColor Yellow
-			nls 1
-			Write-Host "Sorry for that."
-			nls 2
-			Write-Host "This script will wait until updates are possible again. Of cause you can close this window everytime. The updates will be done the next you start this script."
-			nls 1
-		}
+		nls 3
+		Write-Host "No more updates possible due to API limitations by github.com :(" -ForegroundColor Red
+		nls 1
+		Write-Host "The restrictions will be lifted on:"
+		Write-Host $date -ForegroundColor Yellow
+		nls 1
+		Write-Host "Sorry for that."
+		nls 2
+		Write-Host "This script will wait until updates are possible again. Of cause you can close this window everytime. The updates will be done the next you start this script."
+		nls 1
 
 		startGW2
 		stopprocesses
-
-		if ($older) {
-			exit
-		}
 
 		nls 1
 		Write-Host "OK - we will wait until the updates are possible again. You can close this window everytime. No data will be damaged or deleted." -ForegroundColor Yellow
@@ -131,10 +123,9 @@ function checkGithub() {
 		do {
 			Start-Sleep -Seconds 60
 
-			removefile "$Script_path\github.json"
 			Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json"
-
 			$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
+			removefile "$Script_path\github.json"
 		} until ($json.rate.remaining -ge 1)
 	}
 }
@@ -1169,15 +1160,11 @@ if (
 $GW2_path = $conf.main.pathArc
 $TacO_path = $conf.main.pathTaco
 $BlishHUD_path = $conf.main.pathBlish
-$older = $false
 
-if (Test-Path "$Script_path\github.json") {
-	$older = $true
-} else {
-	nls 3
-	Write-Host "To change any settings for this script checkout the GW2start-config.bat file located " -NoNewline
-	Write-Host "$Script_path\GW2start-config.bat" -ForegroundColor White
-}
+nls 3
+Write-Host "To change any settings for this script checkout the GW2start-config.bat file located " -NoNewline
+Write-Host "$Script_path\GW2start-config.bat" -ForegroundColor White
+
 
 if (-not $forceGUI) {
 	# dings  das prüft, ob die config passt oder was fehlt oder hinzugefügt wurde. Message immer: ja nein ignore
@@ -1629,10 +1616,8 @@ $modules.Path.GetEnumerator() | foreach {
 }
 
 # done with updating
-if (-not $older) {
-	startGW2
-	stopprocesses
-}
+startGW2
+stopprocesses
 
 removefile "$checkfile"
 removefile "$checkfile.zip"
