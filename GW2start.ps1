@@ -1034,6 +1034,13 @@ $json | foreach {
 
 	$name = $_.name -replace '[^a-zA-Z]', ''
 
+	if (
+		($modules.BlishHud[$name] -ne $null) -and
+		($modules.BlishHud[$name].version -gt $_.version)
+	) {
+		$filtered = $false
+	}
+
 	if ($filtered) {
 		$modules.BlishHud[$name] = @{}
 		$modules.BlishHud[$name].name = $_.name
