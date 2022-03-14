@@ -839,6 +839,10 @@ function changeGUI($category, $key = 0, $value = 0) {
 
 					$form.arcDx9.Enabled = $true
 					$form.arcDx11.Enabled = $true
+					
+					$modules.ArcDPS.GetEnumerator() | foreach {
+						$modules.ArcDPS[$_.key]["UI"].enabled = ($value -and ($form.arcDx9.checked -or $form.arcDx11.checked))
+					}
 
 					break
 				}
@@ -923,6 +927,36 @@ function changeGUI($category, $key = 0, $value = 0) {
 	}
 }
 
+function checkPathValidity() {
+	return (
+		(
+			($conf.main.enabledArc) -and
+			(-not (Test-Path ($conf.main.pathArc + "\Gw2-64.exe")))
+		) -or (
+			($conf.main.enabledBlish) -and
+			(
+				-not (
+					(Test-Path ($conf.main.pathBlish + "\Blish HUD.exe")) -or
+					(
+						(Test-Path $conf.main.pathBlish) -and
+						(Get-ChildItem $conf.main.pathBlish -Recurse -File | Measure-Object | %{ return $_.Count -eq 0 })
+					)
+				)
+			)
+		) -or (
+			($conf.main.enabledTaco) -and
+			(
+				-not (
+					(Test-Path ($form.pathTacoLabel.Text + "\GW2TacO.exe")) -or
+					(
+						(Test-Path $form.pathTacoLabel.Text) -and
+						(Get-ChildItem $form.pathTacoLabel.Text -Recurse -File | Measure-Object | %{ return $_.Count -eq 0 })
+					)
+				)
+			)
+		)
+	)
+}
 # collect packages
 $modules = @{}
 $modules.Main = @{}
@@ -1108,7 +1142,7 @@ if ($conf.main.pathArc -eq $null) {
 		if (Test-Path ($_ + "\Guild Wars 2\Gw2-64.exe")) {
 			$conf.main.pathArc = ($_ + "\Guild Wars 2")
 		}
-		
+
 		if (Test-Path ($_ + "\Gw2-64.exe")) {
 			$conf.main.pathArc = ($_ + "\")
 		}
@@ -1117,38 +1151,14 @@ if ($conf.main.pathArc -eq $null) {
 	$forceGUI = $true
 }
 
-if (
-	($forceGUI) -or
-	(
-		($conf.main.enabledArc) -and
-		(-not (Test-Path ($conf.main.pathArc + "\Gw2-64.exe")))
-	) -or (
-		($conf.main.enabledBlish) -and
-		(
-			-not (
-				(Test-Path ($conf.main.pathBlish + "\Blish HUD.exe")) -or
-				(
-					(Test-Path $conf.main.pathBlish) -and
-					(Get-ChildItem $conf.main.pathBlish -Recurse -File | Measure-Object | %{ return $_.Count -eq 0 })
-				)
-			)
-		)
-	) -or (
-		($conf.main.enabledTaco) -and
-		(
-			-not (
-				(Test-Path ($form.pathTacoLabel.Text + "\GW2TacO.exe")) -or
-				(
-					(Test-Path $form.pathTacoLabel.Text) -and
-					(Get-ChildItem $form.pathTacoLabel.Text -Recurse -File | Measure-Object | %{ return $_.Count -eq 0 })
-				)
-			)
-		)
-	)
-) {
+if ($forceGUI) {
 	do {
 		$r = showGUI
 	} while ($r -ne "OK")
+}
+
+while ((checkPathValidity)) {
+	$r = showGUI
 }
 
 $GW2_path = $conf.main.pathArc
