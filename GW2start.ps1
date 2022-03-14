@@ -1049,6 +1049,7 @@ $json | foreach {
 			($name -eq "QuickSurrender") -or
 			($name -eq "Mistwar") -or
 			($name -eq "HPGrids") -or
+			($name -eq "EventsandMetasObserver") -or
 			$false
 		)
 	}
