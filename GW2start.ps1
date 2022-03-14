@@ -1,8 +1,9 @@
 param($forceGUIfromBat = "")
 
 #TODO:
+# scan für zeug, dass nicht von dem Script verwaltet wird [ignore in config]
 # Warnung, wenn die Grafikeinstellungen falsch sind (geht einfach)
-# DX selbst erkennen (eher nicht möglich (local.dat)
+# ArcDPS repo
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 
 $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
@@ -1007,6 +1008,601 @@ $modules.ArcDPS.mechanics = @{
 	targetfile = "d3d9_arcdps_mechanics.dll"
 	platform = "github-normal"
 }
+
+<#
+
+
+https://github.com/gw2-addon-loader/Approved-Addons/archive/refs/heads/master.zip
+
+
+
+
+
+
+
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: megai2
+# website where more information about the add-on can be found
+website: https://github.com/megai2/SelectRenderer
+# name of the add-on
+addon_name: SelectRenderer
+# descriptive text for the addon
+description: "Ingame UI based render selection for GW2"
+# tooltip - basically description but in brief
+tooltip: Allows selection of various render paths like DXVK, d912pxy, etc.
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/megai2/SelectRenderer/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: archive
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: binary
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - d3d9_wrapper
+    - lib_imgui
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: DeltaConnected
+# website where more information about the add-on can be found
+website: https://www.deltaconnected.com/arcdps/
+# name of the add-on
+addon_name: ArcDPS
+# descriptive text for the addon
+description: ArcDPS allows the player to view their DPS and offers other tools like FPS and ping metrics. By default, this menu can be made visible in-game with the keybind alt+shift+h. For more information, click the link above to visit the website.
+# tooltip - basically description but in brief
+tooltip: Displays a DPS meter - by DeltaConnected
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: standalone
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://www.deltaconnected.com/arcdps/gw2addon_arcdps.dll
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url: https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum
+# archive or .dll
+download_type: .dll
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: binary
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: Greaka
+# website where more information about the add-on can be found
+website: https://github.com/blish-hud/arcdps-bhud
+# name of the add-on
+addon_name: ArcDPS Blish HUD Integration
+# descriptive text for the addon
+description: This addon provides data from the Arcdps Combat API to the Blish HUD overlay, where it can be used by different Blish HUD modules for optimization and additional functionality.
+# tooltip - basically description but in brief
+tooltip: Uses the ArcDPS Combat API to provide data to Blish HUD - by Greaka
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repositories/187708533/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url: 
+# archive or .dll
+download_type: archive
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: arc
+# plugin name- only for arc-dependent plugins
+plugin_name: arcdps_bhud.dll
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - arcdps
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: knoxfighter, original by MarsEdge
+# website where more information about the add-on can be found
+website: https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table
+# name of the add-on
+addon_name: ArcDPS Boon Table
+# descriptive text for the addon
+description: Displays squad boon uptime for a number of boons and includes information such as individual player boon uptime and their subsquad.
+# tooltip - basically description but in brief
+tooltip: by knoxfighter, original by MarsEdges
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: .dll
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: arc
+#
+plugin_name: d3d9_arcdps_boontable.dll
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - arcdps
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+# Update files are intended to provide information for:
+# Installation
+# Plugin configuration
+# User-Facing information displayed on the addon manager UI
+
+### USER-FACING INFO ###
+# developer of the add-on
+developer: Sejsel
+# website where more information about the add-on can be found
+website: https://gw2scratch.com/tools/arcdps-clears
+# name of the add-on
+addon_name: ArcDPS Clears
+# descriptive text for the addon
+description: Adds a window for quickly checking your current weekly clears in the game.
+# tooltip - basically description but in brief
+tooltip: Check your weekly clears in the game
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/gw2scratch/arcdps-clears/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url: 
+# archive or .dll
+download_type: .dll
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: arc
+# plugin name- only for arc-dependent plugins
+plugin_name: arcdps_clears.dll
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - arcdps
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: Zerthox
+# website where more information about the add-on can be found
+website: https://github.com/zerthox/arcdps-food-reminder
+# name of the add-on
+addon_name: ArcDPS Food Reminder
+# descriptive text for the addon
+description: Displays a reminder for your own Food/Utility item buffs. Adds an overview of Food & Utility item buffs on your Party/Squad and own characters.
+# tooltip - basically description but in brief
+tooltip: Track Food & Utility buffs
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/zerthox/arcdps-food-reminder/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: .dll
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: arc
+# plugin name- only for arc-dependent plugins
+plugin_name: arcdps_food_reminder.dll
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - arcdps
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: Kappa322
+# website where more information about the add-on can be found
+website: https://github.com/Krappa322/arcdps_healing_stats
+# name of the add-on
+addon_name: ArcDPS Healing Stats
+# descriptive text for the addon
+description: "Shows personal healing statistics based on your local stats (i.e. your own healing output).\n\nThis includes outgoing healing per target and per skill, as well as filtering to only include your own subgroup/squad and to exclude minions"
+# tooltip - basically description but in brief
+tooltip: Shows statistics for personal healing done
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/Krappa322/arcdps_healing_stats/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: .dll
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: arc
+#
+plugin_name: arcdps_healing_stats.dll
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - arcdps
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: knoxfighter
+# website where more information about the add-on can be found
+website: https://github.com/knoxfighter/arcdps-killproof.me-plugin
+# name of the add-on
+addon_name: ArcDPS Killproof-me Plugin
+# descriptive text for the addon
+description: This addon shows the killproofs of players, that are registered on killproof.me
+# tooltip - basically description but in brief
+tooltip: Shows killproof.me data ingame
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: .dll
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: arc
+#
+plugin_name: d3d9_arcdps_killproof_me.dll
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - arcdps
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: knoxfighter, original by MarsEdge
+# website where more information about the add-on can be found
+website: https://github.com/knoxfighter/GW2-ArcDPS-Mechanics-Log
+# name of the add-on
+addon_name: ArcDPS Mechanics Plugin
+# descriptive text for the addon
+description: This addon shows mechanics that players have failed during a raid encounter. A list of the failed mechanics is displayed, including which player failed what mechanic and at what time during the fight.
+# tooltip - basically description but in brief
+tooltip: Provides information about raid mechanics using the ArcDPS Combat API - by knoxfighter, original by MarsEdge
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Mechanics-Log/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: .dll
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: arc
+#
+plugin_name: d3d9_arcdps_mechanics.dll
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - arcdps
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: Artenuvielle
+# website where more information about the add-on can be found
+website: https://github.com/Artenuvielle/GW2-SCT
+# name of the add-on
+addon_name: ArcDPS Scrolling Combat Text
+# descriptive text for the addon
+description: Adds a highly customizable scrolling combat text beside the users character. Incoming damage is by default displayed on the left side, outgoing damage on the right side.
+# tooltip - basically description but in brief
+tooltip: Shows all damage numbers as a highly customizable wall of scrolling text.
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/Artenuvielle/GW2-SCT/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: .dll
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: arc
+#
+plugin_name: d3d9_arcdps_sct.dll
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - arcdps
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: Kappa322/knoxfighter
+# website where more information about the add-on can be found
+website: https://github.com/Krappa322/arcdps_unofficial_extras_releases/
+# name of the add-on
+addon_name: ArcDPS Unofficial Extras
+# descriptive text for the addon
+description: "This plugin provides additional information to other plugins. For example, it enables the killproof.me addon to display players who are not in the same instance.\n\nIt also has some small features by itself, such as mouse clipping, which prevents accidentally interacting with things while panning the camera"
+# tooltip - basically description but in brief
+tooltip: Additional features for arcdps and plugins
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/Krappa322/arcdps_unofficial_extras_releases/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: .dll
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: arc
+#
+plugin_name: arcdps_unofficial_extras.dll
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - arcdps
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: datatobridge
+# website where more information about the add-on can be found
+website: https://github.com/datatobridge/arcdps-uploader
+# name of the add-on
+addon_name: ArcDPS uploader
+# descriptive text for the addon
+description: This is an extension for Arcdps that allows you to preview and upload EVTC combat logs in-game
+# tooltip - basically description but in brief
+tooltip: preview and upload EVTC combat logs in-game by datatobridge
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/datatobridge/arcdps-uploader/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url: 
+# archive or .dll
+download_type: archive
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: arc
+# plugin name- only for arc-dependent plugins (to identify what plugin in the /addons/arcdps folder is associated with what addon)
+plugin_name: d3d9_uploader.dll
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - arcdps
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: e-scrape-artist
+# website where more information about the add-on can be found
+website: https://buildpad.gw2archive.eu
+# name of the add-on
+addon_name: BuildPad
+# descriptive text for the addon
+description:
+    "A companion plugin to ArcDPS that allows you to organize a list of saved builds and copy them with one click.\n\nIt detects your ArcDPS templates and converts them (automatically and/or manually) to GW2 templates. Your old gear templates, which cannot be pasted into GW2, can be previewed inside the plugin so you can remind yourself which items and stats you had saved."
+
+# tooltip - basically description but in brief
+tooltip: Offline build storage
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: standalone
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://buildpad.gw2archive.eu/versions/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: .dll
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: arc
+# plugin name- only for arc-dependent plugins (to identify what plugin in the /addons/arcdps folder is associated with what addon)
+plugin_name:
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - arcdps
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+# additional flags
+additional_flags:
+    - self-updating
+    - obscured-filename
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: Megai2
+# website where more information about the add-on can be found
+website: https://github.com/gw2-addon-loader/d3d9_wrapper
+# name of the add-on
+addon_name: d3d9 wrapper
+# descriptive text for the addon
+description: Wrapper for D3D9 API that includes advanced hooking and custom d3d9 loading. \n\n Base library to support multiple addons that use D3D9 based rendering.
+# tooltip - basically description but in brief
+tooltip: Advanced D3D9 API wrapper -by gw2al team
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/gw2-addon-loader/d3d9_wrapper/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url: 
+# archive or .dll
+download_type: archive
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: binary
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: Megai2
+# website where more information about the add-on can be found
+website: https://github.com/megai2/d912pxy
+# name of the add-on
+addon_name: d912pxy
+# descriptive text for the addon
+description: "D912pxy is a tool that allows Guild Wars 2 to use DirectX 12 by translating calls for DirectX 9 to DirectX 12.\nWhat should you expect from this?
+    \n\n - More stable FPS in general\n - Higher FPS if you have free CPU and GPU power\n - Lower FPS if you have no extra CPU power / GPU power\n - Higher RAM and VRAM usage\n -
+    Those using an eGPU can expect big improvements due to GPU-CPU bandwith optimization\n - Some visual bugs, the most notable being character portraits glitching."
+# tooltip - basically description but in brief
+tooltip: Translates DirectX 9 calls to DirectX 12 for performance improvements - by Megai2
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/megai2/d912pxy/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: archive
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: binary
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - d3d9_wrapper
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+    - gw2hook
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: FriendlyFire
+# website where more information about the add-on can be found
+website: https://github.com/Friendly0Fire/GW2Radial
+# name of the add-on
+addon_name: GW2 Radial
+# descriptive text for the addon
+description: "An addon to show a convenient, customizable radial menu overlay to select a mount, novelty item and more, on the fly, for Guild Wars 2: Path of Fire."
+# tooltip - basically description but in brief
+tooltip: Provides various radial menus allowing quick access to mounts and more with one keypress - by FriendlyFire
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/Friendly0Fire/gw2radial/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: archive
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: binary
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - d3d9_wrapper
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: FriendlyFire
+# website where more information about the add-on can be found
+website: https://github.com/gw2-addon-loader/GW2Radial
+# name of the add-on
+addon_name: GW2 Radial (D3D9)
+# descriptive text for the addon
+description: "[D3D9 VERSION] An addon to show a convenient, customizable radial menu overlay to select a mount, novelty item and more, on the fly, for Guild Wars 2: Path of Fire."
+# tooltip - basically description but in brief
+tooltip: Provides various radial menus allowing quick access to mounts and more with one keypress - by FriendlyFire
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/gw2-addon-loader/gw2radial/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: archive
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: binary
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - d3d9_wrapper
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+
+
+#>
 
 $modules.Path.schattenfluegel = @{
 	name = "Schattenfluegel"
