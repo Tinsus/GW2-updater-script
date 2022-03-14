@@ -1169,6 +1169,15 @@ if (
 $GW2_path = $conf.main.pathArc
 $TacO_path = $conf.main.pathTaco
 $BlishHUD_path = $conf.main.pathBlish
+$older = $false
+
+if (Test-Path "$Script_path\github.json") {
+	$older = $true
+} else {
+	nls 3
+	Write-Host "To change any settings for this script checkout the GW2start-config.bat file located " -NoNewline
+	Write-Host "$Script_path\GW2start-config.bat" -ForegroundColor White
+}
 
 if (-not $forceGUI) {
 	# dings  das prüft, ob die config passt oder was fehlt oder hinzugefügt wurde. Message immer: ja nein ignore
@@ -1187,17 +1196,6 @@ Clear-Host
 stopprocesses
 
 nls 7
-
-$older = $false
-
-if (Test-Path "$Script_path\github.json") {
-	$older = $true
-} else {
-	nls 3
-	Write-Host "To change any settings for this script checkout the GW2start-config.bat file located " -NoNewline
-	Write-Host "$Script_path\GW2start-config.bat" -ForegroundColor White
-}
-
 
 # give message about GW2 build id
 $checkurl = "https://api.guildwars2.com/v2/build"
@@ -1582,11 +1580,11 @@ $modules.Path.GetEnumerator() | foreach {
 
 				Invoke-WebRequest ("https://bitbucket.org/" + $_.value.repo + "/get/" + $new + ".zip") -OutFile "$checkfile.zip"
 
-				if (Test-Path $checkfile) {
+				if (Test-Path "$checkfile.zip") {
 					Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Script_path\" -Force
 					removefile "$checkfile.zip"
 					Compress-Archive -Path ("$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$new\" + $_.value.subfolder + "*") -DestinationPath "$checkfile.zip"
-					Remove-Item "$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$new" -Recurse -force
+					Remove-Item ("$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$new") -Recurse -force
 
 					if ($conf.paths[$_.key + "_blish"]) {
 						removefile "$path_b"
