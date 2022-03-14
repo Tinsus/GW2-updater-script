@@ -1057,6 +1057,7 @@ $json | foreach {
 			($name -eq "Mistwar") -or
 			($name -eq "HPGrids") -or
 			($name -eq "EventsandMetasObserver") -or
+			($name -eq "DiscordRichPresence") -or
 			$false
 		)
 	}
