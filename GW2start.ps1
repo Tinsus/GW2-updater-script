@@ -195,30 +195,32 @@ function enforceBHM($modulename) {
 	Start-Sleep -Seconds 18
 	Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
 
-	$data = Get-Content "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw | ConvertFrom-Json
+	if ($modulename -ne $null) {
+		$data = Get-Content "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw | ConvertFrom-Json
 
-	$i = 0
+		$i = 0
 
-	$data.Entries | foreach {
-		if ($_.Key -eq "ModuleConfiguration") {
-			if (-not $data.Entries[$i].Value.Entries.Value[0]."$modulename") {
-				Add-Member -InputObject $data.Entries[$i].Value.Entries.Value[0] -NotePropertyName "$modulename"  -NotePropertyValue @{
-					"Enabled" = $true
-					"UserEnabledPermissions" = $null
-					"IgnoreDependencies" = $false
-					"Settings" = $null
+		$data.Entries | foreach {
+			if ($_.Key -eq "ModuleConfiguration") {
+				if (-not $data.Entries[$i].Value.Entries.Value[0]."$modulename") {
+					Add-Member -InputObject $data.Entries[$i].Value.Entries.Value[0] -NotePropertyName "$modulename"  -NotePropertyValue @{
+						"Enabled" = $true
+						"UserEnabledPermissions" = $null
+						"IgnoreDependencies" = $false
+						"Settings" = $null
+					}
+				} else {
+					$data.Entries[$i].Value.Entries.Value[0]."$modulename".Enabled = $true
 				}
-			} else {
-				$data.Entries[$i].Value.Entries.Value[0]."$modulename".Enabled = $true
 			}
+
+			$i++
 		}
 
-		$i++
+		$data | ConvertTo-Json -Depth 100 | Out-File "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json"
+
+		((Get-Content -path "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw).Replace("\u0027","'").Replace('   ', ' ').Replace('  ', ' ').Replace(":  ", ": ")) | Set-Content -Path "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json"
 	}
-
-	$data | ConvertTo-Json -Depth 100 | Out-File "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json"
-
-	((Get-Content -path "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw).Replace("\u0027","'").Replace('   ', ' ').Replace('  ', ' ').Replace(":  ", ": ")) | Set-Content -Path "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json"
 }
 
 function DeGZip-File($infile, $outfile = ($infile -replace '\.gz$','')) {
@@ -1339,6 +1341,8 @@ if ($conf.main.enabledBlish) {
 
 		$conf.versions_main.BlishHUD = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+
+		enforceBHM
 	} else {
 		Write-Host "BlishHUD " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
