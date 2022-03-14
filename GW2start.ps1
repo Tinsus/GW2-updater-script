@@ -3,6 +3,7 @@ param($forceGUIfromBat = "")
 #TODO:
 # Warnung, wenn die Grafikeinstellungen falsch sind
 # DX selbst erkennen
+# als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 
 $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
 $Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
@@ -193,6 +194,7 @@ function enforceBHM($modulename) {
 	Start-Sleep -Seconds 18
 	Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
 
+	#modify settings.json
 	if ($modulename -ne $null) {
 		$data = Get-Content "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw | ConvertFrom-Json
 
@@ -922,7 +924,6 @@ function changeGUI($category, $key = 0, $value = 0) {
 }
 
 # collect packages
-
 $modules = @{}
 $modules.Main = @{}
 $modules.ArcDPS = @{}
@@ -1063,10 +1064,9 @@ $json | foreach {
 	}
 }
 
+#build config
 $form = @{}
 $initGUI = $true
-
-#build config
 $forceGUI = ($forceGUIfromBat.length -ne 0)
 
 if (-not (Test-Path "$Script_path\GW2start.ini")) {
@@ -1108,10 +1108,15 @@ if ($conf.main.pathArc -eq $null) {
 		if (Test-Path ($_ + "\Guild Wars 2\Gw2-64.exe")) {
 			$conf.main.pathArc = ($_ + "\Guild Wars 2")
 		}
+		
+		if (Test-Path ($_ + "\Gw2-64.exe")) {
+			$conf.main.pathArc = ($_ + "\")
+		}
 	}
 
 	$forceGUI = $true
 }
+
 if (
 	($forceGUI) -or
 	(
@@ -1154,14 +1159,10 @@ nls 3
 Write-Host "To change any settings for this script checkout the GW2start-config.bat file located " -NoNewline
 Write-Host "$Script_path\GW2start-config.bat" -ForegroundColor White
 
-
 if (-not $forceGUI) {
 	# dings  das prüft, ob die config passt oder was fehlt oder hinzugefügt wurde. Message immer: ja nein ignore
 
 	# info mit timeout für arcdps
-	# gw2 pfad validität
-	# taco pfad validität
-	# blish pfad validität
 	# scan auf arcdps addons
 	# scan auf paths
 	# scan mit wildcard auf modules
