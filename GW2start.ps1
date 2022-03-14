@@ -1,8 +1,8 @@
 param($forceGUIfromBat = "")
 
 #TODO:
-# Warnung, wenn die Grafikeinstellungen falsch sind
-# DX selbst erkennen
+# Warnung, wenn die Grafikeinstellungen falsch sind (geht einfach)
+# DX selbst erkennen (eher nicht möglich (local.dat)
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 
 $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
@@ -1075,7 +1075,7 @@ $json | foreach {
 		}
 	}
 
-	$name = $_.name -replace '[^a-zA-Z]', ''
+	$name = $_.namespace -replace '[^a-zA-Z]', ''
 
 	if (
 		($modules.BlishHud[$name] -ne $null) -and
@@ -1093,14 +1093,15 @@ $json | foreach {
 		$modules.BlishHud[$name].namespace = $_.namespace
 
 		$modules.BlishHud[$name].default = (
-			($name -eq "Timers") -or
-			($name -eq "Pathing") -or
+			($name -eq "CharrTimersBlishHUD") -or
 			($name -eq "KillProofModule") -or
-			($name -eq "QuickSurrender") -or
-			($name -eq "Mistwar") -or
-			($name -eq "HPGrids") -or
-			($name -eq "EventsandMetasObserver") -or
-			($name -eq "DiscordRichPresence") -or
+			($name -eq "ManlaanHPGrid") -or
+			($name -eq "NekresMistwar") -or
+			($name -eq "NekresQuickSurrenderModule") -or
+			($name -eq "bhcommunityetm") -or
+			($name -eq "bhcommunitypathing") -or
+			($name -eq "bhgeneraldiscordrp") -or
+			($name -eq "bhgeneralevents") -or
 			$false
 		)
 	}
