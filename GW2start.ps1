@@ -978,8 +978,7 @@ $modules.Path.schattenfluegel = @{
 	name = "Schattenfluegel"
 	desc = "map pack to show be better than TEKKIT. It adds shotcuts and way better pathes. Way better design, but not as complete as TEKKIT."
 	default = $true
-	checkurl = "https://api.github.com/repos/Schattenfluegel/SchattenfluegelTrails/contents/Download"
-	targeturl = "https://github.com/Schattenfluegel/SchattenfluegelTrails/raw/main/Download/SchattenfluegelTrails.taco"
+	repo = "Schattenfluegel/SchattenfluegelTrails"
 	targetfile = "SchattenfluegelTrails.taco"
 	platform = "github-raw"
 	blishonly = $false
@@ -989,8 +988,8 @@ $modules.Path.czokalapiks = @{
 	name = "Czokalapiks"
 	desc = "map pack for easy hero points farm runs. Includes all needed waypoints, easy to follow."
 	default = $true
-	checkurl = "https://api.bitbucket.org/2.0/repositories/czokalapik/czokalapiks-guides-for-gw2taco/commits"
-	targeturl = "https://bitbucket.org/czokalapik/czokalapiks-guides-for-gw2taco/get"
+	repo = "czokalapik/czokalapiks-guides-for-gw2taco"
+	subfolder = "POIs/"
 	targetfile = "czokalapiks-guides.taco"
 	platform = "bitbucket"
 	blishonly = $false
@@ -1484,50 +1483,15 @@ $modules.BlishHUD.GetEnumerator() | foreach {
 }
 
 # auto update Paths
-####################################################################################################################################################################################################
-####################################################################################################################################################################################################
-
-<#
-$modules.Path.schattenfluegel = @{
-	name = "Schattenfluegel"
-	desc = "map pack to show be better than TEKKIT. It adds shotcuts and way better pathes. Way better design, but not as complete as TEKKIT."
-	default = $true
-	checkurl = "https://api.github.com/repos/Schattenfluegel/SchattenfluegelTrails/contents/Download"
-	targeturl = "https://github.com/Schattenfluegel/SchattenfluegelTrails/raw/main/Download/SchattenfluegelTrails.taco"
-	targetfile = "SchattenfluegelTrails.taco"
-	platform = "github-raw"
-	blishonly = $false
-}
-
-$modules.Path.czokalapiks = @{
-	name = "Czokalapiks"
-	desc = "map pack for easy hero points farm runs. Includes all needed waypoints, easy to follow."
-	default = $true
-	checkurl = "https://api.bitbucket.org/2.0/repositories/czokalapik/czokalapiks-guides-for-gw2taco/commits"
-	targeturl = "https://bitbucket.org/czokalapik/czokalapiks-guides-for-gw2taco/get"
-	targetfile = "czokalapiks-guides.taco"
-	platform = "bitbucket"
-	blishonly = $false
-}
-
-	$modules.Path[$name] = @{}
-	$modules.Path[$name].name = $_.Name
-	$modules.Path[$name].platform = "blishrepo"
-	$modules.Path[$name].targeturl = $_.Download
-	$modules.Path[$name].targetfile = $_.FileMane
-	$modules.Path[$name].version = $_.LastUpdate
-}
-#>
-
 $modules.Path.GetEnumerator() | foreach {
 	if (
 		($conf.paths[$_.key + "_blish"] -and $conf.main.enabledBlish) -or
 		($conf.paths[$_.key + "_taco"] -and $conf.main.enabledTaco)
 	) {
-		if ($_.value.platform -eq "blishrepo") {
-			$path_t = path_t $_.value.targetfile
-			$path_b = path_b $_.value.targetfile
+		$path_t = path_t $_.value.targetfile
+		$path_b = path_b $_.value.targetfile
 
+		if ($_.value.platform -eq "blishrepo") {
 			$new = $_.value.version
 
 			if (
@@ -1553,11 +1517,94 @@ $modules.Path.GetEnumerator() | foreach {
 						Copy-Item "$checkfile" -Destination "$path_t"
 					}
 
-					removefile "$checkfile"
+					$conf.versions_paths[$_.key] = $new
+					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				}
+
+				removefile "$checkfile"
+			} else {
+				Write-Host "Path '" -NoNewline
+				Write-Host $_.value.name -NoNewline -ForegroundColor White
+				Write-Host "' is up-to-date"
+			}
+		} elseif ($_.value.platform -eq "github-raw") {
+			checkGithub
+			Invoke-WebRequest ("https://api.github.com/repos/" + $_.value.repo + "/contents/Download") -OutFile "$checkfile"
+			$new = $(Get-FileHash "$checkfile" -Algorithm MD5).Hash
+			removefile "$checkfile"
+
+			if (
+				($conf.versions_paths[$_.key] -eq $null) -or
+				($conf.versions_paths[$_.key] -ne $new)
+			) {
+				Write-Host "Path '" -NoNewline
+				Write-Host $_.value.name -NoNewline -ForegroundColor White
+				Write-Host "' is being updated" -ForegroundColor Green
+
+				Invoke-WebRequest ("https://github.com/" + $_.value.repo + "/raw/main/Download/" + $_.value.targetfile) -OutFile "$checkfile"
+
+				if (Test-Path $checkfile) {
+					if ($conf.paths[$_.key + "_blish"]) {
+						removefile "$path_b"
+
+						Copy-Item "$checkfile" -Destination "$path_b"
+					}
+
+					if ($conf.paths[$_.key + "_taco"]) {
+						removefile "$path_t"
+
+						Copy-Item "$checkfile" -Destination "$path_t"
+					}
 
 					$conf.versions_paths[$_.key] = $new
 					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 				}
+
+				removefile "$checkfile"
+			} else {
+				Write-Host "Path '" -NoNewline
+				Write-Host $_.value.name -NoNewline -ForegroundColor White
+				Write-Host "' is up-to-date"
+			}
+		} elseif ($_.value.platform -eq "bitbucket") {
+			Invoke-WebRequest ("https://api.bitbucket.org/2.0/repositories/" + $_.value.repo + "/commits") -OutFile "$checkfile"
+			$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+			$new = $($json.values[0].hash).Substring(0, 12)
+			removefile "$checkfile"
+
+			if (
+				($conf.versions_paths[$_.key] -eq $null) -or
+				($conf.versions_paths[$_.key] -ne $new)
+			) {
+				Write-Host "Path '" -NoNewline
+				Write-Host $_.value.name -NoNewline -ForegroundColor White
+				Write-Host "' is being updated" -ForegroundColor Green
+
+				Invoke-WebRequest ("https://bitbucket.org/" + $_.value.repo + "/get/" + $new + ".zip") -OutFile "$checkfile.zip"
+
+				if (Test-Path $checkfile) {
+					Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Script_path\" -Force
+					removefile "$checkfile.zip"
+					Compress-Archive -Path ("$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$hash\" + $_.value.subfolder + "*") -DestinationPath "$checkfile.zip"
+					Remove-Item "$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$hash" -Recurse -force
+
+					if ($conf.paths[$_.key + "_blish"]) {
+						removefile "$path_b"
+
+						Copy-Item "$checkfile.zip" -Destination "$path_b"
+					}
+
+					if ($conf.paths[$_.key + "_taco"]) {
+						removefile "$path_t"
+
+						Copy-Item "$checkfile.zip" -Destination "$path_t"
+					}
+
+					$conf.versions_paths[$_.key] = $new
+					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				}
+
+				removefile "$checkfile.zip"
 			} else {
 				Write-Host "Path '" -NoNewline
 				Write-Host $_.value.name -NoNewline -ForegroundColor White
@@ -1583,142 +1630,14 @@ $modules.Path.GetEnumerator() | foreach {
 	}
 }
 
-exit ###############################################################################################################################################################################################
-
-# auto update SCHATTENFLUEGEL
-if (
-	($conf.configuration.update_ArcDPS -or ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Pathing)) -and
-	($conf.settings_Mappacks.use_TacO -or $conf.settings_Mappacks.use_BlishHUD) -and
-	$conf.settings_Mappacks.schattenfluegel
-) {
-	checkGithub
-
-	$checkurl = "https://api.github.com/repos/Schattenfluegel/SchattenfluegelTrails/contents/Download"
-	$targeturl = "https://github.com/Schattenfluegel/SchattenfluegelTrails/raw/main/Download/SchattenfluegelTrails.taco"
-	$targetfile = "SchattenfluegelTrails.taco"
-
-	$path_t = path_t $targetfile
-	$path_b = path_b $targetfile
-
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-	$new = $(Get-FileHash "$checkfile" -Algorithm MD5).Hash
-
-	if (
-		(
-			$conf.settings_Mappacks.use_TacO -and
-			(
-				($conf.versions.Mappack_T_schattenfluegel -eq $null) -or
-				($conf.versions.Mappack_T_schattenfluegel -ne $new)
-			)
-		) -or (
-			$conf.settings_Mappacks.use_BlishHUD -and
-			(
-				($conf.versions.Mappack_B_schattenfluegel -eq $null) -or
-				($conf.versions.Mappack_B_schattenfluegel -ne $new)
-			)
-		)
-	) {
-		Write-Host "SCHATTENFLUEGEL " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
-
-		removefile "$checkfile"
-		Invoke-WebRequest "$targeturl" -OutFile "$checkfile"
-
-		if ($conf.settings_Mappacks.use_TacO) {
-			removefile "$path_t"
-			Copy-Item "$checkfile" -Destination "$path_t"
-
-			$conf["versions"]["Mappack_T_schattenfluegel"] = $new
-			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-		}
-
-		if ($conf.settings_Mappacks.use_BlishHUD) {
-			removefile "$path_b"
-			Copy-Item "$checkfile" -Destination "$path_b"
-
-			$conf["versions"]["Mappack_B_schattenfluegel"] = $new
-			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-		}
-	} else {
-		Write-Host "SCHATTENFLUEGEL " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
-	}
-
-	removefile "$checkfile"
-}
-
-
-# auto update CZOKALAPIK
-if (
-	($conf.configuration.update_ArcDPS -or ($conf.configuration.update_BlishHUD -and $conf.settings_BlishHUD.Pathing)) -and
-	($conf.settings_Mappacks.use_TacO -or $conf.settings_Mappacks.use_BlishHUD) -and
-	$conf.settings_Mappacks.czokalapik
-) {
-	$checkurl = "https://api.bitbucket.org/2.0/repositories/czokalapik/czokalapiks-guides-for-gw2taco/commits"
-	$targeturl = "https://bitbucket.org/czokalapik/czokalapiks-guides-for-gw2taco/get"
-	$targetfile = "czokalapiks-guides.taco"
-
-	$path_t = path_t $targetfile
-	$path_b = path_b $targetfile
-
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$hash = $($json.values[0].hash).Substring(0, 12)
-	$new = $hash
-
-	if (
-		(
-			$conf.settings_Mappacks.use_TacO -and
-			(
-				($conf.versions.Mappack_T_czokalapik -eq $null) -or
-				($conf.versions.Mappack_T_czokalapik -ne $new)
-			)
-		) -or (
-			$conf.settings_Mappacks.use_BlishHUD -and
-			(
-				($conf.versions.Mappack_B_czokalapik -eq $null) -or
-				($conf.versions.Mappack_B_czokalapik -ne $new)
-			)
-		)
-	) {
-		Write-Host "CZOKALAPIK " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
-
-		Invoke-WebRequest "$targeturl/$hash.zip" -OutFile "$checkfile.zip"
-		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Script_path\" -Force
-		removefile "$checkfile.zip"
-		Compress-Archive -Path "$Script_path\czokalapik-czokalapiks-guides-for-gw2taco-$hash\POIs\*" -DestinationPath "$checkfile.zip"
-		Remove-Item "$Script_path\czokalapik-czokalapiks-guides-for-gw2taco-$hash" -Recurse -force
-
-		if ($conf.settings_Mappacks.use_TacO) {
-			removefile "$conf.settings_Mappacks.use_TacO"
-			Copy-Item "$checkfile.zip" -Destination "$path_t"
-
-			$conf["versions"]["Mappack_T_czokalapik"] = $new
-			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-		}
-
-		if ($conf.settings_Mappacks.use_BlishHUD) {
-			removefile "$conf.settings_Mappacks.use_BlishHUD"
-			Copy-Item "$checkfile.zip" -Destination "$path_b"
-
-			$conf["versions"]["Mappack_B_czokalapik"] = $new
-			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-		}
-	} else {
-		Write-Host "CZOKALAPIK " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
-	}
-
-	removefile "$checkfile"
-}
-
 # done with updating
 if (-not $older) {
 	startGW2
 	stopprocesses
 }
 
+removefile "$checkfile"
+removefile "$checkfile.zip"
 removefile "$Script_path\github.json"
 
 nls 1
