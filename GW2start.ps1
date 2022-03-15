@@ -848,7 +848,7 @@ function changeGUI($category, $key = 0, $value = 0) {
 
 					$form.arcDx9.Enabled = $true
 					$form.arcDx11.Enabled = $true
-					
+
 					$modules.ArcDPS.GetEnumerator() | foreach {
 						$modules.ArcDPS[$_.key]["UI"].enabled = ($value -and ($form.arcDx9.checked -or $form.arcDx11.checked))
 					}
@@ -1104,7 +1104,7 @@ host_type: github
 # latter is a direct download link to a file/archive
 host_url: https://api.github.com/repositories/187708533/releases/latest
 # for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
-version_url: 
+version_url:
 # archive or .dll
 download_type: archive
 # binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
@@ -1177,7 +1177,7 @@ host_type: github
 # latter is a direct download link to a file/archive
 host_url: https://api.github.com/repos/gw2scratch/arcdps-clears/releases/latest
 # for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
-version_url: 
+version_url:
 # archive or .dll
 download_type: .dll
 # binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
@@ -1415,7 +1415,7 @@ host_type: github
 # latter is a direct download link to a file/archive
 host_url: https://api.github.com/repos/datatobridge/arcdps-uploader/releases/latest
 # for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
-version_url: 
+version_url:
 # archive or .dll
 download_type: archive
 # binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
@@ -1489,7 +1489,7 @@ host_type: github
 # latter is a direct download link to a file/archive
 host_url: https://api.github.com/repos/gw2-addon-loader/d3d9_wrapper/releases/latest
 # for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
-version_url: 
+version_url:
 # archive or .dll
 download_type: archive
 # binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
@@ -1970,7 +1970,8 @@ if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
 
 	if (
 		($conf.versions_main.BlishHUD_ArcDPS_Bridge -eq $null) -or
-		($conf.versions_main.BlishHUD_ArcDPS_Bridge -ne $new)
+		($conf.versions_main.BlishHUD_ArcDPS_Bridge -ne $new) -or
+		(-not (Test-Path "$targetfile"))
 	) {
 		Write-Host "BlishHUD-ArcDPS Bridge " -NoNewline -ForegroundColor White
 		Write-Host "is being updated" -ForegroundColor Green
@@ -1986,7 +1987,7 @@ if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
 		Write-Host "is up-to-date"
 	}
 } else {
-	removefile "$GW2_path\bin64\d3d9_arcdps_killproof_me.dll"
+	removefile "$GW2_path\bin64\arcdps_bhud.dll"
 
 	$conf.versions_main.psobject.properties.remove('BlishHUD_ArcDPS_Bridge')
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
@@ -2008,7 +2009,8 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 
 			if (
 				($conf.versions_addons[$_.key] -eq $null) -or
-				($conf.versions_addons[$_.key] -ne $new)
+				($conf.versions_addons[$_.key] -ne $new) -or
+				(-not (Test-Path "$targetfile"))
 			) {
 				Write-Host "ArcDPS addon '" -NoNewline
 				Write-Host $_.value.name -NoNewline -ForegroundColor White
@@ -2040,11 +2042,13 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 $modules.BlishHUD.GetEnumerator() | foreach {
 	if ($conf.modules[$_.key] -and $conf.main.enabledBlish) {
 		$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules\"
+		$targetfile = ("$checkpath\" + $_.value.namespace + "_" + $_.value.version + ".bhm")
 		$new = $_.value.version
 
 		if (
 			($conf.versions_modules[$_.key] -eq $null) -or
-			($conf.versions_modules[$_.key] -ne $new)
+			($conf.versions_modules[$_.key] -ne $new) -or
+			(-not (Test-Path "$targetfile"))
 		) {
 			Write-Host "BlishHUD module '" -NoNewline
 			Write-Host $_.value.name -NoNewline -ForegroundColor White
@@ -2054,7 +2058,7 @@ $modules.BlishHUD.GetEnumerator() | foreach {
 				removefile ("$checkpath\" + $_.value.namespace + "_" + $conf.versions_modules[$_.key] + ".bhm")
 			}
 
-			Invoke-WebRequest $_.value.targeturl -OutFile ("$checkpath\" + $_.value.namespace + "_" + $_.value.version + ".bhm")
+			Invoke-WebRequest $_.value.targeturl -OutFile $targetfile
 
 			enforceBHM $_.value.namespace
 
@@ -2087,7 +2091,13 @@ $modules.Path.GetEnumerator() | foreach {
 
 			if (
 				($conf.versions_paths[$_.key] -eq $null) -or
-				($conf.versions_paths[$_.key] -ne $new)
+				($conf.versions_paths[$_.key] -ne $new) -or (
+					($conf.paths[$_.key + "_taco"]) -and
+					(-not (Test-Path "$path_t"))
+				) -or (
+					($conf.paths[$_.key + "_blish"]) -and
+					(-not (Test-Path "$path_b"))
+				)
 			) {
 				Write-Host "Path '" -NoNewline
 				Write-Host $_.value.name -NoNewline -ForegroundColor White
@@ -2126,7 +2136,13 @@ $modules.Path.GetEnumerator() | foreach {
 
 			if (
 				($conf.versions_paths[$_.key] -eq $null) -or
-				($conf.versions_paths[$_.key] -ne $new)
+				($conf.versions_paths[$_.key] -ne $new) -or (
+					($conf.paths[$_.key + "_taco"]) -and
+					(-not (Test-Path "$path_t"))
+				) -or (
+					($conf.paths[$_.key + "_blish"]) -and
+					(-not (Test-Path "$path_b"))
+				)
 			) {
 				Write-Host "Path '" -NoNewline
 				Write-Host $_.value.name -NoNewline -ForegroundColor White
@@ -2165,7 +2181,13 @@ $modules.Path.GetEnumerator() | foreach {
 
 			if (
 				($conf.versions_paths[$_.key] -eq $null) -or
-				($conf.versions_paths[$_.key] -ne $new)
+				($conf.versions_paths[$_.key] -ne $new) -or (
+					($conf.paths[$_.key + "_taco"]) -and
+					(-not (Test-Path "$path_t"))
+				) -or (
+					($conf.paths[$_.key + "_blish"]) -and
+					(-not (Test-Path "$path_b"))
+				)
 			) {
 				Write-Host "Path '" -NoNewline
 				Write-Host $_.value.name -NoNewline -ForegroundColor White
