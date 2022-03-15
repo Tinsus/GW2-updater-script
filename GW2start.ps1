@@ -466,14 +466,14 @@ function showGUI {
 	$i = 0
 	$modules.ArcDPS.GetEnumerator() | foreach {
 		$modules.ArcDPS[$_.key]["UI"] = New-Object System.Windows.Forms.CheckBox
-		$modules.ArcDPS[$_.key]["UI"].Text = ($(if ($_.value.default) { "* " } else { "" }) + $_.value.name)
+		$modules.ArcDPS[$_.key]["UI"].Text = ($(if ($_.value.default) { "* " } else { "" }) + $_.value.addon_name)
 		$modules.ArcDPS[$_.key]["UI"] | Add-Member -MemberType NoteProperty -Name 'Value' -Value $_.key
 		$modules.ArcDPS[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (20 * $i)))
 		$modules.ArcDPS[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 20)
 		$modules.ArcDPS[$_.key]["UI"].Add_CheckStateChanged({
 			changeGUI -category "addons" -key $this.Value -value $this.checked
 		})
-		$form.tooltip.SetToolTip($modules.ArcDPS[$_.key]["UI"], $_.value.desc)
+		$form.tooltip.SetToolTip($modules.ArcDPS[$_.key]["UI"], $_.value.description)
 		$form.groupAddons.Controls.Add($modules.ArcDPS[$_.key]["UI"])
 
 		$i++
@@ -966,6 +966,8 @@ function checkPathValidity() {
 		)
 	)
 }
+
+
 # collect packages
 $modules = @{}
 $modules.Main = @{}
@@ -973,6 +975,95 @@ $modules.ArcDPS = @{}
 $modules.Path = @{}
 $modules.BlishHud = @{}
 
+if (-not (Get-Module -ListAvailable -Name powershell-yaml)) {
+	nls 1
+	Write-Host "Please wait a moment - we need to add some dependencies. This is needed oncy only."
+	nls 1
+
+	if (-not (Get-PackageProvider -ListAvailable -Name NuGet)) {
+		Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
+	}
+
+    Install-Module -Name powershell-yaml -Scope CurrentUser -Force
+
+	nls 1
+}
+
+Invoke-WebRequest "https://github.com/gw2-addon-loader/Approved-Addons/archive/refs/heads/master.zip" -OutFile "$checkfile.zip"
+Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Script_path\" -Force
+removefile "$checkfile.zip"
+
+gci -Path "$Script_path\Approved-Addons-master\" -recurse -file -filter *.yaml | foreach {
+	$yaml = ConvertFrom-Yaml -Yaml (Get-Content -Path $_.fullname -Raw)
+	$name = $yaml.addon_name -replace '[^a-zA-Z]', ''
+
+	if (
+		($name -ne "examplename") -and
+		($name -ne "arcdps_bhud") -and
+		($name -ne "ArcDPS") -and
+		$true
+	) {
+		$modules.ArcDPS[$name] = $yaml
+
+		$modules.ArcDPS[$name].default = (
+			($name -eq "arcdpsboontable") -or
+			($name -eq "arcdpshealing") -or
+			($name -eq "arcdpskillproofme") -or
+			($name -eq "arcdpsmechanics") -or
+			$false
+		)
+	}
+}
+
+Remove-Item "$Script_path\Approved-Addons-master" -recurse -force
+
+
+# auto update all ArcDPS modules
+$modules.ArcDPS.GetEnumerator() | foreach {
+	if ($conf.addons[$_.key] -and $conf.main.enabledArc) {
+		if ($_.value.platform -eq "github-normal") {
+			$checkurl = "https://api.github.com/repos/" + $_.value.repo + "/releases/latest"
+			$targetfile = "$GW2_path\bin64\" + $_.value.targetfile
+
+			checkGithub
+			Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
+
+			$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+			$new = $json.name
+			removefile "$checkfile"
+
+			if (
+				($conf.versions_addons[$_.key] -eq $null) -or
+				($conf.versions_addons[$_.key] -ne $new) -or
+				(-not (Test-Path "$targetfile"))
+			) {
+				Write-Host "ArcDPS addon '" -NoNewline
+				Write-Host $_.value.name -NoNewline -ForegroundColor White
+				Write-Host "' is being updated" -ForegroundColor Green
+
+				$name = $_.value.targetfile
+				$download = $json.assets | foreach { if ($_.name -eq $name) { return $_.browser_download_url }}
+
+				removefile "$targetfile"
+				Invoke-WebRequest $download -OutFile "$targetfile"
+
+				$conf.versions_addons[$_.key] = $new
+				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+			} else {
+				Write-Host "ArcDPS addon '" -NoNewline
+				Write-Host $_.value.name -NoNewline -ForegroundColor White
+				Write-Host "' is up-to-date"
+			}
+		}
+	} else {
+		removefile ("$GW2_path\bin64\" + $_.value.targetfile)
+
+		$conf.versions_addons.psobject.properties.remove($_.key)
+		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+	}
+}
+
+<#
 $modules.ArcDPS.killproof = @{
 	name = "killproof.me"
 	desc = "extences ArcDPS to show the killproof.me data of your group members. Shortcut to open that is Shift+Alt+K"
