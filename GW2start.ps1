@@ -1,10 +1,15 @@
 param($forceGUIfromBat = "")
 
 #TODO:
+# Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen)
 # scan für zeug, dass nicht von dem Script verwaltet wird [ignore in config]
-# Warnung, wenn die Grafikeinstellungen falsch sind (geht einfach)
+# Warnung, wenn die Grafikeinstellungen falsch sind (geht einfach) und arc oder blish laufen
 # ArcDPS repo
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
+# info, das repots gezogen werden
+# reactif nur de oder fr-block
+# setting, logindscreeninfo und autologin (als hidden setting ohne ui in der ini?)
+
 
 $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
 $Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
@@ -967,7 +972,6 @@ function checkPathValidity() {
 	)
 }
 
-
 # collect packages
 $modules = @{}
 $modules.Main = @{}
@@ -1018,52 +1022,6 @@ gci -Path "$Script_path\Approved-Addons-master\" -recurse -file -filter *.yaml |
 Remove-Item "$Script_path\Approved-Addons-master" -recurse -force
 
 <#
-$modules.ArcDPS.killproof = @{
-	name = "killproof.me"
-	desc = "extences ArcDPS to show the killproof.me data of your group members. Shortcut to open that is Shift+Alt+K"
-	default = $true
-	repo = "knoxfighter/arcdps-killproof.me-plugin"
-	targetfile = "d3d9_arcdps_killproof_me.dll"
-	platform = "github-normal"
-}
-
-$modules.ArcDPS.boon = @{
-	name = "Boon-Table"
-	desc = "extences ArcDPS to show the boons done by you and your group members. Shortcut to open that is Shift+Alt+B"
-	default = $true
-	repo = "knoxfighter/GW2-ArcDPS-Boon-Table"
-	targetfile = "d3d9_arcdps_table.dll"
-	platform = "github-normal"
-}
-
-$modules.ArcDPS.healing = @{
-	name = "Healing-Stats"
-	desc = "extences ArcDPS to show your heal."
-	default = $true
-	repo = "Krappa322/arcdps_healing_stats"
-	targetfile = "arcdps_healing_stats.dll"
-	platform = "github-normal"
-}
-
-$modules.ArcDPS.mechanics = @{
-	name = "Mechanics-Logs"
-	desc = "extences ArcDPS to how good you or your group members perform with the mechanics in raids. Shortcut to open that is Shift+Alt+L"
-	default = $true
-	repo = "knoxfighter/GW2-ArcDPS-Mechanics-Log"
-	targetfile = "d3d9_arcdps_mechanics.dll"
-	platform = "github-normal"
-}
-
-<#
-
-
-https://github.com/gw2-addon-loader/Approved-Addons/archive/refs/heads/master.zip
-
-
-
-
-
-
 
 #######################################################################################################################################################################################################################################
 ### USER-FACING INFO ###
@@ -1645,8 +1603,6 @@ requires:
 # a list of all add-ons that prevent this add-on from functioning properly
 conflicts:
 #######################################################################################################################################################################################################################################
-
-
 #>
 
 $modules.Path.schattenfluegel = @{
@@ -1832,6 +1788,7 @@ if (-not $forceGUI) {
 
 $modules.ArcDPS.GetEnumerator() | foreach {
 	if ($conf.addons[$_.key] -and $conf.main.enabledArc) {
+		Write-Host "------   ------   ------"
 		Write-Host $_.value.addon_name
 		#Write-Host $_.value.description
 		Write-Host $_.value.host_type
@@ -1844,7 +1801,10 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 		Write-Host $_.value.conflicts
 
 		if ($_.value.download_type -eq ".dll") {
-			if ($_.value.host_type -eq "github") {
+			if (
+				($_.value.host_type -eq "github") -and
+				($_.value.install_mode -eq ".dll")
+			) {
 				$checkurl = $_.value.host_url
 				$targetfile = "$GW2_path\bin64\" + $_.value.plugin_name
 
@@ -1895,6 +1855,293 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 }
 
 exit ##################################################################################################################################################################################################################################
+
+
+<#
+
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: megai2
+# website where more information about the add-on can be found
+website: https://github.com/megai2/SelectRenderer
+# name of the add-on
+addon_name: SelectRenderer
+# descriptive text for the addon
+description: "Ingame UI based render selection for GW2"
+# tooltip - basically description but in brief
+tooltip: Allows selection of various render paths like DXVK, d912pxy, etc.
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/megai2/SelectRenderer/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: archive
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: binary
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - d3d9_wrapper
+    - lib_imgui
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+# Update files are intended to provide information for:
+# Installation
+# Plugin configuration
+# User-Facing information displayed on the addon manager UI
+
+### USER-FACING INFO ###
+# developer of the add-on
+developer: Sejsel
+# website where more information about the add-on can be found
+website: https://gw2scratch.com/tools/arcdps-clears
+# name of the add-on
+addon_name: ArcDPS Clears
+# descriptive text for the addon
+description: Adds a window for quickly checking your current weekly clears in the game.
+# tooltip - basically description but in brief
+tooltip: Check your weekly clears in the game
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/gw2scratch/arcdps-clears/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: .dll
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: arc
+# plugin name- only for arc-dependent plugins
+plugin_name: arcdps_clears.dll
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - arcdps
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: datatobridge
+# website where more information about the add-on can be found
+website: https://github.com/datatobridge/arcdps-uploader
+# name of the add-on
+addon_name: ArcDPS uploader
+# descriptive text for the addon
+description: This is an extension for Arcdps that allows you to preview and upload EVTC combat logs in-game
+# tooltip - basically description but in brief
+tooltip: preview and upload EVTC combat logs in-game by datatobridge
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/datatobridge/arcdps-uploader/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: archive
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: arc
+# plugin name- only for arc-dependent plugins (to identify what plugin in the /addons/arcdps folder is associated with what addon)
+plugin_name: d3d9_uploader.dll
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - arcdps
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: e-scrape-artist
+# website where more information about the add-on can be found
+website: https://buildpad.gw2archive.eu
+# name of the add-on
+addon_name: BuildPad
+# descriptive text for the addon
+description:
+    "A companion plugin to ArcDPS that allows you to organize a list of saved builds and copy them with one click.\n\nIt detects your ArcDPS templates and converts them (automatically and/or manually) to GW2 templates. Your old gear templates, which cannot be pasted into GW2, can be previewed inside the plugin so you can remind yourself which items and stats you had saved."
+
+# tooltip - basically description but in brief
+tooltip: Offline build storage
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: standalone
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://buildpad.gw2archive.eu/versions/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: .dll
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: arc
+# plugin name- only for arc-dependent plugins (to identify what plugin in the /addons/arcdps folder is associated with what addon)
+plugin_name:
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - arcdps
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+# additional flags
+additional_flags:
+    - self-updating
+    - obscured-filename
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: Megai2
+# website where more information about the add-on can be found
+website: https://github.com/gw2-addon-loader/d3d9_wrapper
+# name of the add-on
+addon_name: d3d9 wrapper
+# descriptive text for the addon
+description: Wrapper for D3D9 API that includes advanced hooking and custom d3d9 loading. \n\n Base library to support multiple addons that use D3D9 based rendering.
+# tooltip - basically description but in brief
+tooltip: Advanced D3D9 API wrapper -by gw2al team
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/gw2-addon-loader/d3d9_wrapper/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: archive
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: binary
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: Megai2
+# website where more information about the add-on can be found
+website: https://github.com/megai2/d912pxy
+# name of the add-on
+addon_name: d912pxy
+# descriptive text for the addon
+description: "D912pxy is a tool that allows Guild Wars 2 to use DirectX 12 by translating calls for DirectX 9 to DirectX 12.\nWhat should you expect from this?
+    \n\n - More stable FPS in general\n - Higher FPS if you have free CPU and GPU power\n - Lower FPS if you have no extra CPU power / GPU power\n - Higher RAM and VRAM usage\n -
+    Those using an eGPU can expect big improvements due to GPU-CPU bandwith optimization\n - Some visual bugs, the most notable being character portraits glitching."
+# tooltip - basically description but in brief
+tooltip: Translates DirectX 9 calls to DirectX 12 for performance improvements - by Megai2
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/megai2/d912pxy/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: archive
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: binary
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - d3d9_wrapper
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+    - gw2hook
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: FriendlyFire
+# website where more information about the add-on can be found
+website: https://github.com/Friendly0Fire/GW2Radial
+# name of the add-on
+addon_name: GW2 Radial
+# descriptive text for the addon
+description: "An addon to show a convenient, customizable radial menu overlay to select a mount, novelty item and more, on the fly, for Guild Wars 2: Path of Fire."
+# tooltip - basically description but in brief
+tooltip: Provides various radial menus allowing quick access to mounts and more with one keypress - by FriendlyFire
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/Friendly0Fire/gw2radial/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: archive
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: binary
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - d3d9_wrapper
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+### USER-FACING INFO ###
+# developer of the add-on
+developer: FriendlyFire
+# website where more information about the add-on can be found
+website: https://github.com/gw2-addon-loader/GW2Radial
+# name of the add-on
+addon_name: GW2 Radial (D3D9)
+# descriptive text for the addon
+description: "[D3D9 VERSION] An addon to show a convenient, customizable radial menu overlay to select a mount, novelty item and more, on the fly, for Guild Wars 2: Path of Fire."
+# tooltip - basically description but in brief
+tooltip: Provides various radial menus allowing quick access to mounts and more with one keypress - by FriendlyFire
+
+### DOWNLOADING/INSTALLATION ###
+# github or standalone
+host_type: github
+# either github API url or direct URL to file/archive - former is parsed to find latest version and download link,
+# latter is a direct download link to a file/archive
+host_url: https://api.github.com/repos/gw2-addon-loader/gw2radial/releases/latest
+# for md5sum files and things of that nature; files that exist solely to show what the latest version is. Standalone only.
+version_url:
+# archive or .dll
+download_type: archive
+# binary or d3d9 - binary leaves plugin name as-is, d3d9 means filename may be changed for chainloading
+install_mode: binary
+
+### CONFIGURATION ###
+# a list of all other add-ons required for this add-on to function
+requires:
+    - d3d9_wrapper
+# a list of all add-ons that prevent this add-on from functioning properly
+conflicts:
+#######################################################################################################################################################################################################################################
+#>
+
+
+
+
+
 
 # now the real magic:
 Clear-Host
