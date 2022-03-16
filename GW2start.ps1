@@ -999,69 +999,23 @@ gci -Path "$Script_path\Approved-Addons-master\" -recurse -file -filter *.yaml |
 
 	if (
 		($name -ne "examplename") -and
-		($name -ne "arcdps_bhud") -and
+		($name -ne "ArcDPSBlishHUDIntegration") -and
 		($name -ne "ArcDPS") -and
 		$true
 	) {
 		$modules.ArcDPS[$name] = $yaml
 
 		$modules.ArcDPS[$name].default = (
-			($name -eq "arcdpsboontable") -or
-			($name -eq "arcdpshealing") -or
-			($name -eq "arcdpskillproofme") -or
-			($name -eq "arcdpsmechanics") -or
+			($name -eq "ArcDPSBoonTable") -or
+			($name -eq "ArcDPSHealingStats") -or
+			($name -eq "ArcDPSKillproofmePlugin") -or
+			($name -eq "ArcDPSMechanicsPlugin") -or
 			$false
 		)
 	}
 }
 
 Remove-Item "$Script_path\Approved-Addons-master" -recurse -force
-
-
-# auto update all ArcDPS modules
-$modules.ArcDPS.GetEnumerator() | foreach {
-	if ($conf.addons[$_.key] -and $conf.main.enabledArc) {
-		if ($_.value.platform -eq "github-normal") {
-			$checkurl = "https://api.github.com/repos/" + $_.value.repo + "/releases/latest"
-			$targetfile = "$GW2_path\bin64\" + $_.value.targetfile
-
-			checkGithub
-			Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-
-			$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-			$new = $json.name
-			removefile "$checkfile"
-
-			if (
-				($conf.versions_addons[$_.key] -eq $null) -or
-				($conf.versions_addons[$_.key] -ne $new) -or
-				(-not (Test-Path "$targetfile"))
-			) {
-				Write-Host "ArcDPS addon '" -NoNewline
-				Write-Host $_.value.name -NoNewline -ForegroundColor White
-				Write-Host "' is being updated" -ForegroundColor Green
-
-				$name = $_.value.targetfile
-				$download = $json.assets | foreach { if ($_.name -eq $name) { return $_.browser_download_url }}
-
-				removefile "$targetfile"
-				Invoke-WebRequest $download -OutFile "$targetfile"
-
-				$conf.versions_addons[$_.key] = $new
-				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-			} else {
-				Write-Host "ArcDPS addon '" -NoNewline
-				Write-Host $_.value.name -NoNewline -ForegroundColor White
-				Write-Host "' is up-to-date"
-			}
-		}
-	} else {
-		removefile ("$GW2_path\bin64\" + $_.value.targetfile)
-
-		$conf.versions_addons.psobject.properties.remove($_.key)
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	}
-}
 
 <#
 $modules.ArcDPS.killproof = @{
@@ -1873,6 +1827,74 @@ if (-not $forceGUI) {
 	# scan auf paths
 	# scan mit wildcard auf modules
 }
+
+#######################################################################################################################################################################################################################################
+
+$modules.ArcDPS.GetEnumerator() | foreach {
+	if ($conf.addons[$_.key] -and $conf.main.enabledArc) {
+		Write-Host $_.value.addon_name
+		#Write-Host $_.value.description
+		Write-Host $_.value.host_type
+		Write-Host $_.value.host_url
+		Write-Host $_.value.version_url
+		Write-Host $_.value.download_type
+		Write-Host $_.value.install_mode
+		Write-Host $_.value.plugin_name
+		Write-Host $_.value.requires
+		Write-Host $_.value.conflicts
+
+		if ($_.value.download_type -eq ".dll") {
+			if ($_.value.host_type -eq "github") {
+				$checkurl = $_.value.host_url
+				$targetfile = "$GW2_path\bin64\" + $_.value.plugin_name
+
+				checkGithub
+				Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
+
+				$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+				$new = $json.name
+				removefile "$checkfile"
+
+				if (
+					($conf.versions_addons[$_.key] -eq $null) -or
+					($conf.versions_addons[$_.key] -ne $new) -or
+					(-not (Test-Path "$targetfile"))
+				) {
+					Write-Host "ArcDPS addon '" -NoNewline
+					Write-Host $_.value.addon_name -NoNewline -ForegroundColor White
+					Write-Host "' is being updated" -ForegroundColor Green
+
+					$name = $_.value.plugin_name
+					$download = $json.assets.browser_download_url
+
+					removefile "$targetfile"
+					Invoke-WebRequest $download -OutFile "$targetfile"
+
+					$conf.versions_addons[$_.key] = $new
+					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				} else {
+					Write-Host "ArcDPS addon '" -NoNewline
+					Write-Host $_.value.addon_name -NoNewline -ForegroundColor White
+					Write-Host "' is up-to-date"
+				}
+			} else {
+				Write-Host $_.value.host_type
+			}
+		} else {
+			Write-Host $_.value.download_type
+		}
+
+	} else {
+		if ($_.value.plugin_name.length -ne 0) {
+			removefile ("$GW2_path\bin64\" + $_.value.plugin_name)
+		}
+
+		$conf.versions_addons.psobject.properties.remove($_.key)
+		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+	}
+}
+
+exit ##################################################################################################################################################################################################################################
 
 # now the real magic:
 Clear-Host
