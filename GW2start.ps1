@@ -676,6 +676,22 @@ function validateGUI {
 		}
 	}
 
+	$modules.ArcDPS.GetEnumerator() | foreach {
+		if (
+			($modules.ArcDPS[$_.key].requires -ne $null) -and
+			($modules.ArcDPS[$_.key]["UI"].checked -eq $true)
+		) {
+			$modules.ArcDPS[$_.key].requires | foreach {
+				$req = $_ -replace '[^a-zA-Z]', ''
+
+				if ($modules.ArcDPS[$req] -ne $null) {
+					$modules.ArcDPS[$req]["UI"].checked = $true
+					$modules.ArcDPS[$req]["UI"].enabled = $false
+				}
+			}
+		}
+	}
+
 # BLISH MODULES
 	$modules.BlishHUD.GetEnumerator() | foreach {
 		$modules.BlishHUD[$_.key]["UI"].enabled = ($form.enabledBlish.Checked -and $validBlish)
@@ -716,6 +732,11 @@ function validateGUI {
 			$modules.Path[$_.key]["UI2"].checked = $false
 		} else {
 			$modules.Path[$_.key]["UI2"].checked = $conf.paths[$_.key + "_taco"]
+		}
+
+		if ($modules.Path[$_.key].conflicts -ne $null) {
+			$modules.Path[$_.key]["UI1"].enabled = (-not ($conf.paths[$modules.Path[$_.key].conflicts + "_blish"]) -or ($modules.Path[$modules.Path[$_.key].conflicts]["UI2"].checked))
+			$modules.Path[$_.key]["UI2"].enabled = (-not ($conf.paths[$modules.Path[$_.key].conflicts + "_taco"]) -or ($modules.Path[$modules.Path[$_.key].conflicts]["UI1"].checked))
 		}
 	}
 
@@ -779,6 +800,20 @@ function changeGUI($category, $key = 0, $value = 0) {
 
 					$modules.ArcDPS.GetEnumerator() | foreach {
 						$modules.ArcDPS[$_.key]["UI"].enabled = ($value -and ($form.arcDx9.checked -or $form.arcDx11.checked))
+
+						if (
+							($modules.ArcDPS[$_.key].requires -ne $null) -and
+							($modules.ArcDPS[$_.key]["UI"].checked -eq $true)
+						) {
+							$modules.ArcDPS[$_.key].requires | foreach {
+								$req = $_ -replace '[^a-zA-Z]', ''
+
+								if ($modules.ArcDPS[$req] -ne $null) {
+									$modules.ArcDPS[$req]["UI"].checked = $true
+									$modules.ArcDPS[$req]["UI"].enabled = $false
+								}
+							}
+						}
 					}
 
 					break
@@ -818,6 +853,9 @@ function changeGUI($category, $key = 0, $value = 0) {
 							$modules.Path[$_.key]["UI"].enabled = (($validTaco -and $value) -or ($validBlish -and $form.BlishRun.enabled))
 							$modules.Path[$_.key]["UI2"].enabled = ($validTaco -and $value)
 						}
+
+						$modules.Path[$_.key]["UI"].enabled = $true
+						$modules.Path[$_.key]["UI1"].enabled = $true
 					}
 
 					break
@@ -898,6 +936,11 @@ function changeGUI($category, $key = 0, $value = 0) {
 					$modules.Path.GetEnumerator() | foreach {
 						$modules.Path[$_.key]["UI"].enabled = $true
 						$modules.Path[$_.key]["UI1"].enabled = $true
+
+						if ($modules.Path[$_.key].conflicts -ne $null) {
+							$modules.Path[$_.key]["UI1"].enabled = (-not ($modules.Path[$modules.Path[$_.key].conflicts]["UI2"].checked))
+							$modules.Path[$_.key]["UI2"].enabled = (-not ($modules.Path[$modules.Path[$_.key].conflicts]["UI1"].checked))
+						}
 					}
 
 					break
@@ -931,6 +974,14 @@ function changeGUI($category, $key = 0, $value = 0) {
 							$modules.Path[$_.key]["UI"].enabled = $true
 							$modules.Path[$_.key]["UI2"].enabled = $true
 						}
+
+						$modules.Path[$_.key]["UI"].enabled = $true
+						$modules.Path[$_.key]["UI1"].enabled = $true
+
+						if ($modules.Path[$_.key].conflicts -ne $null) {
+							$modules.Path[$_.key]["UI1"].enabled = (-not ($modules.Path[$modules.Path[$_.key].conflicts]["UI2"].checked))
+							$modules.Path[$_.key]["UI2"].enabled = (-not ($modules.Path[$modules.Path[$_.key].conflicts]["UI1"].checked))
+						}
 					}
 
 					break
@@ -938,6 +989,53 @@ function changeGUI($category, $key = 0, $value = 0) {
 			}
 
 			placingGUI
+
+			break
+		}
+		"blish" {
+			$modules.Path.GetEnumerator() | foreach {
+				if (
+					($modules.Path[$_.key].conflicts -ne $null) -and
+					($modules.Path[$_.key].conflicts -eq $key)
+				) {
+					$modules.Path[$_.key]["UI1"].enabled = (-not $value)
+				}
+			}
+
+			break
+		}
+		"taco" {
+			$modules.Path.GetEnumerator() | foreach {
+				if (
+					($modules.Path[$_.key].conflicts -ne $null) -and
+					($modules.Path[$_.key].conflicts -eq $key)
+				) {
+					$modules.Path[$_.key]["UI2"].enabled = (-not $value)
+				}
+			}
+
+			break
+		}
+		"addons" {
+			$modules.ArcDPS[$key]["UI"].checked = $value
+
+			$modules.ArcDPS.GetEnumerator() | foreach {
+				$modules.ArcDPS[$_.key]["UI"].enabled = $true
+
+				if (
+					($modules.ArcDPS[$_.key].requires -ne $null) -and
+					($modules.ArcDPS[$_.key]["UI"].checked -eq $true)
+				) {
+					$modules.ArcDPS[$_.key].requires | foreach {
+						$req = $_ -replace '[^a-zA-Z]', ''
+
+						if ($modules.ArcDPS[$req] -ne $null) {
+							$modules.ArcDPS[$req]["UI"].checked = $true
+							$modules.ArcDPS[$req]["UI"].enabled = $false
+						}
+					}
+				}
+			}
 
 			break
 		}
@@ -996,6 +1094,8 @@ if (-not (Get-Module -ListAvailable -Name powershell-yaml)) {
 	nls 1
 }
 
+checkGithub
+
 Invoke-WebRequest "https://github.com/gw2-addon-loader/Approved-Addons/archive/refs/heads/master.zip" -OutFile "$checkfile.zip"
 Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Script_path\" -Force
 removefile "$checkfile.zip"
@@ -1007,6 +1107,7 @@ gci -Path "$Script_path\Approved-Addons-master\" -recurse -file -filter *.yaml |
 	if (
 		($name -ne "ArcDPSBlishHUDIntegration") -and
 		($name -ne "ArcDPS") -and
+		($name -ne "examplename") -and
 		$true
 	) {
 		$modules.ArcDPS[$name] = $yaml
@@ -1655,6 +1756,9 @@ $json | foreach {
 		$false
 	)
 }
+
+$modules.Path["ReActifEN"].conflicts = "ReActifFR"
+$modules.Path["ReActifFR"].conflicts = "ReActifEN"
 
 Invoke-WebRequest "https://pkgs.blishhud.com/packages.gz" -OutFile "$checkfile.gz"
 DeGZip-File "$checkfile.gz"
