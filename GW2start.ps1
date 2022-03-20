@@ -4,14 +4,11 @@ param($forceGUIfromBat = "")
 # Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen)
 # scan für zeug, dass nicht von dem Script verwaltet wird [ignore in config]
 # Warnung, wenn die Grafikeinstellungen falsch sind (geht einfach) und arc oder blish laufen
-# ArcDPS repo
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 # info, das repots gezogen werden
-# reactif nur de oder fr-block
 # setting, logindscreeninfo und autologin (als hidden setting ohne ui in der ini?)
 # github prio nach datum des letzten scans
 # die daten in das Timers-Module rein patchen
-# DX9/11 btn remove
 
 
 $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
@@ -125,6 +122,38 @@ function checkGithub() {
 		stopprocesses
 
 		nls 1
+		Write-Host "OK - we will wait until the updates are possible again. You can close this window everytime. No data will be damaged or deleted." -ForegroundColor Yellow
+		nls 1
+
+		do {
+			Start-Sleep -Seconds 60
+
+			Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json"
+			$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
+			removefile "$Script_path\github.json"
+		} until ($json.rate.remaining -ge 1)
+	}
+}
+
+function checkGithubLite() {
+	# check githubs API restrictions and waits until it's possible again
+	Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json"
+	$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
+	removefile "$Script_path\github.json"
+
+	if ($json.rate.remaining -lt 1) {
+		$date = (Get-Date -Date "1970-01-01 00:00:00Z").toLocalTime().addSeconds($json.rate.reset)
+
+		nls 3
+		Write-Host "No more updates possible due to API limitations by github.com :(" -ForegroundColor Red
+		nls 1
+		Write-Host "The restrictions will be lifted on:"
+		Write-Host $date -ForegroundColor Yellow
+		nls 1
+		Write-Host "Sorry for that."
+		nls 2
+		Write-Host "This script can't start doing anything now. So we need to wait."
+		nls 2
 		Write-Host "OK - we will wait until the updates are possible again. You can close this window everytime. No data will be damaged or deleted." -ForegroundColor Yellow
 		nls 1
 
@@ -272,6 +301,7 @@ function placingGUI {
 	$form.groupTaco.Location = New-Object System.Drawing.Size(($form.groupArc.Location.X + $form.groupArc.Width + 10) , $form.groupArc.Location.Y)
 	$form.groupBlish.Location = New-Object System.Drawing.Size(($form.groupTaco.Location.X + $form.groupTaco.Width + 10) , $form.groupArc.Location.Y)
 
+	$form.groupAddons.Location = New-Object System.Drawing.Size(($form.groupArc.Location.X), ($form.groupArc.Location.Y + $form.groupArc.height + 10))
 	$form.groupPaths.Location = New-Object System.Drawing.Size(($form.groupTaco.Location.X), ($form.groupArc.Location.Y + $form.groupArc.height + 10))
 	$form.groupModules.Location = New-Object System.Drawing.Size(($form.groupBlish.Location.X), ($form.groupArc.Location.Y + $form.groupArc.height + 10))
 
@@ -340,27 +370,6 @@ function showGUI {
 		changeGUI -category "path" -key "arc"
 	})
 	$form.groupArc.Controls.Add($form.pathArcLabel)
-
-	$form.arcDx9 = New-Object System.Windows.Forms.RadioButton
-	$form.arcDx9.Text = "DirectX 9"
-	$form.arcDx9.Location = New-Object System.Drawing.Point(10, 80)
-	$form.arcDx9.AutoSize = $true
-	$form.arcDx9.Add_Click({
-		changeGUI -category "dx" -key "9" -value $this.checked
-	})
-	$form.tooltip.SetToolTip($form.arcDx9, "Did you set Guildwars2 to use DirectX9 (default) or DirectX11?")
-	$form.groupArc.Controls.Add($form.arcDx9)
-
-	$form.arcDx11 = New-Object System.Windows.Forms.RadioButton
-	$form.arcDx11.Text = "DirectX 11"
-	$form.arcDx11.Location = New-Object System.Drawing.Point(90, 80)
-	$form.arcDx11.AutoSize = $true
-	$form.arcDx11.Add_Click({
-		changeGUI -category "dx" -key "11" -value $this.checked
-
-	})
-	$form.tooltip.SetToolTip($form.arcDx11, "Did you set Guildwars2 to use DirectX9 (default) or DirectX11?")
-	$form.groupArc.Controls.Add($form.arcDx11)
 
 	$form.main_form.Controls.Add($form.groupArc)
 
@@ -600,17 +609,6 @@ function validateGUI {
 
 	$validArc = (Test-Path ($form.pathArcLabel.Text + "\Gw2-64.exe"))
 
-	$form.arcDx9.enabled = ($validArc -and $form.enabledArc.Checked)
-	$form.arcDx11.enabled = ($validArc -and $form.enabledArc.Checked)
-
-	if ($conf.main.dx -eq $null) {
-		$form.arcDx9.checked = $false
-		$form.arcDx11.checked = $false
-	} else {
-		$form.arcDx9.checked = ($conf.main.dx -eq 9)
-		$form.arcDx11.checked = ($conf.main.dx -eq 11)
-	}
-
 # TACO
 	if ($conf.main.enabledTaco -eq $null) {
 		$form.enabledTaco.checked = $true
@@ -667,7 +665,7 @@ function validateGUI {
 
 # ARCDPS ADDONS
 	$modules.ArcDPS.GetEnumerator() | foreach {
-		$modules.ArcDPS[$_.key]["UI"].enabled = ($validArc -and $form.enabledArc.checked -and ($form.arcDx9.checked -or $form.arcDx11.checked))
+		$modules.ArcDPS[$_.key]["UI"].enabled = ($validArc -and $form.enabledArc.checked)
 
 		if ($conf.addons[$_.key] -eq $null) {
 			$modules.ArcDPS[$_.key]["UI"].checked = $_.value.default
@@ -758,12 +756,6 @@ function changeGUI($category, $key = 0, $value = 0) {
 			$conf.main.enabledTaco = $form.enabledTaco.checked
 			$conf.main.enabledBlish = $form.enabledBlish.checked
 
-			if ($form.arcDx9.checked) {
-				$conf.main.dx = 9
-			} elseif ($form.arcDx11.checked) {
-				$conf.main.dx = 11
-			}
-
 			$conf.main.runTaco = $form.TacoRun.Checked
 			$conf.main.runBlish = $form.BlishRun.Checked
 
@@ -790,29 +782,27 @@ function changeGUI($category, $key = 0, $value = 0) {
 					$form.pathArc.enabled = $value
 					$form.pathArcLabel.enabled = $value
 
-					if ((Test-Path ($form.pathArcLabel.Text + "\Gw2-64.exe"))) {
-						$form.arcDx9.Enabled = $value
-						$form.arcDx11.Enabled = $value
-					} else {
-						$form.arcDx9.Enabled = $false
-						$form.arcDx11.Enabled = $false
-					}
+					if (Test-Path ($form.pathArcLabel.Text + "\Gw2-64.exe")) {
+						$modules.ArcDPS.GetEnumerator() | foreach {
+							$modules.ArcDPS[$_.key]["UI"].enabled = $value
 
-					$modules.ArcDPS.GetEnumerator() | foreach {
-						$modules.ArcDPS[$_.key]["UI"].enabled = ($value -and ($form.arcDx9.checked -or $form.arcDx11.checked))
+							if (
+								($modules.ArcDPS[$_.key].requires -ne $null) -and
+								($modules.ArcDPS[$_.key]["UI"].checked -eq $true)
+							) {
+								$modules.ArcDPS[$_.key].requires | foreach {
+									$req = $_ -replace '[^a-zA-Z]', ''
 
-						if (
-							($modules.ArcDPS[$_.key].requires -ne $null) -and
-							($modules.ArcDPS[$_.key]["UI"].checked -eq $true)
-						) {
-							$modules.ArcDPS[$_.key].requires | foreach {
-								$req = $_ -replace '[^a-zA-Z]', ''
-
-								if ($modules.ArcDPS[$req] -ne $null) {
-									$modules.ArcDPS[$req]["UI"].checked = $true
-									$modules.ArcDPS[$req]["UI"].enabled = $false
+									if ($modules.ArcDPS[$req] -ne $null) {
+										$modules.ArcDPS[$req]["UI"].checked = $true
+										$modules.ArcDPS[$req]["UI"].enabled = $false
+									}
 								}
 							}
+						}
+					} else {
+						$modules.ArcDPS.GetEnumerator() | foreach {
+							$modules.ArcDPS[$_.key]["UI"].enabled = $false
 						}
 					}
 
@@ -863,12 +853,6 @@ function changeGUI($category, $key = 0, $value = 0) {
 			}
 			break
 		}
-		"dx" {
-			$modules.ArcDPS.GetEnumerator() | foreach {
-				$modules.ArcDPS[$_.key]["UI"].enabled = $true
-			}
-			break
-		}
 		"path" {
 			switch($key) {
 				"arc" {
@@ -892,11 +876,8 @@ function changeGUI($category, $key = 0, $value = 0) {
 
 					$form.pathArcLabel.Text = $path
 
-					$form.arcDx9.Enabled = $true
-					$form.arcDx11.Enabled = $true
-
 					$modules.ArcDPS.GetEnumerator() | foreach {
-						$modules.ArcDPS[$_.key]["UI"].enabled = ($value -and ($form.arcDx9.checked -or $form.arcDx11.checked))
+						$modules.ArcDPS[$_.key]["UI"].enabled = $value
 					}
 
 					break
@@ -1094,7 +1075,7 @@ if (-not (Get-Module -ListAvailable -Name powershell-yaml)) {
 	nls 1
 }
 
-checkGithub
+checkGithubLite
 
 Invoke-WebRequest "https://github.com/gw2-addon-loader/Approved-Addons/archive/refs/heads/master.zip" -OutFile "$checkfile.zip"
 Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Script_path\" -Force
@@ -1125,7 +1106,6 @@ gci -Path "$Script_path\Approved-Addons-master\" -recurse -file -filter *.yaml |
 Remove-Item "$Script_path\Approved-Addons-master" -recurse -force
 
 <#
-
 #######################################################################################################################################################################################################################################
 ### USER-FACING INFO ###
 # developer of the add-on
@@ -1979,7 +1959,7 @@ if ($conf.main.enabledArc) {
 	$targeturl = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll"
 	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
-	$new = ((Get-Content "$checkfile" -Raw).Trim() + " for DirectX " + $conf.main.dx)
+	$new = (Get-Content "$checkfile" -Raw).Trim()
 	removefile "$checkfile"
 
 	if (
@@ -1991,6 +1971,9 @@ if ($conf.main.enabledArc) {
 		Write-Host "is being updated" -ForegroundColor Green
 
 		removefile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
+
+		newdir "$GW2_path\addons\"
+		newdir "$GW2_path\addons\arcdps\"
 
 		Invoke-WebRequest "$targeturl" -OutFile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
 
@@ -2336,11 +2319,13 @@ $modules.Path.GetEnumerator() | foreach {
 	}
 }
 
-# auto update ArcDPS modules
+# auto update ArcDPS addons
 $modules.ArcDPS.GetEnumerator() | foreach {
 	$targetcheck = "$GW2_path\addons"
+	$key = $_.key
+	$value = $_.value
 
-	switch($_.key) {
+	switch($key) {
 		"GWRadialDD" {
 			$targetcheck = "$targetcheck\gw2radial_d3d9"
 			break
@@ -2350,14 +2335,14 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 			break
 		}
 		default {
-			if ($_.value.install_mode -eq "arc") {
-				if ((($_.value.plugin_name).length) -ne 0) {
-					$targetcheck = "$targetcheck\arcdps\" + $_.value.plugin_name
+			if ($value.install_mode -eq "arc") {
+				if ((($value.plugin_name).length) -ne 0) {
+					$targetcheck = "$targetcheck\arcdps\" + $value.plugin_name
 				} else {
-					$targetcheck = "$targetcheck\arcdps\d3d9_arcdps_" + $_.value.addon_name + ".dll"
+					$targetcheck = "$targetcheck\arcdps\"
 				}
 			} else {
-				$targetcheck = "$targetcheck\" +(($_.key).ToLower())
+				$targetcheck = "$targetcheck\" +(($key).ToLower())
 			}
 
 			break
