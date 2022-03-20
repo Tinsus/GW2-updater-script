@@ -10,6 +10,8 @@ param($forceGUIfromBat = "")
 # reactif nur de oder fr-block
 # setting, logindscreeninfo und autologin (als hidden setting ohne ui in der ini?)
 # github prio nach datum des letzten scans
+# die daten in das Timers-Module rein patchen
+# DX9/11 btn remove
 
 
 $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
@@ -1003,7 +1005,6 @@ gci -Path "$Script_path\Approved-Addons-master\" -recurse -file -filter *.yaml |
 	$name = $yaml.addon_name -replace '[^a-zA-Z]', ''
 
 	if (
-		($name -ne "examplename") -and
 		($name -ne "ArcDPSBlishHUDIntegration") -and
 		($name -ne "ArcDPS") -and
 		$true
@@ -1764,7 +1765,7 @@ if ($forceGUI) {
 	} while ($r -ne "OK")
 }
 
-while ((checkPathValidity)) {
+while (checkPathValidity) {
 	$r = showGUI
 }
 
@@ -1826,6 +1827,48 @@ Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2star
 removefile "$Script_path\GW2start-config.bat"
 Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start-config.bat" -OutFile "$Script_path/GW2start-config.bat"
 
+# auto update Core-Loader from the GW2-Addon-loader geniuses
+if ($conf.main.enabledArc) {
+	checkGithub
+
+	$checkurl = "https://api.github.com/repos/gw2-addon-loader/loader-core/releases/latest"
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
+
+	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+	$new = $json.tag_name
+	removefile "$checkfile"
+
+	if (
+		($conf.versions_main.loadercore -eq $null) -or
+		($conf.versions_main.loadercore -ne $new) -or
+		(-not (Test-Path "$GW2_path\bin64\d3d9.dll")) -or
+		(-not (Test-Path "$GW2_path\addonLoader.dll")) -or
+		(-not (Test-Path "$GW2_path\d3d11.dll")) -or
+		(-not (Test-Path "$GW2_path\dxgi.dll"))
+	) {
+		Write-Host "Addon-Loader-Core " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
+
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
+		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$GW2_path\" -Force
+		removefile "$checkfile.zip"
+
+		$conf.versions_main.loadercore = $new
+		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+	} else {
+		Write-Host "Addon-Loader-Core " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
+	}
+} else {
+	removefile "$GW2_path\bin64\d3d9.dll"
+	removefile "$GW2_path\addonLoader.dll"
+	removefile "$GW2_path\d3d11.dll"
+	removefile "$GW2_path\dxgi.dll"
+
+	$conf.version_main.psobject.properties.remove('loadercore')
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
 # auto update ArcDPS
 if ($conf.main.enabledArc) {
 	$checkurl = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum"
@@ -1837,23 +1880,15 @@ if ($conf.main.enabledArc) {
 
 	if (
 		($conf.versions_main.ArcDPS -eq $null) -or
-		($conf.versions_main.ArcDPS -ne $new)
+		($conf.versions_main.ArcDPS -ne $new) -or
+		(-not (Test-Path "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"))
 	) {
 		Write-Host "ArcDPS " -NoNewline -ForegroundColor White
 		Write-Host "is being updated" -ForegroundColor Green
 
-		removefile "$GW2_path\bin64\d3d9.dll"
-		removefile "$GW2_path\bin64\d3d11.dll"
-		removefile "$GW2_path\d3d9.dll"
-		removefile "$GW2_path\d3d11.dll"
+		removefile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
 
-		$targetfile = "$GW2_path\bin64\d3d9.dll"
-
-		if ($conf.main.dx -eq 11) {
-			$targetfile = "$GW2_path\d3d11.dll"
-		}
-
-		Invoke-WebRequest "$targeturl" -OutFile "$targetfile"
+		Invoke-WebRequest "$targeturl" -OutFile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
 
 		$conf.versions_main.ArcDPS = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
@@ -1862,10 +1897,7 @@ if ($conf.main.enabledArc) {
 		Write-Host "is up-to-date"
 	}
 } else {
-	removefile "$GW2_path\bin64\d3d9.dll"
-	removefile "$GW2_path\bin64\d3d11.dll"
-	removefile "$GW2_path\d3d9.dll"
-	removefile "$GW2_path\d3d11.dll"
+	removefile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
 
 	$conf.version_main.psobject.properties.remove('ArcDPS')
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
@@ -2202,65 +2234,77 @@ $modules.Path.GetEnumerator() | foreach {
 
 # auto update ArcDPS modules
 $modules.ArcDPS.GetEnumerator() | foreach {
+	$targetcheck = "$GW2_path\addons"
+
+	switch($_.key) {
+		"GWRadialDD" {
+			$targetcheck = "$targetcheck\gw2radial_d3d9"
+			break
+		}
+		"ddwrapper" {
+			$targetcheck = "$targetcheck\d3d9_wrapper\gw2addon_d3d9_wrapper.dll"
+			break
+		}
+		default {
+			if ($_.value.install_mode -eq "arc") {
+				if ((($_.value.plugin_name).length) -ne 0) {
+					$targetcheck = "$targetcheck\arcdps\" + $_.value.plugin_name
+				} else {
+					$targetcheck = "$targetcheck\arcdps\d3d9_arcdps_" + $_.value.addon_name + ".dll"
+				}
+			} else {
+				$targetcheck = "$targetcheck\" +(($_.key).ToLower())
+			}
+
+			break
+		}
+	}
+
 	if ($conf.addons[$_.key] -and $conf.main.enabledArc) {
 		if ($_.value.host_type -eq "github") {
 			$checkurl = $_.value.host_url
-			$targetfile = "$GW2_path\bin64\" + $_.value.plugin_name
-Write-Host $_.value.plugin_name
 
 			if (
-				($_.value.download_type -eq "archive") -and
-				($_.value.install_mode -eq "binary")
-			) {
-				$targetfile = "$GW2_path\addons\" + $_.value.addon_name
-			}
-
-			checkGithub
-			Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-
-			$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-			$new = $json.name
-			removefile "$checkfile"
-
-Write-Host $conf.versions_addons[$_.key]
-Write-Host $new
-			if (
-				($conf.versions_addons[$_.key] -eq $null) -or
-				($conf.versions_addons[$_.key] -ne $new) -or
-				(-not (Test-Path "$targetfile"))
-			) {
-				Write-Host "ArcDPS addon '" -NoNewline
-				Write-Host $_.value.addon_name -NoNewline -ForegroundColor White
-				Write-Host "' is being updated" -ForegroundColor Green
-
-				$download = $json.assets.browser_download_url
-Write-Host $json.assets.browser_download_url
-Write-Host $targetfile
-
-				if (
-					($_.value.download_type -eq ".dll") -and
-					($_.value.install_mode -eq ".dll")
-				) {
-					removefile "$targetfile"
-					Invoke-WebRequest $download -OutFile "$targetfile"
-				} elseif (
+				(
 					($_.value.download_type -eq "archive") -and
 					($_.value.install_mode -eq "binary")
-				) {
-					Remove-Item "$targetfile" -Recurse -Force -ErrorAction SilentlyContinue
-					Invoke-WebRequest $download -OutFile "$checkfile.zip"
-					Expand-Archive -Path "$checkfile.zip" -DestinationPath ("$GW2_path\addons\") -Force
-					removefile "$checkfile.zip"
-				} elseif (
+				) -or (
 					($_.value.download_type -eq "archive") -and
 					($_.value.install_mode -eq "arc")
+				) -or (
+					($_.value.download_type -eq ".dll") -and
+					($_.value.install_mode -eq "arc")
+				)
+			) {
+				checkGithub
+				Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
+
+				$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+				$new = $json.name
+				removefile "$checkfile"
+
+				if (
+					($conf.versions_addons[$_.key] -eq $null) -or
+					($conf.versions_addons[$_.key] -ne $new) -or
+					(-not (Test-Path "$targetcheck"))
 				) {
-					removefile "$targetfile"
+					Write-Host "ArcDPS addon '" -NoNewline
+					Write-Host $_.value.addon_name -NoNewline -ForegroundColor White
+					Write-Host "' is being updated" -ForegroundColor Green
+
+					$download = $json.assets.browser_download_url
+
+					Remove-Item ("$targetcheck" + "\*") -Recurse -Force -ErrorAction SilentlyContinue
 					Invoke-WebRequest $download -OutFile "$checkfile.zip"
-					Expand-Archive -Path "$checkfile.zip" -DestinationPath "$checkfile\" -Force
+
+
+					if ($_.value.install_mode -eq "binary") {
+						Expand-Archive -Path "$checkfile.zip" -DestinationPath ("$GW2_path\addons\") -Force
+					} elseif ($_.value.install_mode -eq "arc") {
+						Expand-Archive -Path "$checkfile.zip" -DestinationPath ("$targetcheck") -Force
+					}
+
 					removefile "$checkfile.zip"
-					Copy-Item ("$checkfile\" + $_.value.plugin_name) -Destination "$targetfile"
-					Remove-Item "$checkfile" -Recurse -Force -ErrorAction SilentlyContinue
 				}
 
 				$conf.versions_addons[$_.key] = $new
@@ -2281,7 +2325,7 @@ Write-Host $targetfile
 			if (
 				($conf.versions_addons[$_.key] -eq $null) -or
 				($conf.versions_addons[$_.key] -ne $new) -or
-				(-not (Test-Path ("$targetfile\d3d9_arcdps_" + $_.value.addon_name + $_.value.download_type)))
+				(-not (Test-Path ("$targetfile\d3d9_arcdps_" + $_.value.addon_name + ".dll")))
 			) {
 				Write-Host "ArcDPS addon '" -NoNewline
 				Write-Host $_.value.addon_name -NoNewline -ForegroundColor White
@@ -2307,8 +2351,9 @@ Write-Host $targetfile
 			}
 		}
 	} else {
-		if ($_.value.plugin_name.length -ne 0) {
-			removefile ("$GW2_path\bin64\" + $_.value.plugin_name)
+		if ("$targetcheck" -ne "$GW2_path\addons") {
+			Remove-Item ("$targetcheck" + "\*") -Recurse -Force -ErrorAction SilentlyContinue
+			removefile "$targetcheck"
 		}
 
 		$conf.versions_addons.psobject.properties.remove($_.key)
