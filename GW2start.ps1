@@ -2321,6 +2321,7 @@ $modules.Path.GetEnumerator() | foreach {
 
 # auto update ArcDPS addons
 $modules.ArcDPS.GetEnumerator() | foreach {
+	$targetpath = "$GW2_path\addons"
 	$targetcheck = "$GW2_path\addons"
 	$key = $_.key
 	$value = $_.value
@@ -2337,9 +2338,8 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 		default {
 			if ($value.install_mode -eq "arc") {
 				if ((($value.plugin_name).length) -ne 0) {
+					$targetpath = "$targetpath\arcdps"
 					$targetcheck = "$targetcheck\arcdps\" + $value.plugin_name
-				} else {
-					$targetcheck = "$targetcheck\arcdps\"
 				}
 			} else {
 				$targetcheck = "$targetcheck\" +(($key).ToLower())
@@ -2381,18 +2381,9 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					Write-Host $_.value.addon_name -NoNewline -ForegroundColor White
 					Write-Host "' is being updated" -ForegroundColor Green
 
-					$download = $json.assets.browser_download_url
-
-					Remove-Item ("$targetcheck" + "\*") -Recurse -Force -ErrorAction SilentlyContinue
-					Invoke-WebRequest $download -OutFile "$checkfile.zip"
-
-
-					if ($_.value.install_mode -eq "binary") {
-						Expand-Archive -Path "$checkfile.zip" -DestinationPath ("$GW2_path\addons\") -Force
-					} elseif ($_.value.install_mode -eq "arc") {
-						Expand-Archive -Path "$checkfile.zip" -DestinationPath ("$targetcheck") -Force
-					}
-
+					#Remove-Item ("$targetcheck\*") -Recurse -Force -ErrorAction SilentlyContinue
+					Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
+					Expand-Archive -Path "$checkfile.zip" -DestinationPath "$targetpath\" -Force
 					removefile "$checkfile.zip"
 				}
 
@@ -2441,8 +2432,8 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 		}
 	} else {
 		if ("$targetcheck" -ne "$GW2_path\addons") {
-			Remove-Item ("$targetcheck" + "\*") -Recurse -Force -ErrorAction SilentlyContinue
-			removefile "$targetcheck"
+#			Remove-Item ("$targetcheck\*") -Recurse -Force -ErrorAction SilentlyContinue
+#			removefile "$targetcheck"
 		}
 
 		$conf.versions_addons.psobject.properties.remove($_.key)
