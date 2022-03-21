@@ -1075,7 +1075,13 @@ if (-not (Get-Module -ListAvailable -Name powershell-yaml)) {
 	nls 1
 }
 
+#some "welcoming" text
+Clear-Host
+nls 7
 checkGithubLite
+Write-Host "Before we can do any nice stuff let us see what nice stuff is out there."
+nls 1
+Write-Host "Find interesting addons like ArcDPS plugins and other stuff."
 
 Invoke-WebRequest "https://github.com/gw2-addon-loader/Approved-Addons/archive/refs/heads/master.zip" -OutFile "$checkfile.zip"
 Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Script_path\" -Force
@@ -1688,6 +1694,265 @@ conflicts:
 #######################################################################################################################################################################################################################################
 #>
 
+<#
+#######################################################################################################################################################################################################################################
+developer: megai2
+website: https://github.com/megai2/SelectRenderer
+addon_name: SelectRenderer
+description: "Ingame UI based render selection for GW2"
+tooltip: Allows selection of various render paths like DXVK, d912pxy, etc.
+host_type: github
+host_url: https://api.github.com/repos/megai2/SelectRenderer/releases/latest
+version_url:
+download_type: archive
+install_mode: binary
+requires:
+    - d3d9_wrapper
+    - lib_imgui
+conflicts:
+#######################################################################################################################################################################################################################################
+developer: DeltaConnected
+website: https://www.deltaconnected.com/arcdps/
+addon_name: ArcDPS
+description: ArcDPS allows the player to view their DPS and offers other tools like FPS and ping metrics. By default, this menu can be made visible in-game with the keybind alt+shift+h. For more information, click the link above to visit the website.
+tooltip: Displays a DPS meter - by DeltaConnected
+host_type: standalone
+host_url: https://www.deltaconnected.com/arcdps/gw2addon_arcdps.dll
+version_url: https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum
+download_type: .dll
+install_mode: binary
+requires:
+conflicts:
+#######################################################################################################################################################################################################################################
+developer: Greaka
+website: https://github.com/blish-hud/arcdps-bhud
+addon_name: ArcDPS Blish HUD Integration
+description: This addon provides data from the Arcdps Combat API to the Blish HUD overlay, where it can be used by different Blish HUD modules for optimization and additional functionality.
+tooltip: Uses the ArcDPS Combat API to provide data to Blish HUD - by Greaka
+host_type: github
+host_url: https://api.github.com/repositories/187708533/releases/latest
+version_url:
+download_type: archive
+install_mode: arc
+plugin_name: arcdps_bhud.dll
+requires:
+    - arcdps
+conflicts:
+#######################################################################################################################################################################################################################################
+developer: knoxfighter, original by MarsEdge
+website: https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table
+addon_name: ArcDPS Boon Table
+description: Displays squad boon uptime for a number of boons and includes information such as individual player boon uptime and their subsquad.
+tooltip: by knoxfighter, original by MarsEdges
+host_type: github
+host_url: https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest
+version_url:
+download_type: .dll
+install_mode: arc
+plugin_name: d3d9_arcdps_boontable.dll
+requires:
+    - arcdps
+conflicts:
+#######################################################################################################################################################################################################################################
+developer: Sejsel
+website: https://gw2scratch.com/tools/arcdps-clears
+addon_name: ArcDPS Clears
+description: Adds a window for quickly checking your current weekly clears in the game.
+tooltip: Check your weekly clears in the game
+host_type: github
+host_url: https://api.github.com/repos/gw2scratch/arcdps-clears/releases/latest
+version_url:
+download_type: .dll
+install_mode: arc
+plugin_name: arcdps_clears.dll
+requires:
+    - arcdps
+conflicts:
+#######################################################################################################################################################################################################################################
+developer: Zerthox
+website: https://github.com/zerthox/arcdps-food-reminder
+addon_name: ArcDPS Food Reminder
+description: Displays a reminder for your own Food/Utility item buffs. Adds an overview of Food & Utility item buffs on your Party/Squad and own characters.
+tooltip: Track Food & Utility buffs
+host_type: github
+host_url: https://api.github.com/repos/zerthox/arcdps-food-reminder/releases/latest
+version_url:
+download_type: .dll
+install_mode: arc
+plugin_name: arcdps_food_reminder.dll
+requires:
+    - arcdps
+conflicts:
+#######################################################################################################################################################################################################################################
+developer: Kappa322
+website: https://github.com/Krappa322/arcdps_healing_stats
+addon_name: ArcDPS Healing Stats
+description: "Shows personal healing statistics based on your local stats (i.e. your own healing output).\n\nThis includes outgoing healing per target and per skill, as well as filtering to only include your own subgroup/squad and to exclude minions"
+tooltip: Shows statistics for personal healing done
+host_type: github
+host_url: https://api.github.com/repos/Krappa322/arcdps_healing_stats/releases/latest
+version_url:
+download_type: .dll
+install_mode: arc
+plugin_name: arcdps_healing_stats.dll
+requires:
+    - arcdps
+conflicts:
+#######################################################################################################################################################################################################################################
+developer: knoxfighter
+website: https://github.com/knoxfighter/arcdps-killproof.me-plugin
+addon_name: ArcDPS Killproof-me Plugin
+description: This addon shows the killproofs of players, that are registered on killproof.me
+tooltip: Shows killproof.me data ingame
+host_type: github
+host_url: https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest
+version_url:
+download_type: .dll
+install_mode: arc
+plugin_name: d3d9_arcdps_killproof_me.dll
+requires:
+    - arcdps
+conflicts:
+#######################################################################################################################################################################################################################################
+developer: knoxfighter, original by MarsEdge
+website: https://github.com/knoxfighter/GW2-ArcDPS-Mechanics-Log
+addon_name: ArcDPS Mechanics Plugin
+description: This addon shows mechanics that players have failed during a raid encounter. A list of the failed mechanics is displayed, including which player failed what mechanic and at what time during the fight.
+tooltip: Provides information about raid mechanics using the ArcDPS Combat API - by knoxfighter, original by MarsEdge
+host_type: github
+host_url: https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Mechanics-Log/releases/latest
+version_url:
+download_type: .dll
+install_mode: arc
+plugin_name: d3d9_arcdps_mechanics.dll
+requires:
+    - arcdps
+conflicts:
+#######################################################################################################################################################################################################################################
+developer: Artenuvielle
+website: https://github.com/Artenuvielle/GW2-SCT
+addon_name: ArcDPS Scrolling Combat Text
+description: Adds a highly customizable scrolling combat text beside the users character. Incoming damage is by default displayed on the left side, outgoing damage on the right side.
+tooltip: Shows all damage numbers as a highly customizable wall of scrolling text.
+host_type: github
+host_url: https://api.github.com/repos/Artenuvielle/GW2-SCT/releases/latest
+version_url:
+download_type: .dll
+install_mode: arc
+plugin_name: d3d9_arcdps_sct.dll
+requires:
+    - arcdps
+conflicts:
+#######################################################################################################################################################################################################################################
+developer: Kappa322/knoxfighter
+website: https://github.com/Krappa322/arcdps_unofficial_extras_releases/
+addon_name: ArcDPS Unofficial Extras
+description: "This plugin provides additional information to other plugins. For example, it enables the killproof.me addon to display players who are not in the same instance.\n\nIt also has some small features by itself, such as mouse clipping, which prevents accidentally interacting with things while panning the camera"
+tooltip: Additional features for arcdps and plugins
+host_type: github
+host_url: https://api.github.com/repos/Krappa322/arcdps_unofficial_extras_releases/releases/latest
+version_url:
+download_type: .dll
+install_mode: arc
+plugin_name: arcdps_unofficial_extras.dll
+requires:
+    - arcdps
+conflicts:
+#######################################################################################################################################################################################################################################
+developer: datatobridge
+website: https://github.com/datatobridge/arcdps-uploader
+addon_name: ArcDPS uploader
+description: This is an extension for Arcdps that allows you to preview and upload EVTC combat logs in-game
+tooltip: preview and upload EVTC combat logs in-game by datatobridge
+host_type: github
+host_url: https://api.github.com/repos/datatobridge/arcdps-uploader/releases/latest
+version_url:
+download_type: archive
+install_mode: arc
+plugin_name: d3d9_uploader.dll
+requires:
+    - arcdps
+conflicts:
+#######################################################################################################################################################################################################################################
+developer: e-scrape-artist
+website: https://buildpad.gw2archive.eu
+addon_name: BuildPad
+description:
+    "A companion plugin to ArcDPS that allows you to organize a list of saved builds and copy them with one click.\n\nIt detects your ArcDPS templates and converts them (automatically and/or manually) to GW2 templates. Your old gear templates, which cannot be pasted into GW2, can be previewed inside the plugin so you can remind yourself which items and stats you had saved."
+tooltip: Offline build storage
+host_type: standalone
+host_url: https://buildpad.gw2archive.eu/versions/latest
+version_url:
+download_type: .dll
+install_mode: arc
+plugin_name:
+requires:
+    - arcdps
+conflicts:
+additional_flags:
+    - self-updating
+    - obscured-filename
+#######################################################################################################################################################################################################################################
+developer: Megai2
+website: https://github.com/gw2-addon-loader/d3d9_wrapper
+addon_name: d3d9 wrapper
+description: Wrapper for D3D9 API that includes advanced hooking and custom d3d9 loading. \n\n Base library to support multiple addons that use D3D9 based rendering.
+tooltip: Advanced D3D9 API wrapper -by gw2al team
+host_type: github
+host_url: https://api.github.com/repos/gw2-addon-loader/d3d9_wrapper/releases/latest
+version_url:
+download_type: archive
+install_mode: binary
+requires:
+conflicts:
+#######################################################################################################################################################################################################################################
+developer: Megai2
+website: https://github.com/megai2/d912pxy
+addon_name: d912pxy
+description: "D912pxy is a tool that allows Guild Wars 2 to use DirectX 12 by translating calls for DirectX 9 to DirectX 12.\nWhat should you expect from this?
+    \n\n - More stable FPS in general\n - Higher FPS if you have free CPU and GPU power\n - Lower FPS if you have no extra CPU power / GPU power\n - Higher RAM and VRAM usage\n -
+    Those using an eGPU can expect big improvements due to GPU-CPU bandwith optimization\n - Some visual bugs, the most notable being character portraits glitching."
+tooltip: Translates DirectX 9 calls to DirectX 12 for performance improvements - by Megai2
+host_type: github
+host_url: https://api.github.com/repos/megai2/d912pxy/releases/latest
+version_url:
+download_type: archive
+install_mode: binary
+requires:
+    - d3d9_wrapper
+conflicts:
+    - gw2hook
+#######################################################################################################################################################################################################################################
+developer: FriendlyFire
+website: https://github.com/Friendly0Fire/GW2Radial
+addon_name: GW2 Radial
+description: "An addon to show a convenient, customizable radial menu overlay to select a mount, novelty item and more, on the fly, for Guild Wars 2: Path of Fire."
+tooltip: Provides various radial menus allowing quick access to mounts and more with one keypress - by FriendlyFire
+host_type: github
+host_url: https://api.github.com/repos/Friendly0Fire/gw2radial/releases/latest
+version_url:
+download_type: archive
+install_mode: binary
+requires:
+    - d3d9_wrapper
+conflicts:
+#######################################################################################################################################################################################################################################
+developer: FriendlyFire
+website: https://github.com/gw2-addon-loader/GW2Radial
+addon_name: GW2 Radial (D3D9)
+description: "[D3D9 VERSION] An addon to show a convenient, customizable radial menu overlay to select a mount, novelty item and more, on the fly, for Guild Wars 2: Path of Fire."
+tooltip: Provides various radial menus allowing quick access to mounts and more with one keypress - by FriendlyFire
+host_type: github
+host_url: https://api.github.com/repos/gw2-addon-loader/gw2radial/releases/latest
+version_url:
+download_type: archive
+install_mode: binary
+requires:
+    - d3d9_wrapper
+conflicts:
+#######################################################################################################################################################################################################################################
+#>
+
 $modules.Path.schattenfluegel = @{
 	name = "Schattenfluegel"
 	desc = "map pack to show be better than TEKKIT. It adds shotcuts and way better pathes. Way better design, but not as complete as TEKKIT."
@@ -1708,6 +1973,8 @@ $modules.Path.czokalapiks = @{
 	platform = "bitbucket"
 	blishonly = $false
 }
+
+Write-Host "Get the newest Blish HUD modules like the Pathing or Timers module."
 
 Invoke-WebRequest "https://mp-repo.blishhud.com/repo.json" -OutFile "$checkfile"
 $json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
@@ -1739,6 +2006,8 @@ $json | foreach {
 
 $modules.Path["ReActifEN"].conflicts = "ReActifFR"
 $modules.Path["ReActifFR"].conflicts = "ReActifEN"
+
+Write-Host "Now checkout some excelent paths out of the 'Neuland' some of you may know."
 
 Invoke-WebRequest "https://pkgs.blishhud.com/packages.gz" -OutFile "$checkfile.gz"
 DeGZip-File "$checkfile.gz"
@@ -1789,6 +2058,8 @@ $json | foreach {
 		)
 	}
 }
+
+Write-Host "We got them all. Lets check out your setting."
 
 #build config
 $form = @{}
@@ -1857,7 +2128,11 @@ $GW2_path = $conf.main.pathArc
 $TacO_path = $conf.main.pathTaco
 $BlishHUD_path = $conf.main.pathBlish
 
-nls 3
+
+<#
+
+
+nls 2
 Write-Host "To change any settings for this script checkout the GW2start-config.bat file located " -NoNewline
 Write-Host "$Script_path\GW2start-config.bat" -ForegroundColor White
 
@@ -1871,10 +2146,7 @@ if (-not $forceGUI) {
 }
 
 # now the real magic:
-Clear-Host
 stopprocesses
-
-nls 7
 
 # give message about GW2 build id
 $checkurl = "https://api.guildwars2.com/v2/build"
@@ -1889,7 +2161,8 @@ if (
 	($conf.versions_main.GW2 -ne $new)
 ) {
 	Write-Host "Guildwars 2 " -NoNewline -ForegroundColor White
-	Write-Host "will update itself to build $new" -ForegroundColor Green
+	Write-Host "will update itself to " -NoNewline
+	Write-Host "build $new" -ForegroundColor Green
 
 	$conf.versions_main.GW2 = $new
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
@@ -2319,83 +2592,138 @@ $modules.Path.GetEnumerator() | foreach {
 	}
 }
 
+
+#>
+
 # auto update ArcDPS addons
 $modules.ArcDPS.GetEnumerator() | foreach {
 	$targetpath = "$GW2_path\addons"
-	$targetcheck = "$GW2_path\addons"
 	$key = $_.key
 	$value = $_.value
 
 	switch($key) {
 		"GWRadialDD" {
-			$targetcheck = "$targetcheck\gw2radial_d3d9"
-			break
-		}
-		"ddwrapper" {
-			$targetcheck = "$targetcheck\d3d9_wrapper\gw2addon_d3d9_wrapper.dll"
-			break
-		}
-		default {
-			if ($value.install_mode -eq "arc") {
-				if ((($value.plugin_name).length) -ne 0) {
-					$targetpath = "$targetpath\arcdps"
-					$targetcheck = "$targetcheck\arcdps\" + $value.plugin_name
-				}
-			} else {
-				$targetcheck = "$targetcheck\" +(($key).ToLower())
-			}
+			$targetpath = "$targetpath\gw2radial_d3d9"
 
 			break
+		}
+		
+#TESTEN! erscheint unvollständig
+		
+#		"ddwrapper" {
+#			$targetpath = "$targetpath\d3d9_wrapper\gw2addon_d3d9_wrapper.dll"
+#			break
+#		}
+	}
+
+	if ($value.install_mode -eq "arc") {
+			$targetpath = "$GW2_path\addons\arcdps"
+
+		if ($value.plugin_name -ne $null) {
+			$targetpath = "$targetpath\" + $value.plugin_name
+		} else {
+			Write-Host "NO PLUGIN NAME (bad repo pfui pfui pfui)"
+			Write-Host $value.name
 		}
 	}
 
-	if ($conf.addons[$_.key] -and $conf.main.enabledArc) {
-		if ($_.value.host_type -eq "github") {
-			$checkurl = $_.value.host_url
+	if ($conf.addons[$key] -and $conf.main.enabledArc) {
+		if ($value.host_type -eq "github") {
+			checkGithub
+			Invoke-WebRequest $value.host_url -OutFile "$checkfile"
 
+			$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+			$new = $json.name
+			removefile "$checkfile"
+
+#buggy weil zu viele ordner tief?
 			if (
-				(
-					($_.value.download_type -eq "archive") -and
-					($_.value.install_mode -eq "binary")
-				) -or (
-					($_.value.download_type -eq "archive") -and
-					($_.value.install_mode -eq "arc")
-				) -or (
-					($_.value.download_type -eq ".dll") -and
-					($_.value.install_mode -eq "arc")
-				)
+					($value.download_type -eq "archive") -and
+					($value.install_mode -eq "binary")
 			) {
-				checkGithub
-				Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
-
-				$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-				$new = $json.name
-				removefile "$checkfile"
-
 				if (
-					($conf.versions_addons[$_.key] -eq $null) -or
-					($conf.versions_addons[$_.key] -ne $new) -or
-					(-not (Test-Path "$targetcheck"))
+					($conf.versions_addons[$key] -eq $null) -or
+					($conf.versions_addons[$key] -ne $new) -or
+					(-not (Test-Path "$targetpath"))
 				) {
-					Write-Host "ArcDPS addon '" -NoNewline
-					Write-Host $_.value.addon_name -NoNewline -ForegroundColor White
+					Write-Host "Addon '" -NoNewline
+					Write-Host $value.addon_name -NoNewline -ForegroundColor White
 					Write-Host "' is being updated" -ForegroundColor Green
 
-					#Remove-Item ("$targetcheck\*") -Recurse -Force -ErrorAction SilentlyContinue
+					Remove-Item ("$targetpath\*") -Recurse -Force -ErrorAction SilentlyContinue
 					Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
 					Expand-Archive -Path "$checkfile.zip" -DestinationPath "$targetpath\" -Force
 					removefile "$checkfile.zip"
-				}
 
-				$conf.versions_addons[$_.key] = $new
-				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-			} else {
-				Write-Host "ArcDPS addon '" -NoNewline
-				Write-Host $_.value.addon_name -NoNewline -ForegroundColor White
-				Write-Host "' is up-to-date"
+					$conf.versions_addons[$key] = $new
+					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				} else {
+					Write-Host "Addon '" -NoNewline
+					Write-Host $value.addon_name -NoNewline -ForegroundColor White
+					Write-Host "' is up-to-date"
+				}
+			} elseif (
+					($value.download_type -eq "archive") -and
+					($value.install_mode -eq "arc")
+			) {
+				if (
+					($conf.versions_addons[$key] -eq $null) -or
+					($conf.versions_addons[$key] -ne $new) -or
+					(-not (Test-Path "$targetpath"))
+				) {
+					Write-Host "Addon '" -NoNewline
+					Write-Host $value.addon_name -NoNewline -ForegroundColor White
+					Write-Host "' is being updated" -ForegroundColor Green
+
+					Remove-Item "$targetpath" -Recurse -Force -ErrorAction SilentlyContinue
+
+					Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
+					newdir "$checkfile\"
+					Expand-Archive -Path "$checkfile.zip" -DestinationPath "$checkfile\" -Force
+					removefile "$checkfile.zip"
+
+					gci -Path "$checkfile\*" -recurse -file -filter *.dll | foreach {
+						Copy-Item $_.fullname -Destination "$targetpath"
+					}
+
+					Remove-Item "$checkfile" -recurse -force
+
+					$conf.versions_addons[$key] = $new
+#					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				} else {
+					Write-Host "Addon '" -NoNewline
+					Write-Host $value.addon_name -NoNewline -ForegroundColor White
+					Write-Host "' is up-to-date"
+				}
+			} elseif (
+					($value.download_type -eq ".dll") -and
+					($value.install_mode -eq "arc")
+			) {
+				if (
+					($conf.versions_addons[$key] -eq $null) -or
+					($conf.versions_addons[$key] -ne $new) -or
+					(-not (Test-Path "$targetpath"))
+				) {
+					Write-Host "Addon '" -NoNewline
+					Write-Host $value.addon_name -NoNewline -ForegroundColor White
+					Write-Host "' is being updated" -ForegroundColor Green
+
+					removefile "$targetpath"
+
+					$download = $json.assets.browser_download_url
+Write-Host $download
+					Invoke-WebRequest $download -OutFile "$targetpath"
+
+					$conf.versions_addons[$key] = $new
+#					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				} else {
+					Write-Host "Addon '" -NoNewline
+					Write-Host $value.addon_name -NoNewline -ForegroundColor White
+					Write-Host "' is up-to-date"
+				}
 			}
-		} elseif ($_.value.host_type -eq "standalone") {
-			$checkurl = $_.value.website
+		} elseif ($value.host_type -eq "standalone") {
+			$checkurl = $value.website
 			$targetfile = "$GW2_path\addons\arcdps\"
 
 			Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
@@ -2403,41 +2731,35 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 			removefile "$checkfile"
 
 			if (
-				($conf.versions_addons[$_.key] -eq $null) -or
-				($conf.versions_addons[$_.key] -ne $new) -or
-				(-not (Test-Path ("$targetfile\d3d9_arcdps_" + $_.value.addon_name + ".dll")))
+				($conf.versions_addons[$key] -eq $null) -or
+				($conf.versions_addons[$key] -ne $new) -or
+				(-not (Test-Path ("$targetfile\d3d9_arcdps_" + $value.addon_name + ".dll")))
 			) {
-				Write-Host "ArcDPS addon '" -NoNewline
-				Write-Host $_.value.addon_name -NoNewline -ForegroundColor White
+				Write-Host "Addon '" -NoNewline
+				Write-Host $value.addon_name -NoNewline -ForegroundColor White
 				Write-Host "' is being updated" -ForegroundColor Green
 
-				$download = $_.value.host_url
+				Invoke-WebRequest $value.host_url -OutFile "$targetfile"
 
-				if (
-					($_.value.download_type -eq ".dll") -and
-					($_.value.install_mode -eq "arc")
-				) {
-					Invoke-WebRequest $download -OutFile ("$Script_path\d3d9_arcdps_" + $_.value.addon_name + $_.value.download_type)
-					Copy-Item ("$Script_path\d3d9_arcdps_" + $_.value.addon_name + $_.value.download_type) -Destination "$targetfile"
-					removefile ("$Script_path\d3d9_arcdps_" + $_.value.addon_name + $_.value.download_type)
-				}
-
-				$conf.versions_addons[$_.key] = $new
-				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				$conf.versions_addons[$key] = $new
+#				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 			} else {
-				Write-Host "ArcDPS addon '" -NoNewline
-				Write-Host $_.value.addon_name -NoNewline -ForegroundColor White
+				Write-Host "Addon '" -NoNewline
+				Write-Host $value.addon_name -NoNewline -ForegroundColor White
 				Write-Host "' is up-to-date"
 			}
 		}
 	} else {
-		if ("$targetcheck" -ne "$GW2_path\addons") {
-#			Remove-Item ("$targetcheck\*") -Recurse -Force -ErrorAction SilentlyContinue
-#			removefile "$targetcheck"
-		}
-
-		$conf.versions_addons.psobject.properties.remove($_.key)
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+#		if ($value.install_mode -eq "arc") {
+#			$targetpath = "$GW2_path\addons\arcdps"
+#		}
+#		if ("$targetpath" -ne "$GW2_path\addons") {
+#			Remove-Item ("$targetpath\*") -Recurse -Force -ErrorAction SilentlyContinue
+#			removefile "$targetpath"
+#		}
+#
+#		$conf.versions_addons.psobject.properties.remove($key)
+#		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	}
 }
 
