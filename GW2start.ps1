@@ -1,6 +1,7 @@
 param($forceGUIfromBat = "")
 
 #TODO:
+# ok, wenn dieses script die files macht und arc dps ist es kaputt. wen der manager das macht klappt es. ???!!! (d3d9_wrapper????)
 # Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen)
 # scan für zeug, dass nicht von dem Script verwaltet wird [ignore in config]
 # Warnung, wenn die Grafikeinstellungen falsch sind (geht einfach) und arc oder blish laufen
@@ -1092,8 +1093,9 @@ gci -Path "$Script_path\Approved-Addons-master\" -recurse -file -filter *.yaml |
 	$name = $yaml.addon_name -replace '[^a-zA-Z]', ''
 
 	if (
-		($name -ne "ArcDPSBlishHUDIntegration") -and
 		($name -ne "ArcDPS") -and
+		($name -ne "ArcDPSBlishHUDIntegration") -and
+		($name -ne "ddwrapper") -and
 		($name -ne "examplename") -and
 		$true
 	) {
@@ -2007,7 +2009,7 @@ $json | foreach {
 $modules.Path["ReActifEN"].conflicts = "ReActifFR"
 $modules.Path["ReActifFR"].conflicts = "ReActifEN"
 
-Write-Host "Now checkout some excelent paths out of the 'Neuland' some of you may know."
+Write-Host "Now checkout some excellent paths out of the 'Neuland' some of you may know."
 
 Invoke-WebRequest "https://pkgs.blishhud.com/packages.gz" -OutFile "$checkfile.gz"
 DeGZip-File "$checkfile.gz"
@@ -2222,7 +2224,7 @@ if ($conf.main.enabledArc) {
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
-# auto update ArcDPS
+# auto update d3d9_wrapper
 if ($conf.main.enabledArc) {
 	$checkurl = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum"
 	$targeturl = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll"
@@ -2236,7 +2238,7 @@ if ($conf.main.enabledArc) {
 		($conf.versions_main.ArcDPS -ne $new) -or
 		(-not (Test-Path "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"))
 	) {
-		Write-Host "ArcDPS " -NoNewline -ForegroundColor White
+		Write-Host "d3d9_wrapper " -NoNewline -ForegroundColor White
 		Write-Host "is being updated" -ForegroundColor Green
 
 		removefile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
@@ -2249,13 +2251,59 @@ if ($conf.main.enabledArc) {
 		$conf.versions_main.ArcDPS = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		Write-Host "ArcDPS " -NoNewline -ForegroundColor White
+		Write-Host "d3d9_wrapper " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
 	}
 } else {
 	removefile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
 
 	$conf.version_main.psobject.properties.remove('ArcDPS')
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
+# auto update ArcDPS
+if ($conf.main.enabledArc) {
+	checkGithub
+	Invoke-WebRequest "https://api.github.com/repos/gw2-addon-loader/d3d9_wrapper/releases/latest" -OutFile "$checkfile"
+
+	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+	$new = $json.name
+	removefile "$checkfile"
+
+	if (
+		($conf.main.d3d9_wrapper -eq $null) -or
+		($conf.main.d3d9_wrapper -ne $new) -or
+		(-not (Test-Path "$GW2_path\d3d9_wrapper"))
+	) {
+		Write-Host "Addon '" -NoNewline
+		Write-Host "d3d9_wrapper" -NoNewline -ForegroundColor White
+		Write-Host "' is being updated" -ForegroundColor Green
+
+		Remove-Item "$GW2_path\d3d9_wrapper" -Recurse -Force -ErrorAction SilentlyContinue
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
+		newdir "$checkfile"
+		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$checkfile\" -Force
+		removefile "$checkfile.zip"
+
+		newdir "$GW2_path\d3d9_wrapper"
+
+		gci -Path "$checkfile" -recurse -file | foreach {
+			Copy-Item $_.fullname -Destination "$GW2_path\d3d9_wrapper\"
+		}
+
+		Remove-Item "$checkfile" -recurse -force
+
+		$conf.main.d3d9_wrapper = $new
+		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+	} else {
+		Write-Host "Addon '" -NoNewline
+		Write-Host "d3d9_wrapper" -NoNewline -ForegroundColor White
+		Write-Host "' is up-to-date"
+	}
+} else {
+	Remove-Item "$GW2_path\d3d9_wrapper" -Recurse -Force -ErrorAction SilentlyContinue
+
+	$conf.main.psobject.properties.remove("d3d9_wrapper")
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
