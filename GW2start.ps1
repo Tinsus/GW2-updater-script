@@ -2128,10 +2128,6 @@ $GW2_path = $conf.main.pathArc
 $TacO_path = $conf.main.pathTaco
 $BlishHUD_path = $conf.main.pathBlish
 
-
-<#
-
-
 nls 2
 Write-Host "To change any settings for this script checkout the GW2start-config.bat file located " -NoNewline
 Write-Host "$Script_path\GW2start-config.bat" -ForegroundColor White
@@ -2592,9 +2588,6 @@ $modules.Path.GetEnumerator() | foreach {
 	}
 }
 
-
-#>
-
 <#
 #######################################################################################################################################################################################################################################
 developer: megai2
@@ -2854,25 +2847,6 @@ conflicts:
 #######################################################################################################################################################################################################################################
 #>
 
-<#
-#######################################################################################################################################################################################################################################
-developer: megai2
-website: https://github.com/megai2/SelectRenderer
-addon_name: SelectRenderer
-description: "Ingame UI based render selection for GW2"
-tooltip: Allows selection of various render paths like DXVK, d912pxy, etc.
-host_type: github
-host_url: https://api.github.com/repos/megai2/SelectRenderer/releases/latest
-version_url:
-download_type: archive
-install_mode: binary
-requires:
-    - d3d9_wrapper
-    - lib_imgui
-conflicts:
-
-#>
-
 # auto update ArcDPS addons
 $modules.ArcDPS.GetEnumerator() | foreach {
 	$targetpath = "$GW2_path\addons"
@@ -2897,9 +2871,6 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 
 					if ($value.plugin_name -ne $null) {
 						$targetpath = "$targetpath\" + $value.plugin_name
-					} else {
-						Write-Host "NO PLUGIN NAME (bad repo pfui pfui pfui)"
-						Write-Host $value.name
 					}
 
 					if ($value.host_type -eq "standalone") {
@@ -2915,13 +2886,6 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 			}
 
 		}
-
-#TESTEN! erscheint unvollständig
-
-#		"ddwrapper" {
-#			$targetpath = "$targetpath\d3d9_wrapper\gw2addon_d3d9_wrapper.dll"
-#			break
-#		}
 	}
 
 	if ($conf.addons[$key] -and $conf.main.enabledArc) {
@@ -3033,10 +2997,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 				}
 			}
 		} elseif ($value.host_type -eq "standalone") {
-			$checkurl = $value.website
-			$targetfile = "$GW2_path\addons\arcdps\"
-
-			Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
+			Invoke-WebRequest $value.website -OutFile "$checkfile"
 			$new = $(Get-FileHash "$checkfile" -Algorithm MD5).Hash
 			removefile "$checkfile"
 
@@ -3060,16 +3021,16 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 			}
 		}
 	} else {
-#		if ($value.install_mode -eq "arc") {
-#			$targetpath = "$GW2_path\addons\arcdps"
-#		}
-#		if ("$targetpath" -ne "$GW2_path\addons") {
-#			Remove-Item ("$targetpath\*") -Recurse -Force -ErrorAction SilentlyContinue
-#			removefile "$targetpath"
-#		}
-#
-#		$conf.versions_addons.psobject.properties.remove($key)
-#		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+		if (
+			("$targetpath" -ne "$GW2_path\addons") -and
+			("$targetpath" -ne "$GW2_path\addons\arcdps")
+		) {
+			Remove-Item "$targetpath" -Recurse -Force -ErrorAction SilentlyContinue
+			removefile "$targetpath"
+		}
+
+		$conf.versions_addons.psobject.properties.remove($key)
+		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	}
 }
 
