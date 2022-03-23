@@ -1280,6 +1280,10 @@ if ($forceGUI) {
 	} while ($r -ne "OK")
 }
 
+$GW2_path = $conf.main.pathArc
+$TacO_path = $conf.main.pathTaco
+$BlishHUD_path = $conf.main.pathBlish
+
 while (checkPathValidity) {
 	$r = showGUI
 }
