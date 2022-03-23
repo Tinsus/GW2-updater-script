@@ -1,7 +1,7 @@
 param($forceGUIfromBat = "")
 
 #TODO:
-# Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen)
+# Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen) [muss das noch? oder ist das jetzt besser geschützt?]
 # scan für zeug, dass nicht von dem Script verwaltet wird [ignore in config]
 # Warnung, wenn die Grafikeinstellungen falsch sind (geht einfach) und arc oder blish laufen
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
