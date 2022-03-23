@@ -1,7 +1,6 @@
 param($forceGUIfromBat = "")
 
 #TODO:
-# ok, wenn dieses script die files macht und arc dps ist es kaputt. wen der manager das macht klappt es. ???!!! (d3d9_wrapper????)
 # Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen)
 # scan für zeug, dass nicht von dem Script verwaltet wird [ignore in config]
 # Warnung, wenn die Grafikeinstellungen falsch sind (geht einfach) und arc oder blish laufen
@@ -59,7 +58,13 @@ function startGW2() {
 	nls 2
 	Write-Host "have fun in Guild Wars 2"
 
-	Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+	if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
+		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"		
+	} elseif ($conf.main.hideinfo -eq $null) {
+		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"		
+	} elseif ($conf.main.nologin -eq $null) {
+		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-autologin' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"		
+	}
 
 	# if GW2 has an update removes ArcDPS
 	if ($configuration.main.enabledArc -and (Test-Path "$GW2_path\errorautocheck.txt") -and ((Get-Item "$GW2_path\errorautocheck.txt").length -ne 0)) {
