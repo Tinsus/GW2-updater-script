@@ -1049,10 +1049,10 @@ function checkPathValidity() {
 			($conf.main.enabledTaco) -and
 			(
 				-not (
-					(Test-Path ($form.pathTacoLabel.Text + "\GW2TacO.exe")) -or
+					(Test-Path ($conf.main.pathTaco + "\GW2TacO.exe")) -or
 					(
-						(Test-Path $form.pathTacoLabel.Text) -and
-						(Get-ChildItem $form.pathTacoLabel.Text -Recurse -File | Measure-Object | %{ return $_.Count -eq 0 })
+						(Test-Path $conf.main.pathTaco) -and
+						(Get-ChildItem $conf.main.pathTaco -Recurse -File | Measure-Object | %{ return $_.Count -eq 0 })
 					)
 				)
 			)
