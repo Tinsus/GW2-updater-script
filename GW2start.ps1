@@ -1,7 +1,6 @@
 param($forceGUIfromBat = "")
 
 #TODO:
-# Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen) [muss das noch? oder ist das jetzt besser geschützt?]
 # scan für zeug, dass nicht von dem Script verwaltet wird [ignore in config]
 # Warnung, wenn die Grafikeinstellungen falsch sind (geht einfach) und arc oder blish laufen
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
@@ -10,6 +9,9 @@ param($forceGUIfromBat = "")
 # github prio nach datum des letzten scans
 # die daten in das Timers-Module rein patchen
 
+# Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen) [muss das noch? oder ist das jetzt besser geschützt?]
+
+Add-Type -assembly System.Windows.Forms
 
 $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
 $Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
@@ -32,15 +34,11 @@ function stopprocesses() {
 }
 
 function removefile($path) {
-	if (Test-Path "$path") {
-		Remove-Item "$path"
-	}
+	Remove-Item "$path" -ErrorAction SilentlyContinue
 }
 
 function newdir($path) {
-	if (-not (Test-Path "$path")) {
-		New-Item "$path" -ItemType Directory
-	}
+	New-Item "$path" -ItemType Directory -ErrorAction SilentlyContinue
 }
 
 function startGW2() {
@@ -59,11 +57,11 @@ function startGW2() {
 	Write-Host "have fun in Guild Wars 2"
 
 	if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
-		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"		
+		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
 	} elseif ($conf.main.hideinfo -eq $null) {
-		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"		
+		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
 	} elseif ($conf.main.nologin -eq $null) {
-		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-autologin' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"		
+		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-autologin' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
 	}
 
 	# if GW2 has an update removes ArcDPS
@@ -96,6 +94,47 @@ function path_t($tag) {
 
 function path_b($tag) {
 	return "$MyDocuments_path\Guild Wars 2\addons\blishhud\markers\$tag"
+}
+
+function path_a($key, $value) {
+	$targetpath = "$GW2_path\addons"
+
+	switch($key) {
+		"GWRadialDD" {
+			$targetpath = "$targetpath\gw2radial_d3d9"
+
+			break
+		}
+		"GWRadial" {
+			$targetpath = "$targetpath\gw2radial"
+
+			break
+		}
+		default {
+			switch($value.install_mode) {
+				"arc" {
+					$targetpath = "$GW2_path\addons\arcdps"
+
+					if ($value.plugin_name -ne $null) {
+						$targetpath = "$targetpath\" + $value.plugin_name
+					}
+
+					if ($value.host_type -eq "standalone") {
+						$targetpath = "$targetpath\d3d9_arcdps_" + $value.addon_name + ".dll"
+					}
+
+					break
+				}
+				"binary" {
+					$targetpath = "$targetpath\" + $key
+				}
+
+			}
+
+		}
+	}
+
+	return $targetpath
 }
 
 function nls($total) {
@@ -158,9 +197,9 @@ function checkGithubLite() {
 		nls 1
 		Write-Host "Sorry for that."
 		nls 2
-		Write-Host "This script can't start doing anything now. So we need to wait."
+		Write-Host "This script can't start doing anything now. So we need to wait until the updates are possible again."
 		nls 2
-		Write-Host "OK - we will wait until the updates are possible again. You can close this window everytime. No data will be damaged or deleted." -ForegroundColor Yellow
+		Write-Host "You can close this window everytime. No data will be damaged or deleted." -ForegroundColor Yellow
 		nls 1
 
 		do {
@@ -319,8 +358,6 @@ function placingGUI {
 
 function showGUI {
 # prepare stuff
-	Add-Type -assembly System.Windows.Forms
-
 	$form.main_form = New-Object System.Windows.Forms.Form
 
 	$form.tooltip = New-Object System.Windows.Forms.ToolTip
@@ -1083,8 +1120,9 @@ if (-not (Get-Module -ListAvailable -Name powershell-yaml)) {
 
 #some "welcoming" text
 Clear-Host
-nls 7
+nls 4
 checkGithubLite
+nls 2
 Write-Host "Before we can do any nice stuff let us see what nice stuff is out there."
 nls 1
 Write-Host "Find interesting addons like ArcDPS plugins and other stuff."
@@ -1252,6 +1290,10 @@ if ($conf.main -eq $null) {
 	$forceGUI = $true
 }
 
+if ($conf.ignore -eq $null) {
+	$conf.ignore = @{}
+}
+
 if ($conf.main.pathArc -eq $null) {
 	@(
 		"C:\Program Files",
@@ -1301,13 +1343,266 @@ nls 2
 Write-Host "To change any settings for this script checkout the GW2start-config.bat file located " -NoNewline
 Write-Host "$Script_path\GW2start-config.bat" -ForegroundColor White
 
+#check what is (un)installed and what should get installed
 if (-not $forceGUI) {
-	# dings  das prüft, ob die config passt oder was fehlt oder hinzugefügt wurde. Message immer: ja nein ignore
+	#scan if there are unmanged Blish HUD modules
+	if ($conf.main.enabledBlish) {
+		$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules\"
 
-	# info mit timeout für arcdps
-	# scan auf arcdps addons
-	# scan auf paths
-	# scan mit wildcard auf modules
+		$modules.BlishHUD.GetEnumerator() | foreach {
+			$targetfile = $checkpath + $_.value.namespace + "*"
+			$targeted = Test-Path $targetfile
+
+			if ($conf.ignore[$_.key] -eq $null) {
+				if (
+					($conf.modules[$_.key] -eq $null) -and
+					($_.value.default -eq $true)
+				) {
+					$r = [System.Windows.Forms.MessageBox]::Show(
+						("Do you want to checkout the recommanded Blish HUD module '" + $_.value.name + "'?\r\n\r\n" + $_.value.desc),
+						"New Blish HUD module",
+						4,
+						"Question"
+					)
+
+					$conf.modules[$_.key] = ($r -eq "Yes")
+				} elseif (
+					($conf.modules[$_.key] -eq $false) -and
+					($targeted -eq $true)
+				) {
+					$r = [System.Windows.Forms.MessageBox]::Show(
+						("You have installed '" + $_.value.name + "' but it is not managed here.\r\n\r\n" + $_.value.desc + "\r\n\r\nDo you want this script to manage it?"),
+						"Unmanaged Blish HUD module",
+						3,
+						"Question"
+					)
+
+					if ($r -eq "No") {
+						$conf.ignore[$_.key] = $true
+					} elseif ($r -eq "Yes") {
+						Remove-Item $targetfile -Force -ErrorAction SilentlyContinue
+
+						$conf.modules[$_.key] = $true
+						$conf.versions_modules[$_.key] = "0"
+					} else {
+						Write-Host "I will ask you again ;)"
+					}
+				} elseif (
+					($conf.modules[$_.key] -eq $true) -and
+					($targeted -eq $false)
+				) {
+					$r = [System.Windows.Forms.MessageBox]::Show(
+						("You have uninstalled '" + $_.value.name + "' but this script is configurated to update it.\r\n\r\n" + $_.value.desc + "\r\n\r\nDo you want this script to reinstall it?"),
+						"Missing Blish HUD module",
+						3,
+						"Warning"
+					)
+
+					if ($r -eq "No") {
+						$conf.ignore[$_.key] = $true
+					} elseif ($r -eq "Yes") {
+						Remove-Item $targetfile -Force -ErrorAction SilentlyContinue
+
+						$conf.modules[$_.key] = $true
+						$conf.versions_modules[$_.key] = "0"
+					} else {
+						Write-Host "I will ask you again ;)"
+					}
+				}
+			}
+		}
+	}
+
+	#scan if there are unmanged paths
+	if ($conf.main.enabledBlish -or $conf.main.enabledTaco) {
+		$modules.Path.GetEnumerator() | foreach {
+			$path_b = path_b $_.value.targetfile
+			$path_t = path_t $_.value.targetfile
+
+			$targeted_b = Test-Path $path_b
+			$targeted_t = Test-Path $path_t
+
+			if ($conf.ignore[$_.key] -eq $null) {
+				if (
+					($conf.paths[$_.key + "_blish"] -eq $null) -and
+					($_.value.default -eq $true) -and
+					$conf.main.enabledBlish
+				) {
+					$r = [System.Windows.Forms.MessageBox]::Show(
+						("Do you want to checkout the recommanded path '" + $_.value.name + "'?\r\n\r\n" + $_.value.desc),
+						"New path for Blish HUD pathing module",
+						4,
+						"Question"
+					)
+
+					$conf.paths[$_.key + "_blish"] = ($r -eq "Yes")
+					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				} elseif (
+					($conf.paths[$_.key + "_blish"] -eq $false) -and
+					($targeted_b -eq $true) -and
+					$conf.main.enabledBlish
+				) {
+					$r = [System.Windows.Forms.MessageBox]::Show(
+						("You have installed '" + $_.value.name + "' for Blish HUD.\r\n\r\n" + $_.value.desc + "\r\n\r\nDo you want this script to manage it?"),
+						"Unmanaged Blish HUD path",
+						3,
+						"Question"
+					)
+
+					if ($r -eq "No") {
+						$conf.ignore[$_.key] = $true
+					} elseif ($r -eq "Yes") {
+						Remove-Item $path_b -Force -ErrorAction SilentlyContinue
+
+						$conf.paths[$_.key + "_blish"] = $true
+						$conf.versions_paths[$_.key] = "0"
+					} else {
+						Write-Host "I will ask you again ;)"
+					}
+
+					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				} elseif (
+					($conf.paths[$_.key + "_blish"] -eq $true) -and
+					($targeted_b -eq $false) -and
+					$conf.main.enabledBlish
+				) {
+					$r = [System.Windows.Forms.MessageBox]::Show(
+						("You have uninstalled '" + $_.value.name + "' for Blish HUD but this script is configurated to update it.\r\n\r\n" + $_.value.description + "\r\n\r\nDo you want this script to reinstall it?"),
+						"Missing Blish HUD path",
+						3,
+						"Warning"
+					)
+
+					if ($r -eq "No") {
+						$conf.ignore[$_.key] = $true
+					} elseif ($r -eq "Yes") {
+						Remove-Item $targeted_b -Force -ErrorAction SilentlyContinue
+
+						$conf.paths[$_.key + "_blish"] = $true
+						$conf.versions_paths[$_.key] = "0"
+					} else {
+						Write-Host "I will ask you again ;)"
+					}
+
+					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				} elseif (
+					($conf.paths[$_.key + "_taco"] -eq $false) -and
+					($targeted_t -eq $true) -and
+					$conf.main.enabledTaco
+				) {
+					$r = [System.Windows.Forms.MessageBox]::Show(
+						("You have installed '" + $_.value.name + "' for TacO.\r\n\r\n" + $_.value.description + "\r\n\r\nDo you want this script to manage it?"),
+						"Unmanaged TacO path",
+						3,
+						"Question"
+					)
+
+					if ($r -eq "No") {
+						$conf.ignore[$_.key] = $true
+					} elseif ($r -eq "Yes") {
+						Remove-Item $path_t -Force -ErrorAction SilentlyContinue
+
+						$conf.paths[$_.key + "_taco"] = $true
+						$conf.versions_paths[$_.key] = "0"
+					} else {
+						Write-Host "I will ask you again ;)"
+					}
+
+					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				} elseif (
+					($conf.paths[$_.key + "_taco"] -eq $true) -and
+					($targeted_t -eq $false) -and
+					$conf.main.enabledTaco
+				) {
+					$r = [System.Windows.Forms.MessageBox]::Show(
+						("You have uninstalled '" + $_.value.name + "' for TacO but this script is configurated to update it.\r\n\r\n" + $_.value.description + "\r\n\r\nDo you want this script to reinstall it?"),
+						"Missing TacO path",
+						3,
+						"Warning"
+					)
+
+					if ($r -eq "No") {
+						$conf.ignore[$_.key] = $true
+					} elseif ($r -eq "Yes") {
+						Remove-Item $targeted_t -Force -ErrorAction SilentlyContinue
+
+						$conf.paths[$_.key + "_taco"] = $true
+						$conf.versions_paths[$_.key] = "0"
+					} else {
+						Write-Host "I will ask you again ;)"
+					}
+
+					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				}
+			}
+		}
+	}
+
+	#scan if there are unmanged ArcDPS addons
+	if ($conf.main.enabledArc) {
+		$modules.ArcDPS.GetEnumerator() | foreach {
+			$targetfile = path_a -key $_.key -value $_.value
+			$targeted = Test-Path $targetfile
+
+			if ($conf.ignore[$_.key] -eq $null) {
+				if (
+					($conf.addons[$_.key] -eq $null) -and
+					($_.value.default -eq $true)
+				) {
+					$r = [System.Windows.Forms.MessageBox]::Show(
+						("Do you want to checkout the recommanded ArcDPS addon '" + $_.value.addon_name + "'?\r\n\r\n" + $_.value.description),
+						"New ArcDPS addon",
+						4,
+						"Question"
+					)
+
+					$conf.addons[$_.key] = ($r -eq "Yes")
+				} elseif (
+					($conf.addons[$_.key] -eq $false) -and
+					($targeted -eq $true)
+				) {
+					$r = [System.Windows.Forms.MessageBox]::Show(
+						("You have installed '" + $_.value.addon_name + "' but it is not managed here.\r\n\r\n" + $_.value.description + "\r\n\r\nDo you want this script to manage it?"),
+						"Unmanaged ArcDPS addon",
+						3,
+						"Question"
+					)
+
+					if ($r -eq "No") {
+						$conf.ignore[$_.key] = $true
+					} elseif ($r -eq "Yes") {
+						Remove-Item $targetfile -Force -Recurse -ErrorAction SilentlyContinue
+
+						$conf.addons[$_.key] = $true
+						$conf.versions_addons[$_.key] = "0"
+					} else {
+						Write-Host "I will ask you again ;)"
+					}
+				} elseif (
+					($conf.addons[$_.key] -eq $true) -and
+					($targeted -eq $false)
+				) {
+					$r = [System.Windows.Forms.MessageBox]::Show(
+						("You have uninstalled '" + $_.value.addon_name + "' but this script is configurated to update it.\r\n\r\n" + $_.value.description + "\r\n\r\nDo you want this script to reinstall it?"),
+						"Missing ArcDPS addon",
+						3,
+						"Warning"
+					)
+
+					if ($r -eq "No") {
+						$conf.ignore[$_.key] = $true
+					} elseif ($r -eq "Yes") {
+						Remove-Item $targetfile -Force -Recurse -ErrorAction SilentlyContinue
+
+						$conf.addons[$_.key] = $true
+						$conf.versions_addons[$_.key] = "0"
+					} else {
+						Write-Host "I will ask you again ;)"
+					}
+				}
+			}
+		}
+	}
 }
 
 # now the real magic:
@@ -1602,7 +1897,7 @@ if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
 $modules.BlishHUD.GetEnumerator() | foreach {
 	if ($conf.modules[$_.key] -and $conf.main.enabledBlish) {
 		$checkpath = "$MyDocuments_path\Guild Wars 2\addons\blishhud\modules\"
-		$targetfile = ("$checkpath\" + $_.value.namespace + "_" + $_.value.version + ".bhm")
+		$targetfile = ($checkpath + $_.value.namespace + "_" + $_.value.version + ".bhm")
 		$new = $_.value.version
 
 		if (
@@ -1614,9 +1909,7 @@ $modules.BlishHUD.GetEnumerator() | foreach {
 			Write-Host $_.value.name -NoNewline -ForegroundColor White
 			Write-Host "' is being updated" -ForegroundColor Green
 
-			if ($conf.versions_modules[$_.key] -ne $null) {
-				removefile ("$checkpath\" + $_.value.namespace + "_" + $conf.versions_modules[$_.key] + ".bhm")
-			}
+			Remove-Item ($checkpath + $_.value.namespace + "*") -Force -ErrorAction SilentlyContinue
 
 			Invoke-WebRequest $_.value.targeturl -OutFile $targetfile
 
@@ -1630,7 +1923,7 @@ $modules.BlishHUD.GetEnumerator() | foreach {
 			Write-Host "' is up-to-date"
 		}
 	} else {
-		removefile ("$checkpath\" + $_.value.namespace + "_" + $_.value.version + ".bhm")
+		removefile ($checkpath + $_.value.namespace + "_" + $_.value.version + ".bhm")
 
 		$conf.versions_modules.psobject.properties.remove($_.key)
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
@@ -1805,44 +2098,10 @@ $modules.Path.GetEnumerator() | foreach {
 
 # auto update ArcDPS addons
 $modules.ArcDPS.GetEnumerator() | foreach {
-	$targetpath = "$GW2_path\addons"
 	$key = $_.key
 	$value = $_.value
 
-	switch($key) {
-		"GWRadialDD" {
-			$targetpath = "$targetpath\gw2radial_d3d9"
-
-			break
-		}
-		"GWRadial" {
-			$targetpath = "$targetpath\gw2radial"
-
-			break
-		}
-		default {
-			switch($value.install_mode) {
-				"arc" {
-					$targetpath = "$GW2_path\addons\arcdps"
-
-					if ($value.plugin_name -ne $null) {
-						$targetpath = "$targetpath\" + $value.plugin_name
-					}
-
-					if ($value.host_type -eq "standalone") {
-						$targetpath = "$targetpath\d3d9_arcdps_" + $value.addon_name + ".dll"
-					}
-
-					break
-				}
-				"binary" {
-					$targetpath = "$targetpath\" + $key
-				}
-
-			}
-
-		}
-	}
+	$targetpath = path_a -key $key -value $value
 
 	if ($conf.addons[$key] -and $conf.main.enabledArc) {
 		if ($value.host_type -eq "github") {
