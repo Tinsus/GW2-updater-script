@@ -2,6 +2,8 @@ param($forceGUIfromBat = "")
 
 #TODO:
 # scan für zeug, dass nicht von dem Script verwaltet wird [ignore in config]
+
+# times für das timers module mitverwalten
 # Warnung, wenn die Grafikeinstellungen falsch sind (geht einfach) und arc oder blish laufen
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 # info, das repots gezogen werden
