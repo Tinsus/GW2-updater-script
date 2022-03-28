@@ -98,7 +98,7 @@ function path_b($tag) {
 	return "$MyDocuments_path\Guild Wars 2\addons\blishhud\markers\$tag"
 }
 
-function path_a($key, $value) {
+function path_a($key, $value, $dll = $false) {
 	$targetpath = "$GW2_path\addons"
 
 	switch($key) {
@@ -119,10 +119,18 @@ function path_a($key, $value) {
 
 					if ($value.plugin_name -ne $null) {
 						$targetpath = "$targetpath\" + $value.plugin_name
+
+						if ($dll) {
+							return $value.plugin_name
+						}
 					}
 
 					if ($value.host_type -eq "standalone") {
 						$targetpath = "$targetpath\d3d9_arcdps_" + $value.addon_name + ".dll"
+
+						if ($dll) {
+							return ($value.addon_name + ".dll")
+						}
 					}
 
 					break
@@ -136,7 +144,11 @@ function path_a($key, $value) {
 		}
 	}
 
-	return $targetpath
+	if ($dll) {
+		return "stuff.nothere"
+	} else {
+		return $targetpath
+	}
 }
 
 function nls($total) {
@@ -1730,11 +1742,11 @@ if ($conf.main.enabledArc) {
 	removefile "$GW2_path\d3d11.dll"
 	removefile "$GW2_path\dxgi.dll"
 
-	$conf.version_main.psobject.properties.remove('loadercore')
+	$conf.versions_main.psobject.properties.remove('loadercore')
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
-# auto update d3d9_wrapper
+# auto update ArcDPS
 if ($conf.main.enabledArc) {
 	$checkurl = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum"
 	$targeturl = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll"
@@ -1748,7 +1760,7 @@ if ($conf.main.enabledArc) {
 		($conf.versions_main.ArcDPS -ne $new) -or
 		(-not (Test-Path "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"))
 	) {
-		Write-Host "d3d9_wrapper " -NoNewline -ForegroundColor White
+		Write-Host "ArcDPS " -NoNewline -ForegroundColor White
 		Write-Host "is being updated" -ForegroundColor Green
 
 		removefile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
@@ -1761,13 +1773,13 @@ if ($conf.main.enabledArc) {
 		$conf.versions_main.ArcDPS = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		Write-Host "d3d9_wrapper " -NoNewline -ForegroundColor White
+		Write-Host "ArcDPS " -NoNewline -ForegroundColor White
 		Write-Host "is up-to-date"
 	}
 } else {
 	removefile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
 
-	$conf.version_main.psobject.properties.remove('ArcDPS')
+	$conf.versions_main.psobject.properties.remove('ArcDPS')
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
@@ -1781,9 +1793,9 @@ if ($conf.main.enabledArc) {
 	removefile "$checkfile"
 
 	if (
-		($conf.main.d3d9_wrapper -eq $null) -or
-		($conf.main.d3d9_wrapper -ne $new) -or
-		(-not (Test-Path "$GW2_path\d3d9_wrapper"))
+		($conf.versions_main.d3d9_wrapper -eq $null) -or
+		($conf.versions_main.d3d9_wrapper -ne $new) -or
+		(-not (Test-Path "$GW2_path\addons\d3d9_wrapper"))
 	) {
 		Write-Host "Addon '" -NoNewline
 		Write-Host "d3d9_wrapper" -NoNewline -ForegroundColor White
@@ -1795,15 +1807,17 @@ if ($conf.main.enabledArc) {
 		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$checkfile\" -Force
 		removefile "$checkfile.zip"
 
-		newdir "$GW2_path\d3d9_wrapper"
+		newdir "$GW2_path\addons"
+		newdir "$GW2_path\addons\d3d9_wrapper"
 
 		gci -Path "$checkfile" -recurse -file | foreach {
-			Copy-Item $_.fullname -Destination "$GW2_path\d3d9_wrapper\"
+			Copy-Item $_.fullname -Destination "$GW2_path\addons\d3d9_wrapper\"
 		}
 
+		Remove-Item "$GW2_path\d3d9_wrapper" -recurse -force
 		Remove-Item "$checkfile" -recurse -force
 
-		$conf.main.d3d9_wrapper = $new
+		$conf.versions_main.d3d9_wrapper = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
 		Write-Host "Addon '" -NoNewline
@@ -1811,7 +1825,7 @@ if ($conf.main.enabledArc) {
 		Write-Host "' is up-to-date"
 	}
 } else {
-	Remove-Item "$GW2_path\d3d9_wrapper" -Recurse -Force -ErrorAction SilentlyContinue
+	Remove-Item "$GW2_path\addons\d3d9_wrapper" -Recurse -Force -ErrorAction SilentlyContinue
 
 	$conf.main.psobject.properties.remove("d3d9_wrapper")
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
@@ -2214,6 +2228,9 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					removefile "$checkfile.zip"
 
 					gci -Path "$checkfile\*" -recurse -file -filter *.dll | foreach {
+						removefile ($GW2_path + "\bin64\" + (path_a -key $key -value $value -dll $true))
+						removefile ($GW2_path + "\bin64\" + $_.name)
+
 						Copy-Item $_.fullname -Destination "$targetpath"
 					}
 
@@ -2249,6 +2266,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 						}
 					}
 
+					removefile ($GW2_path + "\bin64\" + (path_a -key $key -value $value -dll $true))
 					Invoke-WebRequest $download -OutFile "$targetpath"
 
 					$conf.versions_addons[$key] = $new
