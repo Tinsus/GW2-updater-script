@@ -805,18 +805,34 @@ function changeGUI($category, $key = 0, $value = 0) {
 		"save" {
 			switch($key) {
 				"reset" {
+					$temp = @{}
+
 					$conf.versions_paths.Keys | foreach {
-						$conf.versions_paths[$_] = 0
+						$temp[$_] = 0
 					}
+
+					$conf.versions_paths = $temp
+					$temp = @{}
+
 					$conf.versions_main.Keys | foreach {
-						$conf.versions_main[$_] = 0
+						$temp[$_] = 0
 					}
+
+					$conf.versions_main = $temp
+					$temp = @{}
+
 					$conf.versions_addons.Keys | foreach {
-						$conf.versions_addons[$_] = 0
+						$temp[$_] = 0
 					}
+
+					$conf.versions_addons = $temp
+					$temp = @{}
+
 					$conf.versions_modules.Keys | foreach {
-						$conf.versions_modules[$_] = 0
+						$temp[$_] = 0
 					}
+
+					$conf.versions_modules = $temp
 
 					$conf.ignore = @{}
 				}
