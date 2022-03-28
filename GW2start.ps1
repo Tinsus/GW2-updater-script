@@ -356,6 +356,7 @@ function placingGUI {
 	$y = (@($form.groupArc.Height, $form.groupBlish.Height, $form.groupTaco.Height) | measure -Maximum).Maximum + (@($form.groupAddons.Height, $form.groupPaths.Height, $form.groupModules.Height) | measure -Maximum).Maximum + $form.groupArc.y + 60
 
     $form.close.Location = New-Object System.Drawing.Size($x, $y)
+    $form.reset.Location = New-Object System.Drawing.Size(($x - 100), $y)
 }
 
 function showGUI {
@@ -622,9 +623,18 @@ function showGUI {
     $form.close.Text = "Save and Run"
     $form.close.DialogResult = "OK"
 	$form.close.Add_Click({
-		changeGUI -category "save" -key "default" -value $false
+		changeGUI -category "save" -key "ok" -value $false
 	})
     $form.main_form.Controls.Add($form.close)
+
+    $form.reset = New-Object System.Windows.Forms.Button
+    $form.reset.Size = New-Object System.Drawing.Size(70, 40)
+    $form.reset.Text = "Reload all"
+    $form.reset.DialogResult = "OK"
+	$form.reset.Add_Click({
+		changeGUI -category "save" -key "reset" -value $false
+	})
+    $form.main_form.Controls.Add($form.reset)
 
 	placingGUI
 
@@ -793,33 +803,53 @@ function changeGUI($category, $key = 0, $value = 0) {
 
 	switch($category) {
 		"save" {
-			$conf.main.pathArc = $form.pathArcLabel.Text
-			$conf.main.pathTaco = $form.pathTacoLabel.Text
-			$conf.main.pathBlish = $form.pathBlishLabel.Text
+			switch($key) {
+				"reset" {
+					$conf.versions_paths.Keys | foreach {
+						$conf.versions_paths[$_] = 0
+					}
+					$conf.versions_main.Keys | foreach {
+						$conf.versions_main[$_] = 0
+					}
+					$conf.versions_addons.Keys | foreach {
+						$conf.versions_main[$_] = 0
+					}
+					$conf.versions_modules.Keys | foreach {
+						$conf.versions_main[$_] = 0
+					}
 
-			$conf.main.enabledArc = $form.enabledArc.checked
-			$conf.main.enabledTaco = $form.enabledTaco.checked
-			$conf.main.enabledBlish = $form.enabledBlish.checked
+					$conf.ignore = @{}
+				}
+				"ok" {
+					$conf.main.pathArc = $form.pathArcLabel.Text
+					$conf.main.pathTaco = $form.pathTacoLabel.Text
+					$conf.main.pathBlish = $form.pathBlishLabel.Text
 
-			$conf.main.runTaco = $form.TacoRun.Checked
-			$conf.main.runBlish = $form.BlishRun.Checked
+					$conf.main.enabledArc = $form.enabledArc.checked
+					$conf.main.enabledTaco = $form.enabledTaco.checked
+					$conf.main.enabledBlish = $form.enabledBlish.checked
 
-			$modules.ArcDPS.GetEnumerator() | foreach {
-				$conf.addons[$_.key] = $modules.ArcDPS[$_.key]["UI"].checked
+					$conf.main.runTaco = $form.TacoRun.Checked
+					$conf.main.runBlish = $form.BlishRun.Checked
+
+					$modules.ArcDPS.GetEnumerator() | foreach {
+						$conf.addons[$_.key] = $modules.ArcDPS[$_.key]["UI"].checked
+					}
+
+					$modules.BlishHUD.GetEnumerator() | foreach {
+						$conf.modules[$_.key] = $modules.BlishHUD[$_.key]["UI"].checked
+					}
+
+					$modules.Path.GetEnumerator() | foreach {
+						$conf.paths[$_.key + "_blish"] = $modules.Path[$_.key]["UI1"].checked
+						$conf.paths[$_.key + "_taco"] = $modules.Path[$_.key]["UI2"].checked
+					}
+
+					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+
+					break
+				}
 			}
-
-			$modules.BlishHUD.GetEnumerator() | foreach {
-				$conf.modules[$_.key] = $modules.BlishHUD[$_.key]["UI"].checked
-			}
-
-			$modules.Path.GetEnumerator() | foreach {
-				$conf.paths[$_.key + "_blish"] = $modules.Path[$_.key]["UI1"].checked
-				$conf.paths[$_.key + "_taco"] = $modules.Path[$_.key]["UI2"].checked
-			}
-
-			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-
-			break
 		}
 		"enable" {
 			switch($key) {
