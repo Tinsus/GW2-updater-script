@@ -812,10 +812,10 @@ function changeGUI($category, $key = 0, $value = 0) {
 						$conf.versions_main[$_] = 0
 					}
 					$conf.versions_addons.Keys | foreach {
-						$conf.versions_main[$_] = 0
+						$conf.versions_addons[$_] = 0
 					}
 					$conf.versions_modules.Keys | foreach {
-						$conf.versions_main[$_] = 0
+						$conf.versions_modules[$_] = 0
 					}
 
 					$conf.ignore = @{}
