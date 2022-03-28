@@ -1,15 +1,14 @@
 param($forceGUIfromBat = "")
 
 #TODO:
-# scan für zeug, dass nicht von dem Script verwaltet wird [ignore in config]
 
 # times für das timers module mitverwalten
+# die daten in das Timers-Module rein patchen
+# kaputte zeilenumbrüche in den MessageBox-es heile machen
 # Warnung, wenn die Grafikeinstellungen falsch sind (geht einfach) und arc oder blish laufen
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
-# info, das repots gezogen werden
-# setting, logindscreeninfo und autologin (als hidden setting ohne ui in der ini?)
 # github prio nach datum des letzten scans
-# die daten in das Timers-Module rein patchen
+# Farben in der Update-Info über eigene func schön machen
 
 # Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen) [muss das noch? oder ist das jetzt besser geschützt?]
 
