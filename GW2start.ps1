@@ -1814,7 +1814,7 @@ if ($conf.main.enabledArc) {
 			Copy-Item $_.fullname -Destination "$GW2_path\addons\d3d9_wrapper\"
 		}
 
-		Remove-Item "$GW2_path\d3d9_wrapper" -recurse -force
+		Remove-Item "$GW2_path\d3d9_wrapper" -recurse -force -ErrorAction SilentlyContinue
 		Remove-Item "$checkfile" -recurse -force
 
 		$conf.versions_main.d3d9_wrapper = $new
