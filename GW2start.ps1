@@ -1991,6 +1991,43 @@ $modules.BlishHUD.GetEnumerator() | foreach {
 	}
 }
 
+if ($conf.modules.CharrTimersBlishHUD -and $conf.main.enabledBlish) {
+	newdir "$MyDocuments_path\Guild Wars 2\addons\blishhud\timers"
+
+	checkGithub
+
+	$checkurl = "https://api.github.com/repos/QuitarHero/Hero-Timers/releases/latest"
+	$targetfile = "$MyDocuments_path\Guild Wars 2\addons\blishhud\timers"
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
+
+	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+	$new = $json.tag_name
+	removefile "$checkfile"
+
+	if (
+		($conf.versions_modules.HeroTimers -eq $null) -or
+		($conf.versions_modules.HeroTimers -ne $new) -or
+		(-not (Test-Path "$targetfile\Hero-Timers.zip"))
+	) {
+		Write-Host "Hero-Timers (for BlishHUD Timers-Module) " -NoNewline -ForegroundColor White
+		Write-Host "is being updated" -ForegroundColor Green
+
+		removefile "$targetfile\Hero-Timers.zip"
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile\Hero-Timers.zip"
+
+		$conf.versions_modules.HeroTimers = $new
+		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+	} else {
+		Write-Host "Hero-Timers (for BlishHUD Timers-Module) " -NoNewline -ForegroundColor White
+		Write-Host "is up-to-date"
+	}
+} else {
+	removefile "$targetfile\Hero-Timers.zip"
+
+	$conf.versions_modules.psobject.properties.remove("HeroTimers")
+	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+}
+
 # auto update Paths
 $modules.Path.GetEnumerator() | foreach {
 	if (
