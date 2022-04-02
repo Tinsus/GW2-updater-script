@@ -1,12 +1,8 @@
 param($forceGUIfromBat = "")
 
 #TODO:
-
-# Warnung, wenn die Grafikeinstellungen falsch sind (geht einfach) und arc oder blish laufen
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 # github prio nach datum des letzten scans
-# Farben in der Update-Info über eigene func schön machen
-
 # Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen) [muss das noch? oder ist das jetzt besser geschützt?]
 
 Add-Type -assembly System.Windows.Forms
@@ -1153,30 +1149,30 @@ function checkPathValidity() {
 	)
 }
 
-function msgupdate($type, $str, $update = $false) {
+function msgupdate($type, $name, $update = $false) {
 	switch($type) {
 		"main" {
-			Write-Host "$str" -NoNewline -ForegroundColor White
+			Write-Host $name -NoNewline -ForegroundColor White
 
 			break
 		}
 		"addon" {
 			Write-Host "Addon '" -NoNewline
-			Write-Host "$str" -NoNewline -ForegroundColor White
+			Write-Host $name -NoNewline -ForegroundColor White
 			Write-Host "'" -NoNewline
 
 			break
 		}
 		"module" {
 			Write-Host "Module '" -NoNewline
-			Write-Host "$str" -NoNewline -ForegroundColor White
+			Write-Host $name -NoNewline -ForegroundColor White
 			Write-Host "'" -NoNewline
 
 			break
 		}
 		"path" {
 			Write-Host "Path '" -NoNewline
-			Write-Host "$str" -NoNewline -ForegroundColor White
+			Write-Host $name -NoNewline -ForegroundColor White
 			Write-Host "'" -NoNewline
 
 			break
@@ -1189,6 +1185,7 @@ function msgupdate($type, $str, $update = $false) {
 		Write-Host " is up-to-date"
 	}
 }
+
 # collect packages
 $modules = @{}
 $modules.Main = @{}
@@ -1697,6 +1694,46 @@ if (-not $forceGUI) {
 	}
 }
 
+#checks game-settings for screenMode
+if (
+	($conf.main.enabledBlish) -or
+	($conf.main.enabledTaco)
+) {
+	if (Test-Path ($env:APPDATA + "\Guild Wars 2\GFXSettings.Gw2-64.exe.xml")) {
+		[xml]$windowsetting = Get-Content ($env:APPDATA + "\Guild Wars 2\GFXSettings.Gw2-64.exe.xml")
+
+		$xml = New-Object XML
+		$xml.Load(($env:APPDATA + "\Guild Wars 2\GFXSettings.Gw2-64.exe.xml"))
+		$element = $xml.SelectSingleNode("//GSA_SDK//GAMESETTINGS//OPTION[@Name='screenMode']")
+
+Write-Host $element.Value
+		if (
+			($element.Value -ne "windowed_fullscreen") -and
+			($element.Value -ne "windowed")
+		) {
+			$r = [System.Windows.Forms.MessageBox]::Show(
+				"You need to play Guildwars 2 using a windowed-mode not a fullscreen-only-mode to be able to see BlishHUD and/or TacO. Do you want to play in 'windowed fullscreen'-mode?",
+				"Wrong screen mode setting for GW2",
+				4,
+				"Question"
+			)
+
+			if ($r -eq "Yes") {
+				$element.Value = "windowed_fullscreen"
+			} else {
+				$r = [System.Windows.Forms.MessageBox]::Show(
+					"You will not see BlishHUD or TacO unless you change your window-mode ingame in your grafics settings to 'windowed fullscreen'!",
+					"Wrong screen mode setting for GW2",
+					0,
+					"Error"
+				)
+			}
+		}
+
+		$xml.Save(($env:APPDATA + "\Guild Wars 2\GFXSettings.Gw2-64.exe.xml"))
+	}
+}
+
 # now the real magic:
 stopprocesses
 
@@ -1755,7 +1792,7 @@ if ($conf.main.enabledArc) {
 		(-not (Test-Path "$GW2_path\d3d11.dll")) -or
 		(-not (Test-Path "$GW2_path\dxgi.dll"))
 	) {
-		msgupdate("main", "Addon-Loader-Core", $true)
+		msgupdate -type "main" -name "Addon-Loader-Core" -update $true
 
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
 		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$GW2_path\" -Force
@@ -1764,7 +1801,7 @@ if ($conf.main.enabledArc) {
 		$conf.versions_main.loadercore = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		msgupdate("main", "Addon-Loader-Core", $false)
+		msgupdate -type "main" -name "Addon-Loader-Core" -update $false
 	}
 } else {
 	removefile "$GW2_path\bin64\d3d9.dll"
@@ -1790,7 +1827,7 @@ if ($conf.main.enabledArc) {
 		($conf.versions_main.ArcDPS -ne $new) -or
 		(-not (Test-Path "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"))
 	) {
-		msgupdate("main", "ArcDPS", $true)
+		msgupdate -type "main" -name "ArcDPS" -update $true
 
 		removefile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
 
@@ -1802,7 +1839,7 @@ if ($conf.main.enabledArc) {
 		$conf.versions_main.ArcDPS = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		msgupdate("main", "ArcDPS", $false)
+		msgupdate -type "main" -name "ArcDPS" -update $false
 	}
 } else {
 	removefile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
@@ -1825,7 +1862,7 @@ if ($conf.main.enabledArc) {
 		($conf.versions_main.d3d9_wrapper -ne $new) -or
 		(-not (Test-Path "$GW2_path\addons\d3d9_wrapper"))
 	) {
-		msgupdate("addon", "d3d9_wrapper", $true)
+		msgupdate -type "addon" -name "d3d9_wrapper" -update $true
 
 		Remove-Item "$GW2_path\d3d9_wrapper" -Recurse -Force -ErrorAction SilentlyContinue
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
@@ -1846,7 +1883,7 @@ if ($conf.main.enabledArc) {
 		$conf.versions_main.d3d9_wrapper = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		msgupdate("addon", "d3d9_wrapper", $false)
+		msgupdate -type "addon" -name "d3d9_wrapper" -update $false
 	}
 } else {
 	Remove-Item "$GW2_path\addons\d3d9_wrapper" -Recurse -Force -ErrorAction SilentlyContinue
@@ -1874,7 +1911,7 @@ if ($conf.main.enabledTaco) {
 		($conf.versions_main.TacO -ne $new) -or
 		(-not (Test-Path "$targetfile\GW2TacO.exe"))
 	) {
-		msgupdate("main", "TacO", $true)
+		msgupdate -type "main" -name "TacO" -update $true
 
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.temp.zip"
 
@@ -1884,7 +1921,7 @@ if ($conf.main.enabledTaco) {
 		$conf.versions_main.TacO = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		msgupdate("main", "TacO", $false)
+		msgupdate -type "main" -name "TacO" -update $false
 	}
 } else {
 	Remove-Item -Path "$TacO_path\*" -force -recurse
@@ -1917,7 +1954,7 @@ if ($conf.main.enabledBlish) {
 		($conf.versions_main.BlishHUD -ne $new) -or
 		(-not (Test-Path "$targetfile\Blish HUD.exe"))
 	) {
-		msgupdate("main", "BlishHUD", $true)
+		msgupdate -type "main" -name "BlishHUD" -update $true
 
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
 		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$targetfile\" -Force
@@ -1928,7 +1965,7 @@ if ($conf.main.enabledBlish) {
 
 		enforceBHM
 	} else {
-		msgupdate("main", "BlishHUD", $false)
+		msgupdate -type "main" -name "BlishHUD" -update $false
 	}
 } else {
 	Remove-Item -Path "$BlishHUD_path\*" -force -recurse
@@ -1955,7 +1992,7 @@ if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
 		($conf.versions_main.BlishHUD_ArcDPS_Bridge -ne $new) -or
 		(-not (Test-Path "$targetfile"))
 	) {
-		msgupdate("main", "BlishHUD-ArcDPS Bridge", $true)
+		msgupdate -type "main" -name "BlishHUD-ArcDPS Bridge" -update $true
 
 		Invoke-WebRequest $json.assets.browser_download_url[1] -OutFile "$checkfile.zip"
 		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$GW2_path\bin64\" -Force
@@ -1964,7 +2001,7 @@ if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
 		$conf.versions_main.BlishHUD_ArcDPS_Bridge = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		msgupdate("main", "BlishHUD-ArcDPS Bridge", $false)
+		msgupdate -type "main" -name "BlishHUD-ArcDPS Bridge" -update $false
 	}
 } else {
 	removefile "$GW2_path\bin64\arcdps_bhud.dll"
@@ -1985,8 +2022,8 @@ $modules.BlishHUD.GetEnumerator() | foreach {
 			($conf.versions_modules[$_.key] -ne $new) -or
 			(-not (Test-Path "$targetfile"))
 		) {
-			msgupdate("module", $_.value.name, $true)
-
+			msgupdate -type "module" -name $_.value.name -update $true
+			
 			Remove-Item ($checkpath + $_.value.namespace + "*") -Force -ErrorAction SilentlyContinue
 
 			Invoke-WebRequest $_.value.targeturl -OutFile $targetfile
@@ -1996,7 +2033,7 @@ $modules.BlishHUD.GetEnumerator() | foreach {
 			$conf.versions_modules[$_.key] = $new
 			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 		} else {
-			msgupdate("module", $_.value.name, $false)
+			msgupdate -type "module" -name $_.value.name -update $false
 		}
 	} else {
 		removefile ($checkpath + $_.value.namespace + "_" + $_.value.version + ".bhm")
@@ -2024,7 +2061,7 @@ if ($conf.modules.CharrTimersBlishHUD -and $conf.main.enabledBlish) {
 		($conf.versions_modules.HeroTimers -ne $new) -or
 		(-not (Test-Path "$targetfile\Hero-Timers.zip"))
 	) {
-		msgupdate("main", "Hero-Timers (for BlishHUD Timers-Module)", $true)
+		msgupdate -type "main" -name "Hero-Timers (for BlishHUD Timers-Module)" -update $true
 
 		removefile "$targetfile\Hero-Timers.zip"
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile\Hero-Timers.zip"
@@ -2032,7 +2069,7 @@ if ($conf.modules.CharrTimersBlishHUD -and $conf.main.enabledBlish) {
 		$conf.versions_modules.HeroTimers = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		msgupdate("main", "Hero-Timers (for BlishHUD Timers-Module)", $false)
+		msgupdate -type "main" -name "Hero-Timers (for BlishHUD Timers-Module)" -update $false
 	}
 } else {
 	removefile "$targetfile\Hero-Timers.zip"
@@ -2063,7 +2100,7 @@ $modules.Path.GetEnumerator() | foreach {
 					(-not (Test-Path "$path_b"))
 				)
 			) {
-				msgupdate("path", $_.value.name, $true)
+				msgupdate -type "path" -name $_.value.name -update $true
 
 				Invoke-WebRequest $_.value.targeturl -OutFile "$checkfile"
 
@@ -2086,7 +2123,7 @@ $modules.Path.GetEnumerator() | foreach {
 
 				removefile "$checkfile"
 			} else {
-				msgupdate("path", $_.value.name, $false)
+				msgupdate -type "path" -name $_.value.name -update $false
 			}
 		} elseif ($_.value.platform -eq "github-raw") {
 			checkGithub
@@ -2104,7 +2141,7 @@ $modules.Path.GetEnumerator() | foreach {
 					(-not (Test-Path "$path_b"))
 				)
 			) {
-				msgupdate("path", $_.value.name, $true)
+				msgupdate -type "path" -name $_.value.name -update $true
 
 				Invoke-WebRequest ("https://github.com/" + $_.value.repo + "/raw/main/Download/" + $_.value.targetfile) -OutFile "$checkfile"
 
@@ -2127,7 +2164,7 @@ $modules.Path.GetEnumerator() | foreach {
 
 				removefile "$checkfile"
 			} else {
-				msgupdate("path", $_.value.name, $false)
+				msgupdate -type "path" -name $_.value.name -update $false
 			}
 		} elseif ($_.value.platform -eq "bitbucket") {
 			Invoke-WebRequest ("https://api.bitbucket.org/2.0/repositories/" + $_.value.repo + "/commits") -OutFile "$checkfile"
@@ -2145,7 +2182,7 @@ $modules.Path.GetEnumerator() | foreach {
 					(-not (Test-Path "$path_b"))
 				)
 			) {
-				msgupdate("path", $_.value.name, $true)
+				msgupdate -type "path" -name $_.value.name -update $true
 
 				Invoke-WebRequest ("https://bitbucket.org/" + $_.value.repo + "/get/" + $new + ".zip") -OutFile "$checkfile.zip"
 
@@ -2173,7 +2210,7 @@ $modules.Path.GetEnumerator() | foreach {
 
 				removefile "$checkfile.zip"
 			} else {
-				msgupdate("path", $_.value.name, $false)
+				msgupdate -type "path" -name $_.value.name -update $false
 			}
 		}
 	}
@@ -2220,7 +2257,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					($conf.versions_addons[$key] -ne $new) -or
 					(-not (Test-Path "$targetpath"))
 				) {
-					msgupdate("addon", $value.addon_name, $true)
+					msgupdate -type "addon" -name $value.addon_name -update $true
 
 					Remove-Item ("$targetpath") -Recurse -Force -ErrorAction SilentlyContinue
 					Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
@@ -2239,7 +2276,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					$conf.versions_addons[$key] = $new
 					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 				} else {
-					msgupdate("addon", $value.addon_name, $false)
+					msgupdate -type "addon" -name $value.addon_name -update $false
 				}
 			} elseif (
 					($value.download_type -eq "archive") -and
@@ -2250,7 +2287,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					($conf.versions_addons[$key] -ne $new) -or
 					(-not (Test-Path "$targetpath"))
 				) {
-					msgupdate("addon", $value.addon_name, $true)
+					msgupdate -type "addon" -name $value.addon_name -update $true
 
 					Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
 					Remove-Item "$checkfile" -Recurse -Force -ErrorAction SilentlyContinue
@@ -2270,7 +2307,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					$conf.versions_addons[$key] = $new
 					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 				} else {
-					msgupdate("addon", $value.addon_name, $false)
+					msgupdate -type "addon" -name $value.addon_name -update $false
 				}
 			} elseif (
 					($value.download_type -eq ".dll") -and
@@ -2281,7 +2318,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					($conf.versions_addons[$key] -ne $new) -or
 					(-not (Test-Path "$targetpath"))
 				) {
-					msgupdate("addon", $value.addon_name, $true)
+					msgupdate -type "addon" -name $value.addon_name -update $true
 
 					removefile "$targetpath"
 
@@ -2299,7 +2336,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					$conf.versions_addons[$key] = $new
 					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 				} else {
-					msgupdate("addon", $value.addon_name, $false)
+					msgupdate -type "addon" -name $value.addon_name -update $false
 				}
 			}
 		} elseif ($value.host_type -eq "standalone") {
@@ -2312,14 +2349,14 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 				($conf.versions_addons[$key] -ne $new) -or
 				(-not (Test-Path "$targetpath"))
 			) {
-				msgupdate("addon", $value.addon_name, $true)
+				msgupdate -type "addon" -name $value.addon_name -update $true
 
 				Invoke-WebRequest $value.host_url -OutFile "$targetpath"
 
 				$conf.versions_addons[$key] = $new
 				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 			} else {
-				msgupdate("addon", $value.addon_name, $false)
+				msgupdate -type "addon" -name $value.addon_name -update $false
 			}
 		}
 	} else {
