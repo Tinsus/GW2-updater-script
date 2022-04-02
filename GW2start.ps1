@@ -2,9 +2,6 @@ param($forceGUIfromBat = "")
 
 #TODO:
 
-# times für das timers module mitverwalten
-# die daten in das Timers-Module rein patchen
-# kaputte zeilenumbrüche in den MessageBox-es heile machen
 # Warnung, wenn die Grafikeinstellungen falsch sind (geht einfach) und arc oder blish laufen
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 # github prio nach datum des letzten scans
@@ -1156,6 +1153,42 @@ function checkPathValidity() {
 	)
 }
 
+function msgupdate($type, $str, $update = $false) {
+	switch($type) {
+		"main" {
+			Write-Host "$str" -NoNewline -ForegroundColor White
+
+			break
+		}
+		"addon" {
+			Write-Host "Addon '" -NoNewline
+			Write-Host "$str" -NoNewline -ForegroundColor White
+			Write-Host "'" -NoNewline
+
+			break
+		}
+		"module" {
+			Write-Host "Module '" -NoNewline
+			Write-Host "$str" -NoNewline -ForegroundColor White
+			Write-Host "'" -NoNewline
+
+			break
+		}
+		"path" {
+			Write-Host "Path '" -NoNewline
+			Write-Host "$str" -NoNewline -ForegroundColor White
+			Write-Host "'" -NoNewline
+
+			break
+		}
+	}
+
+	if ($update) {
+		Write-Host " is being updated" -ForegroundColor Green
+	} else {
+		Write-Host " is up-to-date"
+	}
+}
 # collect packages
 $modules = @{}
 $modules.Main = @{}
@@ -1722,8 +1755,7 @@ if ($conf.main.enabledArc) {
 		(-not (Test-Path "$GW2_path\d3d11.dll")) -or
 		(-not (Test-Path "$GW2_path\dxgi.dll"))
 	) {
-		Write-Host "Addon-Loader-Core " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
+		msgupdate("main", "Addon-Loader-Core", $true)
 
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
 		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$GW2_path\" -Force
@@ -1732,8 +1764,7 @@ if ($conf.main.enabledArc) {
 		$conf.versions_main.loadercore = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		Write-Host "Addon-Loader-Core " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
+		msgupdate("main", "Addon-Loader-Core", $false)
 	}
 } else {
 	removefile "$GW2_path\bin64\d3d9.dll"
@@ -1759,8 +1790,7 @@ if ($conf.main.enabledArc) {
 		($conf.versions_main.ArcDPS -ne $new) -or
 		(-not (Test-Path "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"))
 	) {
-		Write-Host "ArcDPS " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
+		msgupdate("main", "ArcDPS", $true)
 
 		removefile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
 
@@ -1772,8 +1802,7 @@ if ($conf.main.enabledArc) {
 		$conf.versions_main.ArcDPS = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		Write-Host "ArcDPS " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
+		msgupdate("main", "ArcDPS", $false)
 	}
 } else {
 	removefile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
@@ -1796,9 +1825,7 @@ if ($conf.main.enabledArc) {
 		($conf.versions_main.d3d9_wrapper -ne $new) -or
 		(-not (Test-Path "$GW2_path\addons\d3d9_wrapper"))
 	) {
-		Write-Host "Addon '" -NoNewline
-		Write-Host "d3d9_wrapper" -NoNewline -ForegroundColor White
-		Write-Host "' is being updated" -ForegroundColor Green
+		msgupdate("addon", "d3d9_wrapper", $true)
 
 		Remove-Item "$GW2_path\d3d9_wrapper" -Recurse -Force -ErrorAction SilentlyContinue
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
@@ -1819,9 +1846,7 @@ if ($conf.main.enabledArc) {
 		$conf.versions_main.d3d9_wrapper = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		Write-Host "Addon '" -NoNewline
-		Write-Host "d3d9_wrapper" -NoNewline -ForegroundColor White
-		Write-Host "' is up-to-date"
+		msgupdate("addon", "d3d9_wrapper", $false)
 	}
 } else {
 	Remove-Item "$GW2_path\addons\d3d9_wrapper" -Recurse -Force -ErrorAction SilentlyContinue
@@ -1849,8 +1874,7 @@ if ($conf.main.enabledTaco) {
 		($conf.versions_main.TacO -ne $new) -or
 		(-not (Test-Path "$targetfile\GW2TacO.exe"))
 	) {
-		Write-Host "TacO " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
+		msgupdate("main", "TacO", $true)
 
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.temp.zip"
 
@@ -1860,8 +1884,7 @@ if ($conf.main.enabledTaco) {
 		$conf.versions_main.TacO = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		Write-Host "TacO " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
+		msgupdate("main", "TacO", $false)
 	}
 } else {
 	Remove-Item -Path "$TacO_path\*" -force -recurse
@@ -1894,8 +1917,7 @@ if ($conf.main.enabledBlish) {
 		($conf.versions_main.BlishHUD -ne $new) -or
 		(-not (Test-Path "$targetfile\Blish HUD.exe"))
 	) {
-		Write-Host "BlishHUD " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
+		msgupdate("main", "BlishHUD", $true)
 
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
 		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$targetfile\" -Force
@@ -1906,8 +1928,7 @@ if ($conf.main.enabledBlish) {
 
 		enforceBHM
 	} else {
-		Write-Host "BlishHUD " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
+		msgupdate("main", "BlishHUD", $false)
 	}
 } else {
 	Remove-Item -Path "$BlishHUD_path\*" -force -recurse
@@ -1934,8 +1955,7 @@ if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
 		($conf.versions_main.BlishHUD_ArcDPS_Bridge -ne $new) -or
 		(-not (Test-Path "$targetfile"))
 	) {
-		Write-Host "BlishHUD-ArcDPS Bridge " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
+		msgupdate("main", "BlishHUD-ArcDPS Bridge", $true)
 
 		Invoke-WebRequest $json.assets.browser_download_url[1] -OutFile "$checkfile.zip"
 		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$GW2_path\bin64\" -Force
@@ -1944,8 +1964,7 @@ if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
 		$conf.versions_main.BlishHUD_ArcDPS_Bridge = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		Write-Host "BlishHUD_ArcDPS_Bridge " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
+		msgupdate("main", "BlishHUD-ArcDPS Bridge", $false)
 	}
 } else {
 	removefile "$GW2_path\bin64\arcdps_bhud.dll"
@@ -1966,9 +1985,7 @@ $modules.BlishHUD.GetEnumerator() | foreach {
 			($conf.versions_modules[$_.key] -ne $new) -or
 			(-not (Test-Path "$targetfile"))
 		) {
-			Write-Host "BlishHUD module '" -NoNewline
-			Write-Host $_.value.name -NoNewline -ForegroundColor White
-			Write-Host "' is being updated" -ForegroundColor Green
+			msgupdate("module", $_.value.name, $true)
 
 			Remove-Item ($checkpath + $_.value.namespace + "*") -Force -ErrorAction SilentlyContinue
 
@@ -1979,9 +1996,7 @@ $modules.BlishHUD.GetEnumerator() | foreach {
 			$conf.versions_modules[$_.key] = $new
 			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 		} else {
-			Write-Host "BlishHUD module '" -NoNewline
-			Write-Host $_.value.name -NoNewline -ForegroundColor White
-			Write-Host "' is up-to-date"
+			msgupdate("module", $_.value.name, $false)
 		}
 	} else {
 		removefile ($checkpath + $_.value.namespace + "_" + $_.value.version + ".bhm")
@@ -2009,8 +2024,7 @@ if ($conf.modules.CharrTimersBlishHUD -and $conf.main.enabledBlish) {
 		($conf.versions_modules.HeroTimers -ne $new) -or
 		(-not (Test-Path "$targetfile\Hero-Timers.zip"))
 	) {
-		Write-Host "Hero-Timers (for BlishHUD Timers-Module) " -NoNewline -ForegroundColor White
-		Write-Host "is being updated" -ForegroundColor Green
+		msgupdate("main", "Hero-Timers (for BlishHUD Timers-Module)", $true)
 
 		removefile "$targetfile\Hero-Timers.zip"
 		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile\Hero-Timers.zip"
@@ -2018,8 +2032,7 @@ if ($conf.modules.CharrTimersBlishHUD -and $conf.main.enabledBlish) {
 		$conf.versions_modules.HeroTimers = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 	} else {
-		Write-Host "Hero-Timers (for BlishHUD Timers-Module) " -NoNewline -ForegroundColor White
-		Write-Host "is up-to-date"
+		msgupdate("main", "Hero-Timers (for BlishHUD Timers-Module)", $false)
 	}
 } else {
 	removefile "$targetfile\Hero-Timers.zip"
@@ -2050,9 +2063,7 @@ $modules.Path.GetEnumerator() | foreach {
 					(-not (Test-Path "$path_b"))
 				)
 			) {
-				Write-Host "Path '" -NoNewline
-				Write-Host $_.value.name -NoNewline -ForegroundColor White
-				Write-Host "' is being updated" -ForegroundColor Green
+				msgupdate("path", $_.value.name, $true)
 
 				Invoke-WebRequest $_.value.targeturl -OutFile "$checkfile"
 
@@ -2075,9 +2086,7 @@ $modules.Path.GetEnumerator() | foreach {
 
 				removefile "$checkfile"
 			} else {
-				Write-Host "Path '" -NoNewline
-				Write-Host $_.value.name -NoNewline -ForegroundColor White
-				Write-Host "' is up-to-date"
+				msgupdate("path", $_.value.name, $false)
 			}
 		} elseif ($_.value.platform -eq "github-raw") {
 			checkGithub
@@ -2095,9 +2104,7 @@ $modules.Path.GetEnumerator() | foreach {
 					(-not (Test-Path "$path_b"))
 				)
 			) {
-				Write-Host "Path '" -NoNewline
-				Write-Host $_.value.name -NoNewline -ForegroundColor White
-				Write-Host "' is being updated" -ForegroundColor Green
+				msgupdate("path", $_.value.name, $true)
 
 				Invoke-WebRequest ("https://github.com/" + $_.value.repo + "/raw/main/Download/" + $_.value.targetfile) -OutFile "$checkfile"
 
@@ -2120,9 +2127,7 @@ $modules.Path.GetEnumerator() | foreach {
 
 				removefile "$checkfile"
 			} else {
-				Write-Host "Path '" -NoNewline
-				Write-Host $_.value.name -NoNewline -ForegroundColor White
-				Write-Host "' is up-to-date"
+				msgupdate("path", $_.value.name, $false)
 			}
 		} elseif ($_.value.platform -eq "bitbucket") {
 			Invoke-WebRequest ("https://api.bitbucket.org/2.0/repositories/" + $_.value.repo + "/commits") -OutFile "$checkfile"
@@ -2140,9 +2145,7 @@ $modules.Path.GetEnumerator() | foreach {
 					(-not (Test-Path "$path_b"))
 				)
 			) {
-				Write-Host "Path '" -NoNewline
-				Write-Host $_.value.name -NoNewline -ForegroundColor White
-				Write-Host "' is being updated" -ForegroundColor Green
+				msgupdate("path", $_.value.name, $true)
 
 				Invoke-WebRequest ("https://bitbucket.org/" + $_.value.repo + "/get/" + $new + ".zip") -OutFile "$checkfile.zip"
 
@@ -2170,9 +2173,7 @@ $modules.Path.GetEnumerator() | foreach {
 
 				removefile "$checkfile.zip"
 			} else {
-				Write-Host "Path '" -NoNewline
-				Write-Host $_.value.name -NoNewline -ForegroundColor White
-				Write-Host "' is up-to-date"
+				msgupdate("path", $_.value.name, $false)
 			}
 		}
 	}
@@ -2219,9 +2220,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					($conf.versions_addons[$key] -ne $new) -or
 					(-not (Test-Path "$targetpath"))
 				) {
-					Write-Host "Addon '" -NoNewline
-					Write-Host $value.addon_name -NoNewline -ForegroundColor White
-					Write-Host "' is being updated" -ForegroundColor Green
+					msgupdate("addon", $value.addon_name, $true)
 
 					Remove-Item ("$targetpath") -Recurse -Force -ErrorAction SilentlyContinue
 					Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
@@ -2240,9 +2239,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					$conf.versions_addons[$key] = $new
 					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 				} else {
-					Write-Host "Addon '" -NoNewline
-					Write-Host $value.addon_name -NoNewline -ForegroundColor White
-					Write-Host "' is up-to-date"
+					msgupdate("addon", $value.addon_name, $false)
 				}
 			} elseif (
 					($value.download_type -eq "archive") -and
@@ -2253,9 +2250,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					($conf.versions_addons[$key] -ne $new) -or
 					(-not (Test-Path "$targetpath"))
 				) {
-					Write-Host "Addon '" -NoNewline
-					Write-Host $value.addon_name -NoNewline -ForegroundColor White
-					Write-Host "' is being updated" -ForegroundColor Green
+					msgupdate("addon", $value.addon_name, $true)
 
 					Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
 					Remove-Item "$checkfile" -Recurse -Force -ErrorAction SilentlyContinue
@@ -2275,9 +2270,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					$conf.versions_addons[$key] = $new
 					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 				} else {
-					Write-Host "Addon '" -NoNewline
-					Write-Host $value.addon_name -NoNewline -ForegroundColor White
-					Write-Host "' is up-to-date"
+					msgupdate("addon", $value.addon_name, $false)
 				}
 			} elseif (
 					($value.download_type -eq ".dll") -and
@@ -2288,9 +2281,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					($conf.versions_addons[$key] -ne $new) -or
 					(-not (Test-Path "$targetpath"))
 				) {
-					Write-Host "Addon '" -NoNewline
-					Write-Host $value.addon_name -NoNewline -ForegroundColor White
-					Write-Host "' is being updated" -ForegroundColor Green
+					msgupdate("addon", $value.addon_name, $true)
 
 					removefile "$targetpath"
 
@@ -2308,9 +2299,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					$conf.versions_addons[$key] = $new
 					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 				} else {
-					Write-Host "Addon '" -NoNewline
-					Write-Host $value.addon_name -NoNewline -ForegroundColor White
-					Write-Host "' is up-to-date"
+					msgupdate("addon", $value.addon_name, $false)
 				}
 			}
 		} elseif ($value.host_type -eq "standalone") {
@@ -2323,18 +2312,14 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 				($conf.versions_addons[$key] -ne $new) -or
 				(-not (Test-Path "$targetpath"))
 			) {
-				Write-Host "Addon '" -NoNewline
-				Write-Host $value.addon_name -NoNewline -ForegroundColor White
-				Write-Host "' is being updated" -ForegroundColor Green
+				msgupdate("addon", $value.addon_name, $true)
 
 				Invoke-WebRequest $value.host_url -OutFile "$targetpath"
 
 				$conf.versions_addons[$key] = $new
 				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 			} else {
-				Write-Host "Addon '" -NoNewline
-				Write-Host $value.addon_name -NoNewline -ForegroundColor White
-				Write-Host "' is up-to-date"
+				msgupdate("addon", $value.addon_name, $false)
 			}
 		}
 	} else {
