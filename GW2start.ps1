@@ -156,7 +156,7 @@ function checkGithub() {
 	removefile "$Script_path\github.json"
 
 	if ($json.rate.remaining -lt 1) {
-		$date = (Get-Date -Date "1970-01-01 00:00:00Z").toLocalTime().addSeconds($json.rate.reset)
+		$date = (Get-Date -Date "1970-01-01 00:00:00GMT").addSeconds($json.rate.reset)
 
 		nls 3
 		Write-Host "No more updates possible due to API limitations by github.com :(" -ForegroundColor Red
@@ -193,7 +193,7 @@ function checkGithubLite() {
 	removefile "$Script_path\github.json"
 
 	if ($json.rate.remaining -lt 1) {
-		$date = (Get-Date -Date "1970-01-01 00:00:00Z").toLocalTime().addSeconds($json.rate.reset)
+		$date = (Get-Date -Date "1970-01-01 00:00:00GMT").addSeconds($json.rate.reset)
 
 		nls 3
 		Write-Host "No more updates possible due to API limitations by github.com :(" -ForegroundColor Red
