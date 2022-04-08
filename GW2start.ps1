@@ -2014,7 +2014,7 @@ $modules.BlishHUD.GetEnumerator() | foreach {
 			(-not (Test-Path "$targetfile"))
 		) {
 			msgupdate -type "module" -name $_.value.name -update $true
-			
+
 			Remove-Item ($checkpath + $_.value.namespace + "*") -Force -ErrorAction SilentlyContinue
 
 			Invoke-WebRequest $_.value.targeturl -OutFile $targetfile
