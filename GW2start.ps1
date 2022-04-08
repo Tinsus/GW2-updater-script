@@ -1366,21 +1366,12 @@ if (-not (Test-Path "$Script_path\GW2start.ini")) {
 	$conf = Get-IniContent "$Script_path\GW2start.ini"
 }
 
-if ($conf.main -eq $null) {
-	$conf.main = @{}
-	$conf.addons = @{}
-	$conf.paths = @{}
-	$conf.modules = @{}
-	$conf.versions_main = @{}
-	$conf.versions_addons = @{}
-	$conf.versions_paths = @{}
-	$conf.versions_modules = @{}
+@("main", "addons", "paths", "modules", "versions_addons", "versions_main", "versions_modules", "versions_paths", "ignore") | foreach {
+	if ($conf[$_] -eq $null) {
+		$conf[$_] = @{}
 
-	$forceGUI = $true
-}
-
-if ($conf.ignore -eq $null) {
-	$conf.ignore = @{}
+		$forceGUI = $true
+	}
 }
 
 if ($conf.main.pathArc -eq $null) {
