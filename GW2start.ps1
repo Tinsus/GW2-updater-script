@@ -1,6 +1,9 @@
 param($forceGUIfromBat = "")
 
 #TODO:
+# umbrüche in messages fixen
+# taco.taco als repo anbieten
+# falsches inactive beim firstload fixen
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 # github prio nach datum des letzten scans
 # Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen) [muss das noch? oder ist das jetzt besser geschützt?]
