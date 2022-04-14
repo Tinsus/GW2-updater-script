@@ -2,7 +2,6 @@ param($forceGUIfromBat = "")
 
 #TODO:
 # umbrüche in messages fixen
-# taco.taco als repo anbieten
 # falsches inactive beim firstload fixen
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 # github prio nach datum des letzten scans
@@ -1257,6 +1256,15 @@ $modules.Path.schattenfluegel = @{
 	targetfile = "SchattenfluegelTrails.taco"
 	platform = "github-raw"
 	blishonly = $false
+}
+$modules.Path.tacointernal = @{
+	name = "TacO interal"
+	desc = "default pack included in every TacO installation"
+	default = $false
+	repo = "BoyC/GW2TacO"
+	targetfile = "TacOMarkers.taco"
+	platform = "github-raw"
+	blishonly = $true
 }
 
 $modules.Path.czokalapiks = @{
