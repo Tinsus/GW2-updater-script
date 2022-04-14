@@ -1,6 +1,7 @@
 param($forceGUIfromBat = "")
 
 #TODO:
+# tacointernal mach schattenfluegel kaputt?
 # falsches inactive beim firstload fixen
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 # github prio nach datum des letzten scans
@@ -1256,6 +1257,7 @@ $modules.Path.schattenfluegel = @{
 	platform = "github-raw"
 	blishonly = $false
 }
+<#
 $modules.Path.tacointernal = @{
 	name = "TacO interal"
 	desc = "default pack included in every TacO installation"
@@ -1265,6 +1267,7 @@ $modules.Path.tacointernal = @{
 	platform = "github-raw"
 	blishonly = $true
 }
+#>
 
 $modules.Path.czokalapiks = @{
 	name = "Czokalapiks"
