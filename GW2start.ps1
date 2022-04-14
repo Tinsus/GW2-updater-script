@@ -1,7 +1,6 @@
 param($forceGUIfromBat = "")
 
 #TODO:
-# umbrüche in messages fixen
 # falsches inactive beim firstload fixen
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 # github prio nach datum des letzten scans
@@ -1451,7 +1450,7 @@ if (-not $forceGUI) {
 					($_.value.default -eq $true)
 				) {
 					$r = [System.Windows.Forms.MessageBox]::Show(
-						("Do you want to checkout the recommanded Blish HUD module '" + $_.value.name + "'?\r\n\r\n" + $_.value.desc),
+						("Do you want to checkout the recommanded Blish HUD module '" + $_.value.name + "'?`n`n" + $_.value.desc),
 						"New Blish HUD module",
 						4,
 						"Question"
@@ -1463,7 +1462,7 @@ if (-not $forceGUI) {
 					($targeted -eq $true)
 				) {
 					$r = [System.Windows.Forms.MessageBox]::Show(
-						("You have installed '" + $_.value.name + "' but it is not managed here.\r\n\r\n" + $_.value.desc + "\r\n\r\nDo you want this script to manage it?"),
+						("You have installed '" + $_.value.name + "' but it is not managed here.`n`n" + $_.value.desc + "`n`nDo you want this script to manage it?"),
 						"Unmanaged Blish HUD module",
 						3,
 						"Question"
@@ -1484,7 +1483,7 @@ if (-not $forceGUI) {
 					($targeted -eq $false)
 				) {
 					$r = [System.Windows.Forms.MessageBox]::Show(
-						("You have uninstalled '" + $_.value.name + "' but this script is configurated to update it.\r\n\r\n" + $_.value.desc + "\r\n\r\nDo you want this script to reinstall it?"),
+						("You have uninstalled '" + $_.value.name + "' but this script is configurated to update it.`n`n" + $_.value.desc + "`n`nDo you want this script to reinstall it?"),
 						"Missing Blish HUD module",
 						3,
 						"Warning"
@@ -1521,7 +1520,7 @@ if (-not $forceGUI) {
 					$conf.main.enabledBlish
 				) {
 					$r = [System.Windows.Forms.MessageBox]::Show(
-						("Do you want to checkout the recommanded path '" + $_.value.name + "'?\r\n\r\n" + $_.value.desc),
+						("Do you want to checkout the recommanded path '" + $_.value.name + "'?`n`n" + $_.value.desc),
 						"New path for Blish HUD pathing module",
 						4,
 						"Question"
@@ -1535,7 +1534,7 @@ if (-not $forceGUI) {
 					$conf.main.enabledBlish
 				) {
 					$r = [System.Windows.Forms.MessageBox]::Show(
-						("You have installed '" + $_.value.name + "' for Blish HUD.\r\n\r\n" + $_.value.desc + "\r\n\r\nDo you want this script to manage it?"),
+						("You have installed '" + $_.value.name + "' for Blish HUD.`n`n" + $_.value.desc + "`n`nDo you want this script to manage it?"),
 						"Unmanaged Blish HUD path",
 						3,
 						"Question"
@@ -1559,7 +1558,7 @@ if (-not $forceGUI) {
 					$conf.main.enabledBlish
 				) {
 					$r = [System.Windows.Forms.MessageBox]::Show(
-						("You have uninstalled '" + $_.value.name + "' for Blish HUD but this script is configurated to update it.\r\n\r\n" + $_.value.description + "\r\n\r\nDo you want this script to reinstall it?"),
+						("You have uninstalled '" + $_.value.name + "' for Blish HUD but this script is configurated to update it.`n`n" + $_.value.description + "`n`nDo you want this script to reinstall it?"),
 						"Missing Blish HUD path",
 						3,
 						"Warning"
@@ -1583,7 +1582,7 @@ if (-not $forceGUI) {
 					$conf.main.enabledTaco
 				) {
 					$r = [System.Windows.Forms.MessageBox]::Show(
-						("You have installed '" + $_.value.name + "' for TacO.\r\n\r\n" + $_.value.description + "\r\n\r\nDo you want this script to manage it?"),
+						("You have installed '" + $_.value.name + "' for TacO.`n`n" + $_.value.description + "`n`nDo you want this script to manage it?"),
 						"Unmanaged TacO path",
 						3,
 						"Question"
@@ -1607,7 +1606,7 @@ if (-not $forceGUI) {
 					$conf.main.enabledTaco
 				) {
 					$r = [System.Windows.Forms.MessageBox]::Show(
-						("You have uninstalled '" + $_.value.name + "' for TacO but this script is configurated to update it.\r\n\r\n" + $_.value.description + "\r\n\r\nDo you want this script to reinstall it?"),
+						("You have uninstalled '" + $_.value.name + "' for TacO but this script is configurated to update it.`n`n" + $_.value.description + "`n`nDo you want this script to reinstall it?"),
 						"Missing TacO path",
 						3,
 						"Warning"
@@ -1642,7 +1641,7 @@ if (-not $forceGUI) {
 					($_.value.default -eq $true)
 				) {
 					$r = [System.Windows.Forms.MessageBox]::Show(
-						("Do you want to checkout the recommanded ArcDPS addon '" + $_.value.addon_name + "'?\r\n\r\n" + $_.value.description),
+						("Do you want to checkout the recommanded ArcDPS addon '" + $_.value.addon_name + "'?`n`n" + $_.value.description),
 						"New ArcDPS addon",
 						4,
 						"Question"
@@ -1654,7 +1653,7 @@ if (-not $forceGUI) {
 					($targeted -eq $true)
 				) {
 					$r = [System.Windows.Forms.MessageBox]::Show(
-						("You have installed '" + $_.value.addon_name + "' but it is not managed here.\r\n\r\n" + $_.value.description + "\r\n\r\nDo you want this script to manage it?"),
+						("You have installed '" + $_.value.addon_name + "' but it is not managed here.`n`n" + $_.value.description + "`n`nDo you want this script to manage it?"),
 						"Unmanaged ArcDPS addon",
 						3,
 						"Question"
@@ -1675,7 +1674,7 @@ if (-not $forceGUI) {
 					($targeted -eq $false)
 				) {
 					$r = [System.Windows.Forms.MessageBox]::Show(
-						("You have uninstalled '" + $_.value.addon_name + "' but this script is configurated to update it.\r\n\r\n" + $_.value.description + "\r\n\r\nDo you want this script to reinstall it?"),
+						("You have uninstalled '" + $_.value.addon_name + "' but this script is configurated to update it.`n`n" + $_.value.description + "`n`nDo you want this script to reinstall it?"),
 						"Missing ArcDPS addon",
 						3,
 						"Warning"
