@@ -1,6 +1,7 @@
 param($forceGUIfromBat = "")
 
 #TODO:
+# API/build ist kaputt, fehler ist als Ticket eingereicht.
 # tacointernal mach schattenfluegel kaputt?
 # falsches inactive beim firstload fixen
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
@@ -375,7 +376,7 @@ function showGUI {
 	$form.tooltip.InitialDelay = 100;
 	$form.tooltip.ReshowDelay = 500;
 
-	$form.main_form.Text ='Config GW2start script'
+	$form.main_form.Text = "Config GW2start script"
 	$form.main_form.AutoSize = $true
 	$form.main_form.AutoSizeMode = 1
 
