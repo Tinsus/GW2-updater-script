@@ -2,9 +2,10 @@ param($forceGUIfromBat = "")
 
 #TODO:
 # API/build ist kaputt, fehler ist als Ticket eingereicht.
+
 # tacointernal macht schattenfluegel kaputt?
 # Guild Missions:  FR=https://reactif.games/taco/download.php?f=8 EN=https://reactif.games/taco/download.php?f=7
-# falsches inactive beim firstload fixen
+
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 # github prio nach datum des letzten scans
 # Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen) [muss das noch? oder ist das jetzt besser geschützt?]
@@ -796,9 +797,11 @@ function validateGUI {
 			$modules.Path[$_.key]["UI2"].checked = $conf.paths[$_.key + "_taco"]
 		}
 
-		if ($modules.Path[$_.key].conflicts -ne $null) {
-			$modules.Path[$_.key]["UI1"].enabled = (-not ($conf.paths[$modules.Path[$_.key].conflicts + "_blish"]) -or ($modules.Path[$modules.Path[$_.key].conflicts]["UI2"].checked))
-			$modules.Path[$_.key]["UI2"].enabled = (-not ($conf.paths[$modules.Path[$_.key].conflicts + "_taco"]) -or ($modules.Path[$modules.Path[$_.key].conflicts]["UI1"].checked))
+		if ($validBlish -and $form.enabledBlish.checked) {
+			if ($modules.Path[$_.key].conflicts -ne $null) {
+				$modules.Path[$_.key]["UI1"].enabled = (-not ($conf.paths[$modules.Path[$_.key].conflicts + "_blish"]) -or ($modules.Path[$modules.Path[$_.key].conflicts]["UI2"].checked))
+				$modules.Path[$_.key]["UI2"].enabled = (-not ($conf.paths[$modules.Path[$_.key].conflicts + "_taco"]) -or ($modules.Path[$modules.Path[$_.key].conflicts]["UI1"].checked))
+			}
 		}
 	}
 
