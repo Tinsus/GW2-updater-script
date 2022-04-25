@@ -2,7 +2,8 @@ param($forceGUIfromBat = "")
 
 #TODO:
 # API/build ist kaputt, fehler ist als Ticket eingereicht.
-# tacointernal mach schattenfluegel kaputt?
+# tacointernal macht schattenfluegel kaputt?
+# Guild Missions: FR=https://reactif.games/taco/download.php?f=8 EN=https://reactif.games/taco/download.php?f=7
 # falsches inactive beim firstload fixen
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 # github prio nach datum des letzten scans
