@@ -3,7 +3,7 @@ param($forceGUIfromBat = "")
 #TODO:
 # API/build ist kaputt, fehler ist als Ticket eingereicht.
 # tacointernal macht schattenfluegel kaputt?
-# Guild Missions: FR=https://reactif.games/taco/download.php?f=8 EN=https://reactif.games/taco/download.php?f=7
+# Guild Missions:  FR=https://reactif.games/taco/download.php?f=8 EN=https://reactif.games/taco/download.php?f=7
 # falsches inactive beim firstload fixen
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 # github prio nach datum des letzten scans
@@ -414,7 +414,7 @@ function showGUI {
 	$form.pathArc.Size = New-Object System.Drawing.Size(50, 20)
 	$form.pathArc.Text = "Edit"
 	$form.pathArc.Add_Click({
-		changeGUI -category "path" -key "arc"
+		changeGUI -category "path" -key "arc" -value $form.enabledArc.checked
 	})
 	$form.groupArc.Controls.Add($form.pathArc)
 
@@ -422,7 +422,7 @@ function showGUI {
 	$form.pathArcLabel.Location = New-Object System.Drawing.Point(62, 58)
 	$form.pathArcLabel.AutoSize = $true
 	$form.pathArcLabel.Add_Click({
-		changeGUI -category "path" -key "arc"
+		changeGUI -category "path" -key "arc" -value $form.enabledArc.checked
 	})
 	$form.groupArc.Controls.Add($form.pathArcLabel)
 
