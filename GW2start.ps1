@@ -4,7 +4,7 @@ param($forceGUIfromBat = "")
 # API/build ist kaputt, fehler ist als Ticket eingereicht.
 
 # tacointernal macht schattenfluegel kaputt?
-# Guild Missions:  FR=https://reactif.games/taco/download.php?f=8 EN=https://reactif.games/taco/download.php?f=7
+# Guild Missions reactif
 
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 # github prio nach datum des letzten scans
@@ -1271,6 +1271,22 @@ $modules.Path.tacointernal = @{
 	targetfile = "TacOMarkers.taco"
 	platform = "github-raw"
 	blishonly = $true
+}
+#>
+<#
+$modules.Path.tacointernal = @{
+	name = "TacO interal"
+	desc = "default pack included in every TacO installation"
+	default = $false
+	repo = "BoyC/GW2TacO"
+	targetfile = "TacOMarkers.taco"
+	platform = "github-raw"
+	blishonly = $true
+	
+	FR=https://reactif.games/taco/download.php?f=8 EN=https://reactif.games/taco/download.php?f=7
+	
+	$new = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-fr.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
+	$new = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-en.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
 }
 #>
 
