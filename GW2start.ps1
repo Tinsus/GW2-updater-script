@@ -6,6 +6,7 @@ param($forceGUIfromBat = "")
 # tacointernal macht schattenfluegel kaputt?
 # Guild Missions reactif
 
+# API-Limit nicht immer überschreiten: https://docs.github.com/en/rest/overview/resources-in-the-rest-api#conditional-requests
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 # github prio nach datum des letzten scans
 # Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen) [muss das noch? oder ist das jetzt besser geschützt?]
@@ -1263,7 +1264,7 @@ $modules.Path.schattenfluegel = @{
 	blishonly = $false
 }
 
-<#
+#<# ###
 $modules.Path.tacointernal = @{
 	name = "TacO interal"
 	desc = "default pack included in every TacO installation"
@@ -1272,12 +1273,11 @@ $modules.Path.tacointernal = @{
 	targetfile = "TacOMarkers.taco"
 	platform = "github-raw"
 	blishonly = $true
-
-	FR=https://reactif.games/taco/download.php?f=8 EN=https://reactif.games/taco/download.php?f=7
-
-	$new = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-fr.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
-	$new = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-en.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
 }
+
+#	FR=https://reactif.games/taco/download.php?f=8 EN=https://reactif.games/taco/download.php?f=7
+#	$new = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-fr.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
+#	$new = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-en.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
 #>
 
 $modules.Path.czokalapiks = @{
@@ -1614,6 +1614,10 @@ if (-not $forceGUI) {
 					}
 
 					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				} elseif (
+					($_.key -ne "tacointernal")
+				) {
+					#ignore tacointernal *after* check for Blish HUD
 				} elseif (
 					($conf.paths[$_.key + "_taco"] -eq $false) -and
 					($targeted_t -eq $true) -and
