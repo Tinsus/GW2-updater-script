@@ -277,7 +277,7 @@ function Out-IniFile($InputObject, $FilePath) {
             $newlines += ""
         }
     }
-	
+
 #	removefile $FilePath
     $newlines | Out-File $Filepath
 }
@@ -1262,6 +1262,7 @@ $modules.Path.schattenfluegel = @{
 	platform = "github-raw"
 	blishonly = $false
 }
+
 <#
 $modules.Path.tacointernal = @{
 	name = "TacO interal"
@@ -1271,20 +1272,9 @@ $modules.Path.tacointernal = @{
 	targetfile = "TacOMarkers.taco"
 	platform = "github-raw"
 	blishonly = $true
-}
-#>
-<#
-$modules.Path.tacointernal = @{
-	name = "TacO interal"
-	desc = "default pack included in every TacO installation"
-	default = $false
-	repo = "BoyC/GW2TacO"
-	targetfile = "TacOMarkers.taco"
-	platform = "github-raw"
-	blishonly = $true
-	
+
 	FR=https://reactif.games/taco/download.php?f=8 EN=https://reactif.games/taco/download.php?f=7
-	
+
 	$new = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-fr.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
 	$new = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-en.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
 }
@@ -1364,25 +1354,49 @@ $json | foreach {
 	}
 
 	if ($filtered) {
-		$modules.BlishHud[$name] = @{}
-		$modules.BlishHud[$name].name = $_.name
-		$modules.BlishHud[$name].desc = $_.description
-		$modules.BlishHud[$name].targeturl = $_.location
-		$modules.BlishHud[$name].version = $_.version
-		$modules.BlishHud[$name].namespace = $_.namespace
+		if ($modules.BlishHud[$name] -eq $null) {
+			$modules.BlishHud[$name] = @{}
+			$modules.BlishHud[$name].name = $_.name
+			$modules.BlishHud[$name].desc = $_.description
+			$modules.BlishHud[$name].targeturl = $_.location
+			$modules.BlishHud[$name].version = $_.version
+			$modules.BlishHud[$name].namespace = $_.namespace
 
-		$modules.BlishHud[$name].default = (
-			($name -eq "CharrTimersBlishHUD") -or
-			($name -eq "KillProofModule") -or
-			($name -eq "ManlaanHPGrid") -or
-			($name -eq "NekresMistwar") -or
-			($name -eq "NekresQuickSurrenderModule") -or
-			($name -eq "bhcommunityetm") -or
-			($name -eq "bhcommunitypathing") -or
-			($name -eq "bhgeneraldiscordrp") -or
-			($name -eq "bhgeneralevents") -or
-			$false
-		)
+			$modules.BlishHud[$name].default = (
+				($name -eq "CharrTimersBlishHUD") -or
+				($name -eq "KillProofModule") -or
+				($name -eq "ManlaanHPGrid") -or
+				($name -eq "NekresMistwar") -or
+				($name -eq "NekresQuickSurrenderModule") -or
+				($name -eq "bhcommunityetm") -or
+				($name -eq "bhcommunitypathing") -or
+				($name -eq "bhgeneraldiscordrp") -or
+				($name -eq "bhgeneralevents") -or
+				$false
+			)
+		} else {
+			$old = $($modules.BlishHud[$name].version).Split(".")
+			$new = $($_.version).Split(".")
+
+			if (
+				(
+					([int]$new[0] -gt [int]$old[0])
+				) -or (
+					([int]$new[0] -eq [int]$old[0]) -and
+					([int]$new[1] -gt [int]$old[1])
+				) -or (
+					([int]$new[0] -eq [int]$old[0]) -and
+					([int]$new[1] -eq [int]$old[1]) -and
+					([int]$new[2] -gt [int]$old[2])
+				)
+			) {
+				$modules.BlishHud[$name].name = $_.name
+				$modules.BlishHud[$name].desc = $_.description
+				$modules.BlishHud[$name].targeturl = $_.location
+				$modules.BlishHud[$name].version = $_.version
+				$modules.BlishHud[$name].namespace = $_.namespace
+			}
+		}
 	}
 }
 
@@ -1732,7 +1746,6 @@ if (
 		$xml.Load(($env:APPDATA + "\Guild Wars 2\GFXSettings.Gw2-64.exe.xml"))
 		$element = $xml.SelectSingleNode("//GSA_SDK//GAMESETTINGS//OPTION[@Name='screenMode']")
 
-Write-Host $element.Value
 		if (
 			($element.Value -ne "windowed_fullscreen") -and
 			($element.Value -ne "windowed")
