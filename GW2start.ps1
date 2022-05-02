@@ -1,15 +1,14 @@
 param($forceGUIfromBat = "")
 
 #TODO:
-# API/build ist kaputt, fehler ist als Ticket eingereicht.
-
-# tacointernal macht schattenfluegel kaputt?
 # Guild Missions reactif
-
 # API-Limit nicht immer überschreiten: https://docs.github.com/en/rest/overview/resources-in-the-rest-api#conditional-requests
+
 # als multithread: taco im installordner suchen, blishhud schauen, ob im documents ordner und dann pfad finden
 # github prio nach datum des letzten scans
 # Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen) [muss das noch? oder ist das jetzt besser geschützt?]
+
+# API/build ist kaputt, Fehler sollte über Forum eingereicht werden. https://en-forum.guildwars2.com/topic/114091-bug-v1build-and-v2build-stuck-to-old-version/
 
 Add-Type -assembly System.Windows.Forms
 
@@ -1259,17 +1258,18 @@ $modules.Path.schattenfluegel = @{
 	desc = "map pack to show be better than TEKKIT. It adds shotcuts and way better pathes. Way better design, but not as complete as TEKKIT."
 	default = $true
 	repo = "Schattenfluegel/SchattenfluegelTrails"
+	rpath = "/Download"
 	targetfile = "SchattenfluegelTrails.taco"
 	platform = "github-raw"
 	blishonly = $false
 }
 
-#<# ###
 $modules.Path.tacointernal = @{
 	name = "TacO interal"
 	desc = "default pack included in every TacO installation"
 	default = $false
 	repo = "BoyC/GW2TacO"
+	rpath = "/POIs"
 	targetfile = "TacOMarkers.taco"
 	platform = "github-raw"
 	blishonly = $true
@@ -1278,7 +1278,6 @@ $modules.Path.tacointernal = @{
 #	FR=https://reactif.games/taco/download.php?f=8 EN=https://reactif.games/taco/download.php?f=7
 #	$new = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-fr.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
 #	$new = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-en.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
-#>
 
 $modules.Path.czokalapiks = @{
 	name = "Czokalapiks"
@@ -2170,7 +2169,7 @@ $modules.Path.GetEnumerator() | foreach {
 			}
 		} elseif ($_.value.platform -eq "github-raw") {
 			checkGithub
-			Invoke-WebRequest ("https://api.github.com/repos/" + $_.value.repo + "/contents/Download") -OutFile "$checkfile"
+			Invoke-WebRequest ("https://api.github.com/repos/" + $_.value.repo + "/contents" + $_.value.rpath) -OutFile "$checkfile"
 			$new = $(Get-FileHash "$checkfile" -Algorithm MD5).Hash
 			removefile "$checkfile"
 
@@ -2186,7 +2185,7 @@ $modules.Path.GetEnumerator() | foreach {
 			) {
 				msgupdate -type "path" -name $_.value.name -update $true
 
-				Invoke-WebRequest ("https://github.com/" + $_.value.repo + "/raw/main/Download/" + $_.value.targetfile) -OutFile "$checkfile"
+				Invoke-WebRequest ("https://github.com/" + $_.value.repo + "/raw/main" + $_.value.rpath + "/" + $_.value.targetfile) -OutFile "$checkfile"
 
 				if (Test-Path $checkfile) {
 					if ($conf.paths[$_.key + "_blish"]) {
