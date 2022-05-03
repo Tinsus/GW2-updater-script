@@ -1461,6 +1461,7 @@ if (
 	($conf.main.pathArc -ne $null)
 ) {
 	Write-Host "Searching your current TacO-installation."
+	$found = $false
 
 	@(
 		$conf.main.pathArc,
@@ -1495,13 +1496,25 @@ if (
 		) | foreach {
 			if (Test-Path ($main + $_ + "GW2TacO.exe")) {
 				$conf.main.pathTaco = ($main + $_)
-				$forceGUI = $true
 
-				Write-Host "Got it!"
+				$found = $true
 			}
 
 		}
 	}
+
+	if ($found) {
+		Write-Host "Got it!"
+	} else {
+		$found = ($conf.main.pathArc + "\TacO\")
+
+		newdir $found
+		$conf.main.pathTaco = $found
+
+		Write-Host "Using the GW2-installation folder for TacO"
+	}
+
+	$forceGUI = $true
 }
 
 if (
@@ -1509,6 +1522,7 @@ if (
 	($conf.main.pathArc -ne $null)
 ) {
 	Write-Host "Searching your current Blish HUD-installation."
+	$found = $false
 
 	@(
 		$conf.main.pathArc,
@@ -1545,13 +1559,25 @@ if (
 		) | foreach {
 			if (Test-Path ($main + $_ + "Blish HUD.exe")) {
 				$conf.main.pathBlish = ($main + $_)
-				$forceGUI = $true
 
-				Write-Host "Got it!"
+				$found = $true
 			}
 
 		}
 	}
+
+	if ($found) {
+		Write-Host "Got it!"
+	} else {
+		$found = ($conf.main.pathArc + "\BlishHUD\")
+
+		newdir $found
+		$conf.main.pathBlish = $found
+
+		Write-Host "Using the GW2-installation folder for BlishHUD."
+	}
+
+	$forceGUI = $true
 }
 
 if ($forceGUI) {
