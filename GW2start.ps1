@@ -1371,6 +1371,7 @@ $json | foreach {
 				($name -eq "bhcommunitypathing") -or
 				($name -eq "bhgeneraldiscordrp") -or
 				($name -eq "bhgeneralevents") -or
+				($name -eq "ecksofagatheringtools") -or
 				$false
 			)
 		} else {
