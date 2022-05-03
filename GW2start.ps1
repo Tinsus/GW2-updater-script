@@ -1424,6 +1424,8 @@ if (-not (Test-Path "$Script_path\GW2start.ini")) {
 }
 
 if ($conf.main.pathArc -eq $null) {
+	Write-Host "Searching your current GW2-installation."
+
 	@(
 		"C:\Program Files",
 		"D:\Program Files",
@@ -1440,14 +1442,116 @@ if ($conf.main.pathArc -eq $null) {
 	) | foreach {
 		if (Test-Path ($_ + "\Guild Wars 2\Gw2-64.exe")) {
 			$conf.main.pathArc = ($_ + "\Guild Wars 2")
+
+			Write-Host "Got it!"
 		}
 
 		if (Test-Path ($_ + "\Gw2-64.exe")) {
 			$conf.main.pathArc = ($_ + "\")
+
+			Write-Host "Got it!"
 		}
 	}
 
 	$forceGUI = $true
+}
+
+if (
+	($conf.main.pathTaco -eq $null) -and
+	($conf.main.pathArc -ne $null)
+) {
+	Write-Host "Searching your current TacO-installation."
+
+	@(
+		$conf.main.pathArc,
+		($conf.main.pathArc + "\bin64"),
+		($conf.main.pathArc + "\addons"),
+		"C:\Program Files",
+		"C:\Program Files (x86)",
+		"D:\Program Files",
+		"D:\Program Files (x86)",
+		"E:\Program Files",
+		"E:\Program Files (x86)",
+		"F:\Program Files",
+		"F:\Program Files (x86)",
+		"C:\Games",
+		"D:\Games",
+		"E:\Games",
+		"F:\Games",
+		"C:",
+		"D:",
+		"E:",
+		"F:"
+	) | foreach {
+		$main = $_
+
+		@(
+			"\",
+			"\TacO\",
+			"\GW2TacO\",
+			"\GW2\",
+			"\GW2\TacO\",
+			"\GW2\GW2TacO\"
+		) | foreach {
+			if (Test-Path ($main + $_ + "GW2TacO.exe")) {
+				$conf.main.pathTaco = ($main + $_)
+				$forceGUI = $true
+
+				Write-Host "Got it!"
+			}
+
+		}
+	}
+}
+
+if (
+	($conf.main.pathBlish -eq $null) -and
+	($conf.main.pathArc -ne $null)
+) {
+	Write-Host "Searching your current Blish HUD-installation."
+
+	@(
+		$conf.main.pathArc,
+		($conf.main.pathArc + "\bin64"),
+		($conf.main.pathArc + "\addons"),
+		"C:\Program Files",
+		"C:\Program Files (x86)",
+		"D:\Program Files",
+		"D:\Program Files (x86)",
+		"E:\Program Files",
+		"E:\Program Files (x86)",
+		"F:\Program Files",
+		"F:\Program Files (x86)",
+		"C:\Games",
+		"D:\Games",
+		"E:\Games",
+		"F:\Games",
+		"C:",
+		"D:",
+		"E:",
+		"F:"
+	) | foreach {
+		$main = $_
+
+		@(
+			"\",
+			"\Blish\",
+			"\BlishHUD\",
+			"\Blish HUD\",
+			"\GW2\",
+			"\GW2\Blish\",
+			"\GW2\BlishHUD\",
+			"\GW2\Blish HUD\"
+		) | foreach {
+			if (Test-Path ($main + $_ + "Blish HUD.exe")) {
+				$conf.main.pathBlish = ($main + $_)
+				$forceGUI = $true
+
+				Write-Host "Got it!"
+			}
+
+		}
+	}
 }
 
 if ($forceGUI) {
