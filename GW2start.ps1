@@ -1387,6 +1387,8 @@ $json | foreach {
 				($name -eq "bhgeneraldiscordrp") -or
 				($name -eq "bhgeneralevents") -or
 				($name -eq "ecksofagatheringtools") -or
+				($name -eq "DenrageAchievementTrackerModule") -or
+				($name -eq "KenediaModulesBuildsManager") -or
 				$false
 			)
 		} else {
