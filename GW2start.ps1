@@ -1366,13 +1366,6 @@ $json | foreach {
 
 	$name = $_.namespace -replace '[^a-zA-Z]', ''
 
-	if (
-		($modules.BlishHud[$name] -ne $null) -and
-		($modules.BlishHud[$name].version -gt $_.version)
-	) {
-		$filtered = $false
-	}
-
 	if ($filtered) {
 		if ($modules.BlishHud[$name] -eq $null) {
 			$modules.BlishHud[$name] = @{}
