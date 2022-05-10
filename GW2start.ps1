@@ -352,13 +352,13 @@ function placingGUI {
 	$form.groupTaco.Height = $max
 	$form.groupArc.Height = $max
 
-	$max = (@($form.groupTaco.Width, $form.groupBlish.Width, $form.groupAddons.Width, $form.groupPaths.Width, $form.groupModules.Width, $form.groupArc.Width) | measure -Maximum).Maximum
+	$max = (@($form.groupTaco.Width, $form.groupBlish.Width, $form.groupAddons.Width, $form.groupPaths.Width, $form.groupArc.Width) | measure -Maximum).Maximum
 
 	$form.groupTaco.Width = $max
 	$form.groupBlish.Width = $max
 	$form.groupAddons.Width = $max
 	$form.groupPaths.Width = $max
-	$form.groupModules.Width = $max
+	$form.groupModules.Width = $max * 1.5
 	$form.groupArc.Width = $max
 
 	$form.groupTaco.Location = New-Object System.Drawing.Size(($form.groupArc.Location.X + $form.groupArc.Width + 10) , $form.groupArc.Location.Y)
@@ -616,11 +616,19 @@ function showGUI {
 	$form.groupModules.text = "Blish HUD modules"
 
 	$i = 0
+	$ix = 0
+	$iy = 0
+
 	$modules.BlishHUD.GetEnumerator() | foreach {
+		if ($i -eq 30) {
+			$ix++
+			$iy = 0
+		}
+
 		$modules.BlishHUD[$_.key]["UI"] = New-Object System.Windows.Forms.CheckBox
 		$modules.BlishHUD[$_.key]["UI"].Text = ($(if ($_.value.default) { "* " } else { "" }) + $_.value.name)
 		$modules.BlishHUD[$_.key]["UI"] | Add-Member -MemberType NoteProperty -Name 'Value' -Value $_.key
-		$modules.BlishHUD[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (20 * $i)))
+		$modules.BlishHUD[$_.key]["UI"].Location = New-Object System.Drawing.Point((10 + 200 * $ix), (20 + 20 * $iy))
 		$modules.BlishHUD[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 20)
 		$modules.BlishHUD[$_.key]["UI"].Add_CheckStateChanged({
 			changeGUI -category "module" -key $this.Value -value $this.checked
@@ -629,6 +637,7 @@ function showGUI {
 		$form.groupModules.Controls.Add($modules.BlishHUD[$_.key]["UI"])
 
 		$i++
+		$iy++
 	}
 
 	$form.main_form.Controls.Add($form.groupModules)
