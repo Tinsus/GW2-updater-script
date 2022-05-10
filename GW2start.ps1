@@ -354,11 +354,17 @@ function placingGUI {
 
 	$max = (@($form.groupTaco.Width, $form.groupBlish.Width, $form.groupAddons.Width, $form.groupPaths.Width, $form.groupArc.Width) | measure -Maximum).Maximum
 
+	$i = 0
+	$modules.BlishHUD.GetEnumerator() | foreach {
+		$i++
+	}
+	$i = [math]::truncate($i/30) + 0.5
+
 	$form.groupTaco.Width = $max
 	$form.groupBlish.Width = $max
 	$form.groupAddons.Width = $max
 	$form.groupPaths.Width = $max
-	$form.groupModules.Width = $max * 1.5
+	$form.groupModules.Width = $i
 	$form.groupArc.Width = $max
 
 	$form.groupTaco.Location = New-Object System.Drawing.Size(($form.groupArc.Location.X + $form.groupArc.Width + 10) , $form.groupArc.Location.Y)
@@ -620,8 +626,8 @@ function showGUI {
 	$iy = 0
 
 	$modules.BlishHUD.GetEnumerator() | foreach {
-		if ($i -eq 30) {
-			$ix++
+		if ([math]::truncate($i/30) -ne $ix) {
+			$ix = [math]::truncate($i/30)
 			$iy = 0
 		}
 
