@@ -9,6 +9,11 @@ param($forceGUIfromBat = "")
 
 # API/build ist kaputt, Fehler sollte über Forum eingereicht werden. https://en-forum.guildwars2.com/topic/114091-bug-v1build-and-v2build-stuck-to-old-version/
 
+# Hidden switches:
+# [main] hideinfo=True -> no mapinfo on loading screen
+# [main] nologin=True -> no autologin of saved account in the launcher
+# [main] notEnabled=True -> no auto-enabling of blish-modules on update or installed
+
 Add-Type -assembly System.Windows.Forms
 
 $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
@@ -63,7 +68,7 @@ function startGW2() {
 	}
 
 	# if GW2 has an update removes ArcDPS
-	if ($configuration.main.enabledArc -and (Test-Path "$GW2_path\errorautocheck.txt") -and ((Get-Item "$GW2_path\errorautocheck.txt").length -ne 0)) {
+	if ($false -and $conf.main.enabledArc -and (Test-Path "$GW2_path\errorautocheck.txt") -and ((Get-Item "$GW2_path\errorautocheck.txt").length -ne 0)) {
 		nls 1
 		Write-Host "crash detected - removing ArcDPS" -ForegroundColor Red
 		nls 1
@@ -282,38 +287,40 @@ function Out-IniFile($InputObject, $FilePath) {
 }
 
 function enforceBHM($modulename) {
-	#generate settings.json
-	Write-Host "Generating default files. This takes about 15 seconds." -ForegroundColor DarkGray
-	Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
-	Start-Sleep -Seconds 18
-	Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
+	if ($conf.main.notEnabled -eq $null) {
+		#generate settings.json
+		Write-Host "Generating default files. This takes about 15 seconds." -ForegroundColor DarkGray
+		Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
+		Start-Sleep -Seconds 18
+		Stop-Process -Name "Blish HUD" -ErrorAction SilentlyContinue
 
-	#modify settings.json
-	if ($modulename -ne $null) {
-		$data = Get-Content "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw | ConvertFrom-Json
+		#modify settings.json
+		if ($modulename -ne $null) {
+			$data = Get-Content "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw | ConvertFrom-Json
 
-		$i = 0
+			$i = 0
 
-		$data.Entries | foreach {
-			if ($_.Key -eq "ModuleConfiguration") {
-				if (-not $data.Entries[$i].Value.Entries.Value[0]."$modulename") {
-					Add-Member -InputObject $data.Entries[$i].Value.Entries.Value[0] -NotePropertyName "$modulename"  -NotePropertyValue @{
-						"Enabled" = $true
-						"UserEnabledPermissions" = $null
-						"IgnoreDependencies" = $false
-						"Settings" = $null
+			$data.Entries | foreach {
+				if ($_.Key -eq "ModuleConfiguration") {
+					if (-not $data.Entries[$i].Value.Entries.Value[0]."$modulename") {
+						Add-Member -InputObject $data.Entries[$i].Value.Entries.Value[0] -NotePropertyName "$modulename"  -NotePropertyValue @{
+							"Enabled" = $true
+							"UserEnabledPermissions" = $null
+							"IgnoreDependencies" = $false
+							"Settings" = $null
+						}
+					} else {
+						$data.Entries[$i].Value.Entries.Value[0]."$modulename".Enabled = $true
 					}
-				} else {
-					$data.Entries[$i].Value.Entries.Value[0]."$modulename".Enabled = $true
 				}
+
+				$i++
 			}
 
-			$i++
+			$data | ConvertTo-Json -Depth 100 | Out-File "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json"
+
+			((Get-Content -path "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw).Replace("\u0027","'").Replace('   ', ' ').Replace('  ', ' ').Replace(":  ", ": ")) | Set-Content -Path "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json"
 		}
-
-		$data | ConvertTo-Json -Depth 100 | Out-File "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json"
-
-		((Get-Content -path "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json" -Raw).Replace("\u0027","'").Replace('   ', ' ').Replace('  ', ' ').Replace(":  ", ": ")) | Set-Content -Path "$MyDocuments_path\Guild Wars 2\addons\blishhud\settings.json"
 	}
 }
 
