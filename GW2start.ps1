@@ -1017,8 +1017,8 @@ function changeGUI($category, $key = 0, $value = 0) {
 						)
 					) {
 						[System.Windows.Forms.MessageBox]::Show(
-							"Blish HUD was not detected in the selected folder or it is not empthy. Select the folder containing Blish HUD. Or create a new empthy folder.",
-							"Blish HUD.exe not found or folder not empthy",
+							"Blish HUD was not detected in the selected folder or it is not empty. Select the folder containing Blish HUD. Or create a new empty folder.",
+							"Blish HUD.exe not found or folder not empty",
 							0,
 							"Error"
 						)
@@ -1061,8 +1061,8 @@ function changeGUI($category, $key = 0, $value = 0) {
 						)
 					) {
 						[System.Windows.Forms.MessageBox]::Show(
-							"TacO was not detected in the selected folder or it is not empthy. Select the folder containing TacO. Or create a new empthy folder.",
-							"GW2TacO.exe not found or folder not empthy",
+							"TacO was not detected in the selected folder or it is not empty. Select the folder containing TacO. Or create a new empty folder.",
+							"GW2TacO.exe not found or folder not empty",
 							0,
 							"Error"
 						)
@@ -1224,7 +1224,7 @@ $modules.BlishHud = @{}
 
 if (-not (Get-Module -ListAvailable -Name powershell-yaml)) {
 	nls 1
-	Write-Host "Please wait a moment - we need to add some dependencies. This is needed oncy only."
+	Write-Host "Please wait a moment - we need to add some dependencies. This is needed once only."
 	nls 1
 
 	if (-not (Get-PackageProvider -ListAvailable -Name NuGet)) {
@@ -1276,7 +1276,7 @@ Remove-Item "$Script_path\Approved-Addons-master" -recurse -force
 
 $modules.Path.schattenfluegel = @{
 	name = "Schattenfluegel"
-	desc = "map pack to show be better than TEKKIT. It adds shotcuts and way better pathes. Way better design, but not as complete as TEKKIT."
+	desc = "map pack to show to be better than TEKKIT. It adds shotcuts and way better pathes. Way better design, but not as complete as TEKKIT."
 	default = $true
 	repo = "Schattenfluegel/SchattenfluegelTrails"
 	rpath = "/Download"
@@ -1634,7 +1634,7 @@ if (-not $forceGUI) {
 					($_.value.default -eq $true)
 				) {
 					$r = [System.Windows.Forms.MessageBox]::Show(
-						("Do you want to checkout the recommanded Blish HUD module '" + $_.value.name + "'?`n`n" + $_.value.desc),
+						("Do you want to checkout the recommended Blish HUD module '" + $_.value.name + "'?`n`n" + $_.value.desc),
 						"New Blish HUD module",
 						4,
 						"Question"
@@ -1829,7 +1829,7 @@ if (-not $forceGUI) {
 					($_.value.default -eq $true)
 				) {
 					$r = [System.Windows.Forms.MessageBox]::Show(
-						("Do you want to checkout the recommanded ArcDPS addon '" + $_.value.addon_name + "'?`n`n" + $_.value.description),
+						("Do you want to checkout the recommended ArcDPS addon '" + $_.value.addon_name + "'?`n`n" + $_.value.description),
 						"New ArcDPS addon",
 						4,
 						"Question"
@@ -1911,7 +1911,7 @@ if (
 				$element.Value = "windowed_fullscreen"
 			} else {
 				$r = [System.Windows.Forms.MessageBox]::Show(
-					"You will not see BlishHUD or TacO unless you change your window-mode ingame in your grafics settings to 'windowed fullscreen'!",
+					"You will not see BlishHUD or TacO, unless you change your window-mode ingame in your graphics settings to 'windowed fullscreen'!",
 					"Wrong screen mode setting for GW2",
 					0,
 					"Error"
