@@ -7,8 +7,6 @@ param($forceGUIfromBat = "")
 # github prio nach datum des letzten scans
 # Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen) [muss das noch? oder ist das jetzt besser geschützt?]
 
-# API/build ist kaputt, Fehler sollte über Forum eingereicht werden. https://en-forum.guildwars2.com/topic/114091-bug-v1build-and-v2build-stuck-to-old-version/
-
 # Hidden switches:
 # [main] hideinfo=True -> no mapinfo on loading screen
 # [main] nologin=True -> no autologin of saved account in the launcher
