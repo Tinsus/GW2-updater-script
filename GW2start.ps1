@@ -1927,11 +1927,13 @@ if (
 stopprocesses
 
 # give message about GW2 build id
-$checkurl = "https://api.guildwars2.com/v2/build"
+$checkurl = "http://assetcdn.101.arenanetworks.com/latest64/101"
 Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
-$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-$new = $json.id
+$json = (Get-Content "$checkfile" -Raw)
+$json = $json -match "\d+"
+$new = $matches[0]
+
 removefile "$checkfile"
 
 if (
