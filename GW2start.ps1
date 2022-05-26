@@ -1298,6 +1298,7 @@ $modules.Path.tacointernal = @{
 #	$new = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-fr.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
 #	$new = Select-Xml -Content ((Invoke-WebRequest "https://heinze.fr/taco/rss-en.xml").Content) -XPath "//item/pubDate" | Select-Object -First 1 | foreach-object { $_.node.InnerXML }
 
+<# now part of blish hud
 $modules.Path.czokalapiks = @{
 	name = "Czokalapiks"
 	desc = "map pack for easy hero points farm runs. Includes all needed waypoints, easy to follow."
@@ -1308,6 +1309,7 @@ $modules.Path.czokalapiks = @{
 	platform = "bitbucket"
 	blishonly = $false
 }
+#>
 
 Write-Host "Get the newest Blish HUD modules like the Pathing or Timers module."
 
@@ -1330,6 +1332,7 @@ $json | foreach {
 		($name -eq "ReActifEN") -or
 		($name -eq "HerosMarkerPack") -or
 		($name -eq "TekkitsAllInOne") -or
+		($name -eq "CzokalapiksGuides") -or
 		$false
 	)
 
