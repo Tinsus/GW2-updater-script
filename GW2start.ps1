@@ -10,6 +10,7 @@ param($forceGUIfromBat = "")
 # [main] hideinfo=True -> no mapinfo on loading screen
 # [main] nologin=True -> no autologin of saved account in the launcher
 # [main] notEnabled=True -> no auto-enabling of blish-modules on update or installed
+# [main] dontwait=True -> don't wait for gw2 to close (to close Blish HUD and TacO after GW2 is gone), but just close the terminal window after GW2 launched.
 
 Add-Type -assembly System.Windows.Forms
 
@@ -41,6 +42,17 @@ function newdir($path) {
 	New-Item "$path" -ItemType Directory -ErrorAction SilentlyContinue
 }
 
+function goodbye() {
+	removefile "$checkfile"
+	removefile "$checkfile.zip"
+	removefile "$Script_path\github.json"
+
+	nls 1
+	Write-Host "see you soon"
+
+	Start-Sleep -Seconds 2
+}
+
 function startGW2() {
 	# start TacO
 	if ($conf.main.runTaco) {
@@ -56,12 +68,24 @@ function startGW2() {
 	nls 2
 	Write-Host "have fun in Guild Wars 2"
 
-	if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
-		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
-	} elseif ($conf.main.hideinfo -eq $null) {
-		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
-	} elseif ($conf.main.nologin -eq $null) {
-		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-autologin' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+	if ($conf.main.dontwait -eq $null) {
+		if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
+			Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+		} elseif ($conf.main.hideinfo -eq $null) {
+			Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+		} elseif ($conf.main.nologin -eq $null) {
+			Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-autologin' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+		}
+	} else {
+		if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
+			Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+		} elseif ($conf.main.hideinfo -eq $null) {
+			Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+		} elseif ($conf.main.nologin -eq $null) {
+			Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-autologin' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+		}
+
+		goodbye
 	}
 
 	# if GW2 has an update removes ArcDPS
@@ -2568,11 +2592,4 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 startGW2
 stopprocesses
 
-removefile "$checkfile"
-removefile "$checkfile.zip"
-removefile "$Script_path\github.json"
-
-nls 1
-Write-Host "see you soon"
-
-Start-Sleep -Seconds 2
+goodbye
