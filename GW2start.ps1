@@ -375,7 +375,7 @@ function placingGUI {
 	$y = (@($form.groupArc.Height, $form.groupBlish.Height, $form.groupTaco.Height) | measure -Maximum).Maximum + (@($form.groupAddons.Height, $form.groupPaths.Height, $form.groupModules.Height) | measure -Maximum).Maximum + $form.groupArc.y + 60
 
     $form.close.Location = New-Object System.Drawing.Size($x, $y)
-    $form.reset.Location = New-Object System.Drawing.Size(($x - 100), $y)
+    $form.reset.Location = New-Object System.Drawing.Size(($x - 250), $y)
 }
 
 function showGUI {
@@ -657,7 +657,7 @@ function showGUI {
 
     $form.reset = New-Object System.Windows.Forms.Button
     $form.reset.Size = New-Object System.Drawing.Size(70, 40)
-    $form.reset.Text = "Reload all"
+    $form.reset.Text = "Rebuild"
     $form.reset.DialogResult = "OK"
 	$form.reset.Add_Click({
 		changeGUI -category "save" -key "reset" -value $false
