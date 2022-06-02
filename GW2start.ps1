@@ -51,7 +51,7 @@ function goodbye() {
 	Write-Host "see you soon"
 
 	Start-Sleep -Seconds 2
-	
+
 	exit
 }
 
