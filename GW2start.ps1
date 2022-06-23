@@ -2276,12 +2276,13 @@ if ($conf.modules.CharrTimersBlishHUD -and $conf.main.enabledBlish) {
 	if (
 		($conf.versions_modules.HeroTimers -eq $null) -or
 		($conf.versions_modules.HeroTimers -ne $new) -or
-		(-not (Test-Path "$targetfile\Hero-Timers.zip"))
+		(-not (Test-Path "$targetfile\Hero.Timer.Pack.zip"))
 	) {
 		msgupdate -type "main" -name "Hero-Timers (for BlishHUD Timers-Module)" -update $true
 
 		removefile "$targetfile\Hero-Timers.zip"
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile\Hero-Timers.zip"
+		removefile "$targetfile\Hero.Timer.Pack.zip"
+		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile\Hero.Timer.Pack.zip"
 
 		$conf.versions_modules.HeroTimers = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
@@ -2290,6 +2291,7 @@ if ($conf.modules.CharrTimersBlishHUD -and $conf.main.enabledBlish) {
 	}
 } else {
 	removefile "$targetfile\Hero-Timers.zip"
+	removefile "$targetfile\Hero.Timer.Pack.zip"
 
 	$conf.versions_modules.psobject.properties.remove("HeroTimers")
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
