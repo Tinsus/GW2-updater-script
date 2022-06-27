@@ -1957,8 +1957,9 @@ $checkurl = "http://assetcdn.101.arenanetworks.com/latest64/101"
 Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
 $json = (Get-Content "$checkfile" -Raw)
-$json = $json -match "\d+"
-$new = $matches[0]
+$json = $json -match "(\d+) (\d+)"
+$new = $matches[1]
+$newexe = $matches[2]
 
 removefile "$checkfile"
 
@@ -1966,15 +1967,15 @@ if (
 	($conf.versions_main.GW2 -eq $null) -or
 	($conf.versions_main.GW2 -ne $new)
 ) {
-	Write-Host "Guildwars 2 " -NoNewline -ForegroundColor White
-	Write-Host "will update itself to " -NoNewline
-	Write-Host "build $new" -ForegroundColor Green
+	msgupdate -type "main" -name "Guildwars 2 Launcher" -update $true
+
+	removefile "$GW2_path\GW2-64.exe"
+	Invoke-WebRequest "http://assetcdn.101.arenanetworks.com/program/101/1/0/$newexe" -OutFile "$GW2_path\GW2-64.exe"
 
 	$conf.versions_main.GW2 = $new
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 } else {
-	Write-Host "Guildwars 2 " -NoNewline -ForegroundColor White
-	Write-Host "is up-to-date"
+	msgupdate -type "main" -name "Guildwars 2 Launcher" -update $false
 }
 
 # auto update this script itself (prepare the update to be done by the .bat file with the next start)
