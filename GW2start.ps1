@@ -2,6 +2,7 @@ param($forceGUIfromBat = "")
 
 #TODO:
 # Multi-Account-Login-Management durch kopieren der local.dat
+# man könnte mit der GW2-launcher-update routine gw2 selbst installieren.
 # Github API-Limit nicht immer überschreiten: https://docs.github.com/en/rest/overview/resources-in-the-rest-api#conditional-requests
 
 # Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen) [muss das noch? oder ist das jetzt besser geschützt?]
