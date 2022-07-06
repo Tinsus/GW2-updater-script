@@ -1,26 +1,26 @@
 # GW2-updater-script
-updating all the nice helpers for Guildwars 2 automaticly
+Updating all the nice helpers for Guildwars 2 automaticly
 
 # install
 
-to share or download GW2start use this direct link: https://github.com/Tinsus/GW2-updater-script/archive/refs/heads/main.zip
+To share or download GW2start use this direct link: https://github.com/Tinsus/GW2-updater-script/archive/refs/heads/main.zip
 
 You only need the GW2start.bat file containing in the downloaded archive.
 Place it somewhere in your filesystem and add a shortcut to it e.g. on your Desktop.
 
-than run GW2start by your shortcut or double-clicking the GW2start.bat
+Than run GW2start by your shortcut or double-clicking the GW2start.bat
 
 # config
 
-on first usage a vonfig window will open.
+On first usage a config window will open.
 
-GW2start will add a GW2start-config.bat file next to the GW2start.bat file. You cang use that file to open the config dialoge.
+GW2start will add a GW2start-config.bat file next to the GW2start.bat file. You can use that file to open the config dialoge by double clicking it.
 
 # usage
 
-from now on start GW2 by double clicking the GW2start.bat file (only).
+From now on start GW2 by double clicking the GW2start.bat file or its shortcut (only).
 
-nothing is more easy as adding a shortcut to your desktop to start the .bat file from there instead of your regular GW2-shortcut.
+Nothing is more easy as adding a shortcut to your desktop to start the .bat file from there instead of your regular GW2-shortcut.
 
 Please hold in mind: ArcDPS causes GW2 crashes if your PC is running Razer Cortex. Cause of that the script automaticly closes Razer Cortex.
 
