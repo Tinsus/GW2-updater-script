@@ -1296,7 +1296,7 @@ gci -Path "$Script_path\Approved-Addons-master\" -recurse -file -filter *.yaml |
 	}
 }
 
-Remove-Item "$Script_path\Approved-Addons-master" -recurse -force
+Remove-Item "$Script_path\Approved-Addons-master" -recurse -force -ErrorAction SilentlyContinue
 
 $modules.Path.schattenfluegel = @{
 	name = "Schattenfluegel"
@@ -2101,7 +2101,7 @@ if ($conf.main.enabledArc) {
 		}
 
 		Remove-Item "$GW2_path\d3d9_wrapper" -recurse -force -ErrorAction SilentlyContinue
-		Remove-Item "$checkfile" -recurse -force
+		Remove-Item "$checkfile" -recurse -force  -ErrorAction SilentlyContinue
 
 		$conf.versions_main.d3d9_wrapper = $new
 		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
@@ -2147,7 +2147,7 @@ if ($conf.main.enabledTaco) {
 		msgupdate -type "main" -name "TacO" -update $false
 	}
 } else {
-	Remove-Item -Path "$TacO_path\*" -force -recurse
+	Remove-Item -Path "$TacO_path\*" -force -recurse -ErrorAction SilentlyContinue
 
 	$conf.versions_main.psobject.properties.remove('TacO')
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
@@ -2191,7 +2191,7 @@ if ($conf.main.enabledBlish) {
 		msgupdate -type "main" -name "BlishHUD" -update $false
 	}
 } else {
-	Remove-Item -Path "$BlishHUD_path\*" -force -recurse
+	Remove-Item -Path "$BlishHUD_path\*" -force -recurse -ErrorAction SilentlyContinue
 
 	$conf.versions_main.psobject.properties.remove('BlishHUD')
 	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
@@ -2415,7 +2415,7 @@ $modules.Path.GetEnumerator() | foreach {
 					Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Script_path\" -Force
 					removefile "$checkfile.zip"
 					Compress-Archive -Path ("$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$new\" + $_.value.subfolder + "*") -DestinationPath "$checkfile.zip"
-					Remove-Item ("$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$new") -Recurse -force
+					Remove-Item ("$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$new") -Recurse -force -ErrorAction SilentlyContinue
 
 					if ($conf.paths[$_.key + "_blish"]) {
 						removefile "$path_b"
@@ -2496,7 +2496,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 						Copy-Item $_.fullname -Destination "$targetpath\"
 					}
 
-					Remove-Item "$checkfile" -recurse -force
+					Remove-Item "$checkfile" -recurse -force -ErrorAction SilentlyContinue
 
 					$conf.versions_addons[$key] = $new
 					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
@@ -2527,7 +2527,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 						Copy-Item $_.fullname -Destination "$targetpath"
 					}
 
-					Remove-Item "$checkfile" -recurse -force
+					Remove-Item "$checkfile" -recurse -force -ErrorAction SilentlyContinue
 
 					$conf.versions_addons[$key] = $new
 					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
