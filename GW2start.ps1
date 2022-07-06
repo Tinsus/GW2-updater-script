@@ -1557,7 +1557,9 @@ if (
 		Write-Host "Using the GW2-installation folder for TacO"
 	}
 
-	$forceGUI = $true
+	if (($conf.main.enabledTaco -eq $null) -or ($conf.main.enabledTaco -ne $false)) {
+		$forceGUI = $true
+	}
 }
 
 if (
@@ -1620,7 +1622,9 @@ if (
 		Write-Host "Using the GW2-installation folder for BlishHUD."
 	}
 
-	$forceGUI = $true
+	if (($conf.main.enabledBlish -eq $null) -or ($conf.main.enabledBlish -ne $false)) {
+		$forceGUI = $true
+	}
 }
 
 if ($forceGUI) {
