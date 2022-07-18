@@ -12,6 +12,7 @@ param($forceGUIfromBat = "")
 # [main] nologin=True -> no autologin of saved account in the launcher
 # [main] notEnabled=True -> no auto-enabling of blish-modules on update or installed
 # [main] dontwait=True -> don't wait for gw2 to close (to close Blish HUD and TacO after GW2 is gone), but just close the terminal window after GW2 launched.
+# [main] nobmp=True -> don't create screenshots as bmp-files
 
 Add-Type -assembly System.Windows.Forms
 
@@ -72,20 +73,40 @@ function startGW2() {
 	Write-Host "have fun in Guild Wars 2"
 
 	if ($conf.main.dontwait -eq $null) {
-		if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
-			Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
-		} elseif ($conf.main.hideinfo -eq $null) {
-			Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
-		} elseif ($conf.main.nologin -eq $null) {
-			Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-autologin' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+		if ($conf.main.nobmp -eq $null) {
+			if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
+				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			} elseif ($conf.main.hideinfo -eq $null) {
+				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			} elseif ($conf.main.nologin -eq $null) {
+				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-autologin' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			}
+		} else {
+			if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
+				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			} elseif ($conf.main.hideinfo -eq $null) {
+				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			} elseif ($conf.main.nologin -eq $null) {
+				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			}
 		}
 	} else {
-		if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
-			Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
-		} elseif ($conf.main.hideinfo -eq $null) {
-			Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
-		} elseif ($conf.main.nologin -eq $null) {
-			Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-autologin' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+		if ($conf.main.nobmp -eq $null) {
+			if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
+				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			} elseif ($conf.main.hideinfo -eq $null) {
+				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			} elseif ($conf.main.nologin -eq $null) {
+				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-autologin' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			}
+		} else {
+			if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
+				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			} elseif ($conf.main.hideinfo -eq $null) {
+				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			} elseif ($conf.main.nologin -eq $null) {
+				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			}
 		}
 
 		goodbye
