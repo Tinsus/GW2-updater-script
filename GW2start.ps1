@@ -59,20 +59,7 @@ function goodbye() {
 }
 
 function startGW2() {
-	# start TacO
-	if ($conf.main.runTaco) {
-		Start-Process -FilePath "$TacO_path\GW2TacO.exe" -WorkingDirectory "$TacO_path\" -ErrorAction SilentlyContinue
-	}
-
-	# start BlishHUD
-	if ($conf.main.runBlish) {
-		Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
-	}
-
-	# start Guild Wars 2
-	nls 2
-	Write-Host "have fun in Guild Wars 2"
-
+	#creates a Settings.json for the former command line arguments of GW2
 	$jsonsetting = @{}
 	$jsonsetting.arguments = @()
 
@@ -89,7 +76,21 @@ function startGW2() {
 	}
 
 	$jsonsetting | ConvertTo-Json -Depth 100 | Out-File -FilePath ($env:APPDATA + "\Guild Wars 2\Settings.json") -Encoding ascii
-	
+
+	# start TacO
+	if ($conf.main.runTaco) {
+		Start-Process -FilePath "$TacO_path\GW2TacO.exe" -WorkingDirectory "$TacO_path\" -ErrorAction SilentlyContinue
+	}
+
+	# start BlishHUD
+	if ($conf.main.runBlish) {
+		Start-Process -FilePath "$BlishHUD_path\Blish HUD.exe" -WorkingDirectory "$BlishHUD_path\" -ErrorAction SilentlyContinue
+	}
+
+	# start Guild Wars 2
+	nls 2
+	Write-Host "have fun in Guild Wars 2"
+
 	if ($conf.main.dontwait -eq $null) {
 		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
 	} else {
