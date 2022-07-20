@@ -74,38 +74,62 @@ function startGW2() {
 
 	if ($conf.main.dontwait -eq $null) {
 		if ($conf.main.nobmp -eq $null) {
-			if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
-				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
-			} elseif ($conf.main.hideinfo -eq $null) {
-				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
-			} elseif ($conf.main.nologin -eq $null) {
-				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-autologin' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			if ($conf.main.nologin -eq $null) {
+				if ($conf.main.hideinfo -eq $null) {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				} else {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				}
+			} else {
+				if ($conf.main.hideinfo -eq $null) {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				} else {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				}
 			}
 		} else {
-			if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
-				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
-			} elseif ($conf.main.hideinfo -eq $null) {
-				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
-			} elseif ($conf.main.nologin -eq $null) {
-				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			if ($conf.main.nologin -eq $null) {
+				if ($conf.main.hideinfo -eq $null) {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				} else {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				}
+			} else {
+				if ($conf.main.hideinfo -eq $null) {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-mapLoadInfo' -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				} else {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				}
 			}
 		}
 	} else {
 		if ($conf.main.nobmp -eq $null) {
-			if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
-				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
-			} elseif ($conf.main.hideinfo -eq $null) {
-				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
-			} elseif ($conf.main.nologin -eq $null) {
-				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-autologin' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			if ($conf.main.nologin -eq $null) {
+				if ($conf.main.hideinfo -eq $null) {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp', '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				} else {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-bmp' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				}
+			} else {
+				if ($conf.main.hideinfo -eq $null) {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp', '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				} else {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-bmp' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				}
 			}
 		} else {
-			if (($conf.main.hideinfo -eq $null) -and ($conf.main.nologin -eq $null)) {
-				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
-			} elseif ($conf.main.hideinfo -eq $null) {
-				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
-			} elseif ($conf.main.nologin -eq $null) {
-				Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+			if ($conf.main.nologin -eq $null) {
+				if ($conf.main.hideinfo -eq $null) {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin', '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				} else {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-autologin' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				}
+			} else {
+				if ($conf.main.hideinfo -eq $null) {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -ArgumentList '-mapLoadInfo' -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				} else {
+					Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -RedirectStandardError "$GW2_path\errorautocheck.txt"
+				}
 			}
 		}
 
