@@ -13,6 +13,7 @@ param($forceGUIfromBat = "")
 # [main] notEnabled=True -> no auto-enabling of blish-modules on update or installed
 # [main] dontwait=True -> don't wait for gw2 to close (to close Blish HUD and TacO after GW2 is gone), but just close the terminal window after GW2 launched.
 # [main] nobmp=True -> don't create screenshots as bmp-files
+# [main] razer=True -> start Razer Synapse with GW2
 
 Add-Type -assembly System.Windows.Forms
 
@@ -59,6 +60,11 @@ function goodbye() {
 }
 
 function startGW2() {
+	# start Razer Synapse at first
+	if ($conf.main.razer -ne $null) {
+		Start-Process -FilePath "C:\Program Files (x86)\Razer\Synapse3\WPFUI\Framework\Razer Synapse 3 Host\Razer Synapse 3.exe" -WorkingDirectory "C:\Program Files (x86)\Razer\Synapse3\WPFUI\Framework\Razer Synapse 3 Host\" -ErrorAction SilentlyContinue
+	}
+
 	#creates a Settings.json for the former command line arguments of GW2
 	$jsonsetting = @{}
 	$jsonsetting.arguments = @()
