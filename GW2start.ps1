@@ -62,7 +62,7 @@ function goodbye() {
 function startGW2() {
 	# start Razer Synapse at first
 	if ($conf.main.razer -ne $null) {
-		Start-Process -FilePath "C:\Program Files (x86)\Razer\Synapse3\WPFUI\Framework\Razer Synapse 3 Host\Razer Synapse 3.exe" -WorkingDirectory "C:\Program Files (x86)\Razer\Synapse3\WPFUI\Framework\Razer Synapse 3 Host\" -ErrorAction SilentlyContinue
+		Start-Process -FilePath "C:\Program Files (x86)\Razer\Synapse3\WPFUI\Framework\Razer Synapse 3 Host\Razer Synapse 3.exe" -WorkingDirectory "C:\Program Files (x86)\Razer\Synapse3\WPFUI\Framework\Razer Synapse 3 Host\" -ErrorAction SilentlyContinue -WindowStyle Minimized
 	}
 
 	#creates a Settings.json for the former command line arguments of GW2
