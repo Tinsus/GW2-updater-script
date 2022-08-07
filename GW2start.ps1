@@ -1432,8 +1432,13 @@ $json | foreach {
 				$false
 			)
 		} else {
-			$old = $($modules.BlishHud[$name].version).Split(".")
-			$new = $($_.version).Split(".")
+			$old = $($modules.BlishHud[$name].version) -replace "[a-zA-Z]", ""
+			$old = $old.Replace("-", ".")
+			$old = $old.Split(".")
+
+			$new = $($_.version) -replace "[a-zA-Z]", ""
+			$new = $new.Replace("-", ".")
+			$new = $new.Split(".")
 
 			if (
 				(
