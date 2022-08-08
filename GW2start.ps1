@@ -8,12 +8,13 @@ param($forceGUIfromBat = "")
 # Frage, ob ArcDPS gelöscht werden soll, wenn das game nach so 5 mins geschlossen wird (mit hash zum nur einmal fragen) [muss das noch? oder ist das jetzt besser geschützt?]
 
 # Hidden switches:
-# [main] hideinfo=True -> no mapinfo on loading screen
-# [main] nologin=True -> no autologin of saved account in the launcher
-# [main] notEnabled=True -> no auto-enabling of blish-modules on update or installed
-# [main] dontwait=True -> don't wait for gw2 to close (to close Blish HUD and TacO after GW2 is gone), but just close the terminal window after GW2 launched.
-# [main] nobmp=True -> don't create screenshots as bmp-files
-# [main] razer=True -> start Razer Synapse with GW2
+# [main] hideinfo=True		-> no mapinfo on loading screen
+# [main] nologin=True		-> no autologin of saved account in the launcher
+# [main] notEnabled=True	-> no auto-enabling of blish-modules on update or installed
+# [main] dontwait=True		-> don't wait for gw2 to close (to close Blish HUD and TacO after GW2 is gone), but just close the terminal window after GW2 launched.
+# [main] nobmp=True			-> don't create screenshots as bmp-files
+# [main] razer=True			-> start Razer Synapse with GW2
+# [main] GW2update=True		-> update GW2 using this script
 
 Add-Type -assembly System.Windows.Forms
 
@@ -1977,29 +1978,31 @@ if (
 stopprocesses
 
 # give message about GW2 build id
-$checkurl = "http://assetcdn.101.arenanetworks.com/latest64/101"
-Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
+if ($conf.main.GW2update -ne $null) {
+	$checkurl = "http://assetcdn.101.arenanetworks.com/latest64/101"
+	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
-$json = (Get-Content "$checkfile" -Raw)
-$json = $json -match "(\d+) (\d+)"
-$new = $matches[1]
-$newexe = $matches[2]
+	$json = (Get-Content "$checkfile" -Raw)
+	$json = $json -match "(\d+) (\d+)"
+	$new = $matches[1]
+	$newexe = $matches[2]
 
-removefile "$checkfile"
+	removefile "$checkfile"
 
-if (
-	($conf.versions_main.GW2 -eq $null) -or
-	($conf.versions_main.GW2 -ne $new)
-) {
-	msgupdate -type "main" -name "Guildwars 2 Launcher" -update $true
+	if (
+		($conf.versions_main.GW2 -eq $null) -or
+		($conf.versions_main.GW2 -ne $new)
+	) {
+		msgupdate -type "main" -name "Guildwars 2 Launcher" -update $true
 
-	removefile "$GW2_path\GW2-64.exe"
-	Invoke-WebRequest "http://assetcdn.101.arenanetworks.com/program/101/1/0/$newexe" -OutFile "$GW2_path\GW2-64.exe"
+		removefile "$GW2_path\GW2-64.exe"
+		Invoke-WebRequest "http://assetcdn.101.arenanetworks.com/program/101/1/0/$newexe" -OutFile "$GW2_path\GW2-64.exe"
 
-	$conf.versions_main.GW2 = $new
-	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-} else {
-	msgupdate -type "main" -name "Guildwars 2 Launcher" -update $false
+		$conf.versions_main.GW2 = $new
+		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+	} else {
+		msgupdate -type "main" -name "Guildwars 2 Launcher" -update $false
+	}
 }
 
 # auto update this script itself (prepare the update to be done by the .bat file with the next start)
