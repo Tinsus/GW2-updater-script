@@ -2060,8 +2060,8 @@ if ($conf.main.enabledArc) {
 
 # auto update ArcDPS
 if ($conf.main.enabledArc) {
-	$checkurl = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum"
-	$targeturl = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll"
+	$checkurl = "https://www.deltaconnected.com/arcdps/x64/d3d11.dll.md5sum"
+	$targeturl = "https://www.deltaconnected.com/arcdps/x64/d3d11.dll"
 	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
 	$new = (Get-Content "$checkfile" -Raw).Trim()
