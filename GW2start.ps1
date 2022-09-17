@@ -1289,7 +1289,24 @@ Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Script_path\" -Force
 removefile "$checkfile.zip"
 
 gci -Path "$Script_path\Approved-Addons-master\" -recurse -file -filter *.yaml | foreach {
-	$yaml = ConvertFrom-Yaml -Yaml (Get-Content -Path $_.fullname -Raw)
+	$cont = Get-Content -Path $_.fullname
+	$last = 0
+	$content = ""
+
+	foreach ($line in $cont) {
+		$now = $($line.Split(" "))[0]
+
+		if ( -not(
+			($last -eq $now) -and
+			($now -eq "description:")
+		)) {
+			$content = $content + "`n" + $line
+		}
+
+		$last = $now
+	}
+
+	$yaml = ConvertFrom-Yaml -yaml $content
 	$name = $yaml.addon_name -replace '[^a-zA-Z]', ''
 
 	if (
