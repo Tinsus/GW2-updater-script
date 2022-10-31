@@ -2302,12 +2302,23 @@ $modules.BlishHUD.GetEnumerator() | foreach {
 
 			Remove-Item ($checkpath + $_.value.namespace + "*") -Force -ErrorAction SilentlyContinue
 
-			Invoke-WebRequest $_.value.targeturl -OutFile $targetfile
+			$err = $false
 
-			enforceBHM $_.value.namespace
+			try {
+				Invoke-WebRequest $_.value.targeturl -OutFile $targetfile
+			}
+			catch {
+				$err = $true
+			}
 
-			$conf.versions_modules[$_.key] = $new
-			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+			if ($err) {
+				Write-Host "something went wrong with the download - we will try that again the next time you use this script" -ForegroundColor Red
+			} else {
+				enforceBHM $_.value.namespace
+
+				$conf.versions_modules[$_.key] = $new
+				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+			}
 		} else {
 			msgupdate -type "module" -name $_.value.name -update $false
 		}
