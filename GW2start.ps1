@@ -399,11 +399,17 @@ function placingGUI {
 	}
 	$i = [math]::truncate($i/30) + 0.5
 
+	$j = 0
+	$modules.Path.GetEnumerator() | foreach {
+		$j++
+	}
+	$j = [math]::truncate($j/15) + 0.5
+
 	$form.groupTaco.Width = $max
 	$form.groupBlish.Width = $max
 	$form.groupAddons.Width = $max
 	$form.groupPaths.Width = $max
-	$form.groupModules.Width = $i
+	$form.groupModules.Width = $max
 	$form.groupArc.Width = $max
 
 	$form.groupTaco.Location = New-Object System.Drawing.Size(($form.groupArc.Location.X + $form.groupArc.Width + 10) , $form.groupArc.Location.Y)
@@ -613,11 +619,18 @@ function showGUI {
 	$form.groupPaths.text = "Paths for Blish HUD and TacO"
 
 	$i = 0
+	$ix = 0
+	$iy = 0
 
 	$modules.Path.GetEnumerator() | foreach {
+		if ([math]::truncate($i/15) -ne $ix) {
+			$ix = [math]::truncate($i/15)
+			$iy = 0
+		}
+
 		$modules.Path[$_.key]["UI"] = New-Object System.Windows.Forms.Label
 		$modules.Path[$_.key]["UI"].Text = $_.value.name
-		$modules.Path[$_.key]["UI"].Location = New-Object System.Drawing.Point(10, (20 + (40 * $i)))
+		$modules.Path[$_.key]["UI"].Location = New-Object System.Drawing.Point((10 + 200 * $ix), (20 + (40 * $iy)))
 		$modules.Path[$_.key]["UI"].Size = New-Object System.Drawing.Point(200, 15)
 		$form.tooltip.SetToolTip($modules.Path[$_.key]["UI"], $_.value.desc)
 		$form.groupPaths.Controls.Add($modules.Path[$_.key]["UI"])
@@ -625,7 +638,7 @@ function showGUI {
 		$modules.Path[$_.key]["UI1"] = New-Object System.Windows.Forms.CheckBox
 		$modules.Path[$_.key]["UI1"] | Add-Member -MemberType NoteProperty -Name 'Value' -Value $_.key
 		$modules.Path[$_.key]["UI1"].Text =  ($(if ($_.value.default) { "* " } else { "" }) + "Blish HUD")
-		$modules.Path[$_.key]["UI1"].Location = New-Object System.Drawing.Point(30, (35 + (40 * $i)))
+		$modules.Path[$_.key]["UI1"].Location = New-Object System.Drawing.Point((30 + 200 * $ix), (35 + (40 * $iy)))
 		$modules.Path[$_.key]["UI1"].Size = New-Object System.Drawing.Point(90, 20)
 		$modules.Path[$_.key]["UI1"].Add_CheckStateChanged({
 			changeGUI -category "blish" -key $this.value -value $this.checked
@@ -636,7 +649,7 @@ function showGUI {
 		$modules.Path[$_.key]["UI2"] = New-Object System.Windows.Forms.CheckBox
 		$modules.Path[$_.key]["UI2"] | Add-Member -MemberType NoteProperty -Name 'Value' -Value $_.key
 		$modules.Path[$_.key]["UI2"].Text = "TacO"
-		$modules.Path[$_.key]["UI2"].Location = New-Object System.Drawing.Point(130, (35 + (40 * $i)))
+		$modules.Path[$_.key]["UI2"].Location = New-Object System.Drawing.Point((130 + 200 * $ix), (35 + (40 * $iy)))
 		$modules.Path[$_.key]["UI2"].Size = New-Object System.Drawing.Point(80, 20)
 		$modules.Path[$_.key]["UI2"].Add_CheckStateChanged({
 			changeGUI -category "taco" -key $this.value -value $this.checked
@@ -648,6 +661,7 @@ function showGUI {
 		$form.groupPaths.Controls.Add($modules.Path[$_.key]["UI2"])
 
 		$i++
+		$iy++
 	}
 
 	#$form.main_form.Topmost = $true
