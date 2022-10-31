@@ -1,6 +1,7 @@
 param($forceGUIfromBat = "")
 
 #TODO:
+# autodectekct GW2 within steam
 # Multi-Account-Login-Management durch kopieren der local.dat
 # man könnte mit der GW2-launcher-update routine gw2 selbst installieren.
 # Github API-Limit nicht immer überschreiten: https://docs.github.com/en/rest/overview/resources-in-the-rest-api#conditional-requests
