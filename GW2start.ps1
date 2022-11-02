@@ -23,6 +23,27 @@ $MyDocuments_path = [Environment]::GetFolderPath("MyDocuments")
 $Script_path = Split-Path $MyInvocation.Mycommand.Path -Parent
 $checkfile = "$Script_path\checkfile"
 
+function dload($url, $OutFile) {
+	$ddone = $true
+
+	try {
+		Invoke-WebRequest $url -OutFile $OutFile
+	}
+	catch {
+		$ddone = $false
+	}
+
+	if (-not $ddone) {
+		nls 1
+		Write-Host "Could not download $url"
+		Write-Host "we will try that again the next time you use this script." -ForegroundColor Red
+		Write-Host "You know - time fixes most wounds."
+		nls 1
+	}
+
+	return $ddone
+}
+
 function stopprocesses() {
 	if ($conf.main.runTaco) {
 		Stop-Process -Name "GW2TacO" -ErrorAction SilentlyContinue
@@ -200,70 +221,74 @@ function nls($total) {
 
 function checkGithub() {
 	# check githubs API restrictions and waits until it's possible again
-	Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json"
-	$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
-	removefile "$Script_path\github.json"
+	if ((dload -url "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json")) {
+		$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
+		removefile "$Script_path\github.json"
 
-	if ($json.rate.remaining -lt 1) {
-		$date = (Get-Date -Date "1970-01-01 00:00:00GMT").addSeconds($json.rate.reset)
+		if ($json.rate.remaining -lt 1) {
+			$date = (Get-Date -Date "1970-01-01 00:00:00GMT").addSeconds($json.rate.reset)
 
-		nls 3
-		Write-Host "No more updates possible due to API limitations by github.com :(" -ForegroundColor Red
-		nls 1
-		Write-Host "The restrictions will be lifted on:"
-		Write-Host $date -ForegroundColor Yellow
-		nls 1
-		Write-Host "Sorry for that."
-		nls 2
-		Write-Host "This script will wait until updates are possible again. Of cause you can close this window everytime. The updates will be done the next you start this script."
-		nls 1
+			nls 3
+			Write-Host "No more updates possible due to API limitations by github.com :(" -ForegroundColor Red
+			nls 1
+			Write-Host "The restrictions will be lifted on:"
+			Write-Host $date -ForegroundColor Yellow
+			nls 1
+			Write-Host "Sorry for that."
+			nls 2
+			Write-Host "This script will wait until updates are possible again. Of cause you can close this window everytime. The updates will be done the next you start this script."
+			nls 1
 
-		startGW2
-		stopprocesses
+			startGW2
+			stopprocesses
 
-		nls 1
-		Write-Host "OK - we will wait until the updates are possible again. You can close this window everytime. No data will be damaged or deleted." -ForegroundColor Yellow
-		nls 1
+			nls 1
+			Write-Host "OK - we will wait until the updates are possible again. You can close this window everytime. No data will be damaged or deleted." -ForegroundColor Yellow
+			nls 1
 
-		do {
-			Start-Sleep -Seconds 60
+			do {
+				Start-Sleep -Seconds 60
 
-			Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json"
-			$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
-			removefile "$Script_path\github.json"
-		} until ($json.rate.remaining -ge 1)
+				if ((dload -url "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json")) {
+					$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
+					removefile "$Script_path\github.json"
+				}
+			} until ($json.rate.remaining -ge 1)
+		}
 	}
 }
 
 function checkGithubLite() {
 	# check githubs API restrictions and waits until it's possible again
-	Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json"
-	$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
-	removefile "$Script_path\github.json"
+	if ((dload -url "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json")) {
+		$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
+		removefile "$Script_path\github.json"
 
-	if ($json.rate.remaining -lt 1) {
-		$date = (Get-Date -Date "1970-01-01 00:00:00GMT").addSeconds($json.rate.reset)
+		if ($json.rate.remaining -lt 1) {
+			$date = (Get-Date -Date "1970-01-01 00:00:00GMT").addSeconds($json.rate.reset)
 
-		nls 3
-		Write-Host "No more updates possible due to API limitations by github.com :(" -ForegroundColor Red
-		nls 1
-		Write-Host "The restrictions will be lifted on:"
-		Write-Host $date -ForegroundColor Yellow
-		nls 1
-		Write-Host "Sorry for that."
-		nls 2
-		Write-Host "This script can't start doing anything now. So we need to wait until the updates are possible again."
-		nls 2
-		Write-Host "You can close this window everytime. No data will be damaged or deleted." -ForegroundColor Yellow
-		nls 1
+			nls 3
+			Write-Host "No more updates possible due to API limitations by github.com :(" -ForegroundColor Red
+			nls 1
+			Write-Host "The restrictions will be lifted on:"
+			Write-Host $date -ForegroundColor Yellow
+			nls 1
+			Write-Host "Sorry for that."
+			nls 2
+			Write-Host "This script can't start doing anything now. So we need to wait until the updates are possible again."
+			nls 2
+			Write-Host "You can close this window everytime. No data will be damaged or deleted." -ForegroundColor Yellow
+			nls 1
 
-		do {
-			Start-Sleep -Seconds 60
+			do {
+				Start-Sleep -Seconds 60
 
-			Invoke-WebRequest "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json"
-			$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
-			removefile "$Script_path\github.json"
-		} until ($json.rate.remaining -ge 1)
+				if ((dload -url "https://api.github.com/rate_limit" -OutFile "$Script_path\github.json")) {
+					$json = (Get-Content "$Script_path\github.json" -Raw) | ConvertFrom-Json
+					removefile "$Script_path\github.json"
+				}
+			} until ($json.rate.remaining -ge 1)
+		}
 	}
 }
 
@@ -1299,47 +1324,48 @@ Write-Host "Before we can do any nice stuff let us see what nice stuff is out th
 nls 1
 Write-Host "Find interesting addons like ArcDPS plugins and other stuff."
 
-Invoke-WebRequest "https://github.com/gw2-addon-loader/Approved-Addons/archive/refs/heads/master.zip" -OutFile "$checkfile.zip"
-Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Script_path\" -Force
-removefile "$checkfile.zip"
+if ((dload -url "https://github.com/gw2-addon-loader/Approved-Addons/archive/refs/heads/master.zip" -OutFile "$checkfile.zip")) {
+	Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Script_path\" -Force
+	removefile "$checkfile.zip"
 
-gci -Path "$Script_path\Approved-Addons-master\" -recurse -file -filter *.yaml | foreach {
-	$cont = Get-Content -Path $_.fullname
-	$last = 0
-	$content = ""
+	gci -Path "$Script_path\Approved-Addons-master\" -recurse -file -filter *.yaml | foreach {
+		$cont = Get-Content -Path $_.fullname
+		$last = 0
+		$content = ""
 
-	foreach ($line in $cont) {
-		$now = $($line.Split(" "))[0]
+		foreach ($line in $cont) {
+			$now = $($line.Split(" "))[0]
 
-		if ( -not(
-			($last -eq $now) -and
-			($now -eq "description:")
-		)) {
-			$content = $content + "`n" + $line
+			if ( -not(
+				($last -eq $now) -and
+				($now -eq "description:")
+			)) {
+				$content = $content + "`n" + $line
+			}
+
+			$last = $now
 		}
 
-		$last = $now
-	}
+		$yaml = ConvertFrom-Yaml -yaml $content
+		$name = $yaml.addon_name -replace '[^a-zA-Z]', ''
 
-	$yaml = ConvertFrom-Yaml -yaml $content
-	$name = $yaml.addon_name -replace '[^a-zA-Z]', ''
+		if (
+			($name -ne "ArcDPS") -and
+			($name -ne "ArcDPSBlishHUDIntegration") -and
+			($name -ne "ddwrapper") -and
+			($name -ne "examplename") -and
+			$true
+		) {
+			$modules.ArcDPS[$name] = $yaml
 
-	if (
-		($name -ne "ArcDPS") -and
-		($name -ne "ArcDPSBlishHUDIntegration") -and
-		($name -ne "ddwrapper") -and
-		($name -ne "examplename") -and
-		$true
-	) {
-		$modules.ArcDPS[$name] = $yaml
-
-		$modules.ArcDPS[$name].default = (
-			($name -eq "ArcDPSBoonTable") -or
-			($name -eq "ArcDPSHealingStats") -or
-			($name -eq "ArcDPSKillproofmePlugin") -or
-			($name -eq "ArcDPSMechanicsPlugin") -or
-			$false
-		)
+			$modules.ArcDPS[$name].default = (
+				($name -eq "ArcDPSBoonTable") -or
+				($name -eq "ArcDPSHealingStats") -or
+				($name -eq "ArcDPSKillproofmePlugin") -or
+				($name -eq "ArcDPSMechanicsPlugin") -or
+				$false
+			)
+		}
 	}
 }
 
@@ -1386,110 +1412,112 @@ $modules.Path.czokalapiks = @{
 
 Write-Host "Get the newest Blish HUD modules like the Pathing or Timers module."
 
-Invoke-WebRequest "https://mp-repo.blishhud.com/repo.json" -OutFile "$checkfile"
-$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-removefile "$checkfile"
+if ((dload -url "https://mp-repo.blishhud.com/repo.json" -OutFile "$checkfile")) {
+	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+	removefile "$checkfile"
 
-$json | foreach {
-	$name = $_.Name -replace '[^a-zA-Z]', ''
+	$json | foreach {
+		$name = $_.Name -replace '[^a-zA-Z]', ''
 
-	$modules.Path[$name] = @{}
-	$modules.Path[$name].name = $_.Name
-	$modules.Path[$name].desc = $_.Description
-	$modules.Path[$name].platform = "blishrepo"
-	$modules.Path[$name].targeturl = $_.Download
-	$modules.Path[$name].targetfile = $_.FileName
-	$modules.Path[$name].version = $_.LastUpdate
+		$modules.Path[$name] = @{}
+		$modules.Path[$name].name = $_.Name
+		$modules.Path[$name].desc = $_.Description
+		$modules.Path[$name].platform = "blishrepo"
+		$modules.Path[$name].targeturl = $_.Download
+		$modules.Path[$name].targetfile = $_.FileName
+		$modules.Path[$name].version = $_.LastUpdate
 
-	$modules.Path[$name].default = (
-		($name -eq "ReActifEN") -or
-		($name -eq "HerosMarkerPack") -or
-		($name -eq "TekkitsAllInOne") -or
-		($name -eq "CzokalapiksGuides") -or
-		$false
-	)
+		$modules.Path[$name].default = (
+			($name -eq "ReActifEN") -or
+			($name -eq "HerosMarkerPack") -or
+			($name -eq "TekkitsAllInOne") -or
+			($name -eq "CzokalapiksGuides") -or
+			$false
+		)
 
-	$modules.Path[$name].blishonly = (
-		($name -eq "HerosMarkerPack") -or
-		$false
-	)
+		$modules.Path[$name].blishonly = (
+			($name -eq "HerosMarkerPack") -or
+			$false
+		)
+	}
+
+	$modules.Path["ReActifEN"].conflicts = "ReActifFR"
+	$modules.Path["ReActifFR"].conflicts = "ReActifEN"
 }
-
-$modules.Path["ReActifEN"].conflicts = "ReActifFR"
-$modules.Path["ReActifFR"].conflicts = "ReActifEN"
 
 Write-Host "Now checkout some excellent paths out of the 'Neuland' some of you may know."
 
-Invoke-WebRequest "https://pkgs.blishhud.com/packages.gz" -OutFile "$checkfile.gz"
-DeGZip-File "$checkfile.gz"
-removefile "$checkfile.gz"
-$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-removefile "$checkfile"
+if ((dload -url "https://pkgs.blishhud.com/packages.gz" -OutFile "$checkfile.gz")) {
+	DeGZip-File "$checkfile.gz"
+	removefile "$checkfile.gz"
+	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+	removefile "$checkfile"
 
-$json | foreach {
-	$filtered = $true
+	$json | foreach {
+		$filtered = $true
 
-	$_.dependencies.psobject.properties | Foreach {
-		if (
-			($_.Name -eq "bh.blishhud") -and
-			($_.Value -like "<*")
-		) {
-			$filtered = $false
-		}
-	}
-
-	$name = $_.namespace -replace '[^a-zA-Z]', ''
-
-	if ($filtered) {
-		if ($modules.BlishHud[$name] -eq $null) {
-			$modules.BlishHud[$name] = @{}
-			$modules.BlishHud[$name].name = $_.name
-			$modules.BlishHud[$name].desc = $_.description
-			$modules.BlishHud[$name].targeturl = $_.location
-			$modules.BlishHud[$name].version = $_.version
-			$modules.BlishHud[$name].namespace = $_.namespace
-
-			$modules.BlishHud[$name].default = (
-				($name -eq "CharrTimersBlishHUD") -or
-				($name -eq "KillProofModule") -or
-				($name -eq "ManlaanHPGrid") -or
-				($name -eq "NekresMistwar") -or
-				($name -eq "NekresQuickSurrenderModule") -or
-				($name -eq "bhcommunityetm") -or
-				($name -eq "bhcommunitypathing") -or
-				($name -eq "bhgeneraldiscordrp") -or
-				($name -eq "bhgeneralevents") -or
-				($name -eq "ecksofagatheringtools") -or
-				($name -eq "DenrageAchievementTrackerModule") -or
-				($name -eq "KenediaModulesBuildsManager") -or
-				$false
-			)
-		} else {
-			$old = $($modules.BlishHud[$name].version) -replace "[a-zA-Z]", ""
-			$old = $old.Replace("-", ".")
-			$old = $old.Split(".")
-
-			$new = $($_.version) -replace "[a-zA-Z]", ""
-			$new = $new.Replace("-", ".")
-			$new = $new.Split(".")
-
+		$_.dependencies.psobject.properties | Foreach {
 			if (
-				(
-					([int]$new[0] -gt [int]$old[0])
-				) -or (
-					([int]$new[0] -eq [int]$old[0]) -and
-					([int]$new[1] -gt [int]$old[1])
-				) -or (
-					([int]$new[0] -eq [int]$old[0]) -and
-					([int]$new[1] -eq [int]$old[1]) -and
-					([int]$new[2] -gt [int]$old[2])
-				)
+				($_.Name -eq "bh.blishhud") -and
+				($_.Value -like "<*")
 			) {
+				$filtered = $false
+			}
+		}
+
+		$name = $_.namespace -replace '[^a-zA-Z]', ''
+
+		if ($filtered) {
+			if ($modules.BlishHud[$name] -eq $null) {
+				$modules.BlishHud[$name] = @{}
 				$modules.BlishHud[$name].name = $_.name
 				$modules.BlishHud[$name].desc = $_.description
 				$modules.BlishHud[$name].targeturl = $_.location
 				$modules.BlishHud[$name].version = $_.version
 				$modules.BlishHud[$name].namespace = $_.namespace
+
+				$modules.BlishHud[$name].default = (
+					($name -eq "CharrTimersBlishHUD") -or
+					($name -eq "KillProofModule") -or
+					($name -eq "ManlaanHPGrid") -or
+					($name -eq "NekresMistwar") -or
+					($name -eq "NekresQuickSurrenderModule") -or
+					($name -eq "bhcommunityetm") -or
+					($name -eq "bhcommunitypathing") -or
+					($name -eq "bhgeneraldiscordrp") -or
+					($name -eq "bhgeneralevents") -or
+					($name -eq "ecksofagatheringtools") -or
+					($name -eq "DenrageAchievementTrackerModule") -or
+					($name -eq "KenediaModulesBuildsManager") -or
+					$false
+				)
+			} else {
+				$old = $($modules.BlishHud[$name].version) -replace "[a-zA-Z]", ""
+				$old = $old.Replace("-", ".")
+				$old = $old.Split(".")
+
+				$new = $($_.version) -replace "[a-zA-Z]", ""
+				$new = $new.Replace("-", ".")
+				$new = $new.Split(".")
+
+				if (
+					(
+						([int]$new[0] -gt [int]$old[0])
+					) -or (
+						([int]$new[0] -eq [int]$old[0]) -and
+						([int]$new[1] -gt [int]$old[1])
+					) -or (
+						([int]$new[0] -eq [int]$old[0]) -and
+						([int]$new[1] -eq [int]$old[1]) -and
+						([int]$new[2] -gt [int]$old[2])
+					)
+				) {
+					$modules.BlishHud[$name].name = $_.name
+					$modules.BlishHud[$name].desc = $_.description
+					$modules.BlishHud[$name].targeturl = $_.location
+					$modules.BlishHud[$name].version = $_.version
+					$modules.BlishHud[$name].namespace = $_.namespace
+				}
 			}
 		}
 	}
@@ -2012,28 +2040,30 @@ stopprocesses
 # give message about GW2 build id
 if ($conf.main.GW2update -ne $null) {
 	$checkurl = "http://assetcdn.101.arenanetworks.com/latest64/101"
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
-	$json = (Get-Content "$checkfile" -Raw)
-	$json = $json -match "(\d+) (\d+)"
-	$new = $matches[1]
-	$newexe = $matches[2]
+	if ((dload -url "$checkurl" -OutFile "$checkfile")) {
+		$json = (Get-Content "$checkfile" -Raw)
+		$json = $json -match "(\d+) (\d+)"
+		$new = $matches[1]
+		$newexe = $matches[2]
 
-	removefile "$checkfile"
+		removefile "$checkfile"
 
-	if (
-		($conf.versions_main.GW2 -eq $null) -or
-		($conf.versions_main.GW2 -ne $new)
-	) {
-		msgupdate -type "main" -name "Guildwars 2 Launcher" -update $true
+		if (
+			($conf.versions_main.GW2 -eq $null) -or
+			($conf.versions_main.GW2 -ne $new)
+		) {
+			msgupdate -type "main" -name "Guildwars 2 Launcher" -update $true
 
-		removefile "$GW2_path\GW2-64.exe"
-		Invoke-WebRequest "http://assetcdn.101.arenanetworks.com/program/101/1/0/$newexe" -OutFile "$GW2_path\GW2-64.exe"
+			removefile "$GW2_path\GW2-64.exe"
 
-		$conf.versions_main.GW2 = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		msgupdate -type "main" -name "Guildwars 2 Launcher" -update $false
+			if ((dload -url "http://assetcdn.101.arenanetworks.com/program/101/1/0/$newexe" -OutFile "$GW2_path\GW2-64.exe")) {
+				$conf.versions_main.GW2 = $new
+				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+			}
+		} else {
+			msgupdate -type "main" -name "Guildwars 2 Launcher" -update $false
+		}
 	}
 }
 
@@ -2046,77 +2076,83 @@ Write-Host "updated " -NoNewline -ForegroundColor Green
 Write-Host "every time"
 
 removefile "$Script_path\GW2start.bat"
-Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.bat" -OutFile "$Script_path/GW2start.bat"
-removefile "$Script_path\GW2start-config.bat"
-Invoke-WebRequest "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start-config.bat" -OutFile "$Script_path/GW2start-config.bat"
 
-# auto update Core-Loader from the GW2-Addon-loader geniuses
-if ($conf.main.enabledArc) {
-	checkGithub
+if ((dload -url "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start.bat" -OutFile "$Script_path/GW2start.bat")) {
+	removefile "$Script_path\GW2start-config.bat"
 
-	$checkurl = "https://api.github.com/repos/gw2-addon-loader/loader-core/releases/latest"
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
+	if ((dload -url "https://github.com/Tinsus/GW2-updater-script/raw/main/GW2start-config.bat" -OutFile "$Script_path/GW2start-config.bat")) {
+		# auto update Core-Loader from the GW2-Addon-loader geniuses
+		if ($conf.main.enabledArc) {
+			checkGithub
 
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.tag_name
-	removefile "$checkfile"
+			$checkurl = "https://api.github.com/repos/gw2-addon-loader/loader-core/releases/latest"
 
-	if (
-		($conf.versions_main.loadercore -eq $null) -or
-		($conf.versions_main.loadercore -ne $new) -or
-		(-not (Test-Path "$GW2_path\bin64\d3d9.dll")) -or
-		(-not (Test-Path "$GW2_path\addonLoader.dll")) -or
-		(-not (Test-Path "$GW2_path\d3d11.dll")) -or
-		(-not (Test-Path "$GW2_path\dxgi.dll"))
-	) {
-		msgupdate -type "main" -name "Addon-Loader-Core" -update $true
+			if ((dload -url "$checkurl" -OutFile "$checkfile")) {
+				$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+				$new = $json.tag_name
+				removefile "$checkfile"
 
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
-		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$GW2_path\" -Force
-		removefile "$checkfile.zip"
+				if (
+					($conf.versions_main.loadercore -eq $null) -or
+					($conf.versions_main.loadercore -ne $new) -or
+					(-not (Test-Path "$GW2_path\bin64\d3d9.dll")) -or
+					(-not (Test-Path "$GW2_path\addonLoader.dll")) -or
+					(-not (Test-Path "$GW2_path\d3d11.dll")) -or
+					(-not (Test-Path "$GW2_path\dxgi.dll"))
+				) {
+					msgupdate -type "main" -name "Addon-Loader-Core" -update $true
 
-		$conf.versions_main.loadercore = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		msgupdate -type "main" -name "Addon-Loader-Core" -update $false
+					if ((dload -url $json.assets.browser_download_url -OutFile "$checkfile.zip")) {
+						Expand-Archive -Path "$checkfile.zip" -DestinationPath "$GW2_path\" -Force
+						removefile "$checkfile.zip"
+
+						$conf.versions_main.loadercore = $new
+						Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+					}
+				} else {
+					msgupdate -type "main" -name "Addon-Loader-Core" -update $false
+				}
+			}
+		} else {
+			removefile "$GW2_path\bin64\d3d9.dll"
+			removefile "$GW2_path\addonLoader.dll"
+			removefile "$GW2_path\d3d11.dll"
+			removefile "$GW2_path\dxgi.dll"
+
+			$conf.versions_main.psobject.properties.remove('loadercore')
+			Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+		}
 	}
-} else {
-	removefile "$GW2_path\bin64\d3d9.dll"
-	removefile "$GW2_path\addonLoader.dll"
-	removefile "$GW2_path\d3d11.dll"
-	removefile "$GW2_path\dxgi.dll"
-
-	$conf.versions_main.psobject.properties.remove('loadercore')
-	Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 }
 
 # auto update ArcDPS
 if ($conf.main.enabledArc) {
 	$checkurl = "https://www.deltaconnected.com/arcdps/x64/d3d11.dll.md5sum"
 	$targeturl = "https://www.deltaconnected.com/arcdps/x64/d3d11.dll"
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
-	$new = (Get-Content "$checkfile" -Raw).Trim()
-	removefile "$checkfile"
+	if ((dload -url "$checkurl" -OutFile "$checkfile")) {
+		$new = (Get-Content "$checkfile" -Raw).Trim()
+		removefile "$checkfile"
 
-	if (
-		($conf.versions_main.ArcDPS -eq $null) -or
-		($conf.versions_main.ArcDPS -ne $new) -or
-		(-not (Test-Path "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"))
-	) {
-		msgupdate -type "main" -name "ArcDPS" -update $true
+		if (
+			($conf.versions_main.ArcDPS -eq $null) -or
+			($conf.versions_main.ArcDPS -ne $new) -or
+			(-not (Test-Path "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"))
+		) {
+			msgupdate -type "main" -name "ArcDPS" -update $true
 
-		removefile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
+			removefile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
 
-		newdir "$GW2_path\addons\"
-		newdir "$GW2_path\addons\arcdps\"
+			newdir "$GW2_path\addons\"
+			newdir "$GW2_path\addons\arcdps\"
 
-		Invoke-WebRequest "$targeturl" -OutFile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
-
-		$conf.versions_main.ArcDPS = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		msgupdate -type "main" -name "ArcDPS" -update $false
+			if ((dload -url "$targeturl" -OutFile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll")) {
+				$conf.versions_main.ArcDPS = $new
+				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+			}
+		} else {
+			msgupdate -type "main" -name "ArcDPS" -update $false
+		}
 	}
 } else {
 	removefile "$GW2_path\addons\arcdps\gw2addon_arcdps.dll"
@@ -2128,40 +2164,44 @@ if ($conf.main.enabledArc) {
 # auto update ArcDPS
 if ($conf.main.enabledArc) {
 	checkGithub
-	Invoke-WebRequest "https://api.github.com/repos/gw2-addon-loader/d3d9_wrapper/releases/latest" -OutFile "$checkfile"
 
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.name
-	removefile "$checkfile"
+	if ((dload -url "https://api.github.com/repos/gw2-addon-loader/d3d9_wrapper/releases/latest" -OutFile "$checkfile")) {
+		$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+		$new = $json.name
+		removefile "$checkfile"
 
-	if (
-		($conf.versions_main.d3d9_wrapper -eq $null) -or
-		($conf.versions_main.d3d9_wrapper -ne $new) -or
-		(-not (Test-Path "$GW2_path\addons\d3d9_wrapper"))
-	) {
-		msgupdate -type "addon" -name "d3d9_wrapper" -update $true
+		if (
+			($conf.versions_main.d3d9_wrapper -eq $null) -or
+			($conf.versions_main.d3d9_wrapper -ne $new) -or
+			(-not (Test-Path "$GW2_path\addons\d3d9_wrapper"))
+		) {
+			msgupdate -type "addon" -name "d3d9_wrapper" -update $true
 
-		Remove-Item "$GW2_path\d3d9_wrapper" -Recurse -Force -ErrorAction SilentlyContinue
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
-		newdir "$checkfile"
-		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$checkfile\" -Force
-		removefile "$checkfile.zip"
+			Remove-Item "$GW2_path\d3d9_wrapper" -Recurse -Force -ErrorAction SilentlyContinue
 
-		newdir "$GW2_path\addons"
-		newdir "$GW2_path\addons\d3d9_wrapper"
+			if ((dload -url $json.assets.browser_download_url -OutFile "$checkfile.zip")) {
+				newdir "$checkfile"
+				Expand-Archive -Path "$checkfile.zip" -DestinationPath "$checkfile\" -Force
+				removefile "$checkfile.zip"
 
-		gci -Path "$checkfile" -recurse -file | foreach {
-			Copy-Item $_.fullname -Destination "$GW2_path\addons\d3d9_wrapper\"
+				newdir "$GW2_path\addons"
+				newdir "$GW2_path\addons\d3d9_wrapper"
+
+				gci -Path "$checkfile" -recurse -file | foreach {
+					Copy-Item $_.fullname -Destination "$GW2_path\addons\d3d9_wrapper\"
+				}
+
+				Remove-Item "$GW2_path\d3d9_wrapper" -recurse -force -ErrorAction SilentlyContinue
+				Remove-Item "$checkfile" -recurse -force  -ErrorAction SilentlyContinue
+
+				$conf.versions_main.d3d9_wrapper = $new
+				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+			}
+		} else {
+			msgupdate -type "addon" -name "d3d9_wrapper" -update $false
 		}
-
-		Remove-Item "$GW2_path\d3d9_wrapper" -recurse -force -ErrorAction SilentlyContinue
-		Remove-Item "$checkfile" -recurse -force  -ErrorAction SilentlyContinue
-
-		$conf.versions_main.d3d9_wrapper = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		msgupdate -type "addon" -name "d3d9_wrapper" -update $false
 	}
+
 } else {
 	Remove-Item "$GW2_path\addons\d3d9_wrapper" -Recurse -Force -ErrorAction SilentlyContinue
 
@@ -2177,28 +2217,29 @@ if ($conf.main.enabledTaco) {
 
 	$checkurl = "https://api.github.com/repos/BoyC/GW2TacO/releases/latest"
 	$targetfile = "$TacO_path\"
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.node_id
-	removefile "$checkfile"
+	if ((dload -url "$checkurl" -OutFile "$checkfile")) {
+		$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+		$new = $json.node_id
+		removefile "$checkfile"
 
-	if (
-		($conf.versions_main.TacO -eq $null) -or
-		($conf.versions_main.TacO -ne $new) -or
-		(-not (Test-Path "$targetfile\GW2TacO.exe"))
-	) {
-		msgupdate -type "main" -name "TacO" -update $true
+		if (
+			($conf.versions_main.TacO -eq $null) -or
+			($conf.versions_main.TacO -ne $new) -or
+			(-not (Test-Path "$targetfile\GW2TacO.exe"))
+		) {
+			msgupdate -type "main" -name "TacO" -update $true
 
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.temp.zip"
+			if ((dload -url $json.assets.browser_download_url -OutFile "$checkfile.temp.zip")) {
+				Expand-Archive -Path "$checkfile.temp.zip" -DestinationPath "$targetfile" -Force
+				removefile "$checkfile.temp.zip"
 
-		Expand-Archive -Path "$checkfile.temp.zip" -DestinationPath "$targetfile" -Force
-		removefile "$checkfile.temp.zip"
-
-		$conf.versions_main.TacO = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		msgupdate -type "main" -name "TacO" -update $false
+				$conf.versions_main.TacO = $new
+				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+			}
+		} else {
+			msgupdate -type "main" -name "TacO" -update $false
+		}
 	}
 } else {
 	Remove-Item -Path "$TacO_path\*" -force -recurse -ErrorAction SilentlyContinue
@@ -2220,29 +2261,31 @@ if ($conf.main.enabledBlish) {
 
 	$checkurl = "https://api.github.com/repos/blish-hud/Blish-HUD/releases/latest"
 	$targetfile = "$BlishHUD_path"
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.tag_name
-	removefile "$checkfile"
+	if ((dload -url "$checkurl" -OutFile "$checkfile")) {
+		$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+		$new = $json.tag_name
+		removefile "$checkfile"
 
-	if (
-		($conf.versions_main.BlishHUD -eq $null) -or
-		($conf.versions_main.BlishHUD -ne $new) -or
-		(-not (Test-Path "$targetfile\Blish HUD.exe"))
-	) {
-		msgupdate -type "main" -name "BlishHUD" -update $true
+		if (
+			($conf.versions_main.BlishHUD -eq $null) -or
+			($conf.versions_main.BlishHUD -ne $new) -or
+			(-not (Test-Path "$targetfile\Blish HUD.exe"))
+		) {
+			msgupdate -type "main" -name "BlishHUD" -update $true
 
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
-		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$targetfile\" -Force
-		removefile "$checkfile.zip"
+			if ((dload -url $json.assets.browser_download_url -OutFile "$checkfile.zip")) {
+				Expand-Archive -Path "$checkfile.zip" -DestinationPath "$targetfile\" -Force
+				removefile "$checkfile.zip"
 
-		$conf.versions_main.BlishHUD = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				$conf.versions_main.BlishHUD = $new
+				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 
-		enforceBHM
-	} else {
-		msgupdate -type "main" -name "BlishHUD" -update $false
+				enforceBHM
+			}
+		} else {
+			msgupdate -type "main" -name "BlishHUD" -update $false
+		}
 	}
 } else {
 	Remove-Item -Path "$BlishHUD_path\*" -force -recurse -ErrorAction SilentlyContinue
@@ -2258,27 +2301,28 @@ if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
 	$checkurl = "https://api.github.com/repos/blish-hud/arcdps-bhud/releases/latest"
 	$targetfile = "$GW2_path\bin64\arcdps_bhud.dll"
 
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
+	if ((dload -url "$checkurl" -OutFile "$checkfile")) {
+		$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+		$new = $json.name
+		removefile "$checkfile"
 
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.name
-	removefile "$checkfile"
+		if (
+			($conf.versions_main.BlishHUD_ArcDPS_Bridge -eq $null) -or
+			($conf.versions_main.BlishHUD_ArcDPS_Bridge -ne $new) -or
+			(-not (Test-Path "$targetfile"))
+		) {
+			msgupdate -type "main" -name "BlishHUD-ArcDPS Bridge" -update $true
 
-	if (
-		($conf.versions_main.BlishHUD_ArcDPS_Bridge -eq $null) -or
-		($conf.versions_main.BlishHUD_ArcDPS_Bridge -ne $new) -or
-		(-not (Test-Path "$targetfile"))
-	) {
-		msgupdate -type "main" -name "BlishHUD-ArcDPS Bridge" -update $true
+			if ((dload -url $json.assets.browser_download_url[1] -OutFile "$checkfile.zip")) {
+				Expand-Archive -Path "$checkfile.zip" -DestinationPath "$GW2_path\bin64\" -Force
+				removefile "$checkfile.zip"
 
-		Invoke-WebRequest $json.assets.browser_download_url[1] -OutFile "$checkfile.zip"
-		Expand-Archive -Path "$checkfile.zip" -DestinationPath "$GW2_path\bin64\" -Force
-		removefile "$checkfile.zip"
-
-		$conf.versions_main.BlishHUD_ArcDPS_Bridge = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		msgupdate -type "main" -name "BlishHUD-ArcDPS Bridge" -update $false
+				$conf.versions_main.BlishHUD_ArcDPS_Bridge = $new
+				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+			}
+		} else {
+			msgupdate -type "main" -name "BlishHUD-ArcDPS Bridge" -update $false
+		}
 	}
 } else {
 	removefile "$GW2_path\bin64\arcdps_bhud.dll"
@@ -2303,18 +2347,7 @@ $modules.BlishHUD.GetEnumerator() | foreach {
 
 			Remove-Item ($checkpath + $_.value.namespace + "*") -Force -ErrorAction SilentlyContinue
 
-			$err = $false
-
-			try {
-				Invoke-WebRequest $_.value.targeturl -OutFile $targetfile
-			}
-			catch {
-				$err = $true
-			}
-
-			if ($err) {
-				Write-Host "something went wrong with the download - we will try that again the next time you use this script" -ForegroundColor Red
-			} else {
+			if ((dload -url $_.value.targeturl -OutFile $targetfile)) {
 				enforceBHM $_.value.namespace
 
 				$conf.versions_modules[$_.key] = $new
@@ -2338,27 +2371,29 @@ if ($conf.modules.CharrTimersBlishHUD -and $conf.main.enabledBlish) {
 
 	$checkurl = "https://api.github.com/repos/QuitarHero/Hero-Timers/releases/latest"
 	$targetfile = "$MyDocuments_path\Guild Wars 2\addons\blishhud\timers"
-	Invoke-WebRequest "$checkurl" -OutFile "$checkfile"
 
-	$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-	$new = $json.tag_name
-	removefile "$checkfile"
+	if ((dload -url "$checkurl" -OutFile "$checkfile")) {
+		$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+		$new = $json.tag_name
+		removefile "$checkfile"
 
-	if (
-		($conf.versions_modules.HeroTimers -eq $null) -or
-		($conf.versions_modules.HeroTimers -ne $new) -or
-		(-not (Test-Path "$targetfile\Hero.Timer.Pack.zip"))
-	) {
-		msgupdate -type "main" -name "Hero-Timers (for BlishHUD Timers-Module)" -update $true
+		if (
+			($conf.versions_modules.HeroTimers -eq $null) -or
+			($conf.versions_modules.HeroTimers -ne $new) -or
+			(-not (Test-Path "$targetfile\Hero.Timer.Pack.zip"))
+		) {
+			msgupdate -type "main" -name "Hero-Timers (for BlishHUD Timers-Module)" -update $true
 
-		removefile "$targetfile\Hero-Timers.zip"
-		removefile "$targetfile\Hero.Timer.Pack.zip"
-		Invoke-WebRequest $json.assets.browser_download_url -OutFile "$targetfile\Hero.Timer.Pack.zip"
+			removefile "$targetfile\Hero-Timers.zip"
+			removefile "$targetfile\Hero.Timer.Pack.zip"
 
-		$conf.versions_modules.HeroTimers = $new
-		Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-	} else {
-		msgupdate -type "main" -name "Hero-Timers (for BlishHUD Timers-Module)" -update $false
+			if ((dload -url $json.assets.browser_download_url -OutFile "$targetfile\Hero.Timer.Pack.zip")) {
+				$conf.versions_modules.HeroTimers = $new
+				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+			}
+		} else {
+			msgupdate -type "main" -name "Hero-Timers (for BlishHUD Timers-Module)" -update $false
+		}
 	}
 } else {
 	removefile "$targetfile\Hero-Timers.zip"
@@ -2392,115 +2427,118 @@ $modules.Path.GetEnumerator() | foreach {
 			) {
 				msgupdate -type "path" -name $_.value.name -update $true
 
-				Invoke-WebRequest $_.value.targeturl -OutFile "$checkfile"
+				if ((dload -url $_.value.targeturl -OutFile "$checkfile")) {
+					if (Test-Path $checkfile) {
+						if ($conf.paths[$_.key + "_blish"]) {
+							removefile "$path_b"
 
-				if (Test-Path $checkfile) {
-					if ($conf.paths[$_.key + "_blish"]) {
-						removefile "$path_b"
+							Copy-Item "$checkfile" -Destination "$path_b"
+						}
 
-						Copy-Item "$checkfile" -Destination "$path_b"
+						if ($conf.paths[$_.key + "_taco"]) {
+							removefile "$path_t"
+
+							Copy-Item "$checkfile" -Destination "$path_t"
+						}
+
+						$conf.versions_paths[$_.key] = $new
+						Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 					}
 
-					if ($conf.paths[$_.key + "_taco"]) {
-						removefile "$path_t"
-
-						Copy-Item "$checkfile" -Destination "$path_t"
-					}
-
-					$conf.versions_paths[$_.key] = $new
-					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+					removefile "$checkfile"
 				}
-
-				removefile "$checkfile"
 			} else {
 				msgupdate -type "path" -name $_.value.name -update $false
 			}
 		} elseif ($_.value.platform -eq "github-raw") {
 			checkGithub
-			Invoke-WebRequest ("https://api.github.com/repos/" + $_.value.repo + "/contents" + $_.value.rpath) -OutFile "$checkfile"
-			$new = $(Get-FileHash "$checkfile" -Algorithm MD5).Hash
-			removefile "$checkfile"
 
-			if (
-				($conf.versions_paths[$_.key] -eq $null) -or
-				($conf.versions_paths[$_.key] -ne $new) -or (
-					($conf.paths[$_.key + "_taco"]) -and
-					(-not (Test-Path "$path_t"))
-				) -or (
-					($conf.paths[$_.key + "_blish"]) -and
-					(-not (Test-Path "$path_b"))
-				)
-			) {
-				msgupdate -type "path" -name $_.value.name -update $true
-
-				Invoke-WebRequest ("https://github.com/" + $_.value.repo + "/raw/main" + $_.value.rpath + "/" + $_.value.targetfile) -OutFile "$checkfile"
-
-				if (Test-Path $checkfile) {
-					if ($conf.paths[$_.key + "_blish"]) {
-						removefile "$path_b"
-
-						Copy-Item "$checkfile" -Destination "$path_b"
-					}
-
-					if ($conf.paths[$_.key + "_taco"]) {
-						removefile "$path_t"
-
-						Copy-Item "$checkfile" -Destination "$path_t"
-					}
-
-					$conf.versions_paths[$_.key] = $new
-					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-				}
-
+			if ((dload -url ("https://api.github.com/repos/" + $_.value.repo + "/contents" + $_.value.rpath) -OutFile "$checkfile")) {
+				$new = $(Get-FileHash "$checkfile" -Algorithm MD5).Hash
 				removefile "$checkfile"
-			} else {
-				msgupdate -type "path" -name $_.value.name -update $false
+
+				if (
+					($conf.versions_paths[$_.key] -eq $null) -or
+					($conf.versions_paths[$_.key] -ne $new) -or (
+						($conf.paths[$_.key + "_taco"]) -and
+						(-not (Test-Path "$path_t"))
+					) -or (
+						($conf.paths[$_.key + "_blish"]) -and
+						(-not (Test-Path "$path_b"))
+					)
+				) {
+					msgupdate -type "path" -name $_.value.name -update $true
+
+					if ((dload -url ("https://github.com/" + $_.value.repo + "/raw/main" + $_.value.rpath + "/" + $_.value.targetfile) -OutFile "$checkfile")) {
+						if (Test-Path $checkfile) {
+							if ($conf.paths[$_.key + "_blish"]) {
+								removefile "$path_b"
+
+								Copy-Item "$checkfile" -Destination "$path_b"
+							}
+
+							if ($conf.paths[$_.key + "_taco"]) {
+								removefile "$path_t"
+
+								Copy-Item "$checkfile" -Destination "$path_t"
+							}
+
+							$conf.versions_paths[$_.key] = $new
+							Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+						}
+
+						removefile "$checkfile"
+					}
+				} else {
+					msgupdate -type "path" -name $_.value.name -update $false
+				}
 			}
 		} elseif ($_.value.platform -eq "bitbucket") {
-			Invoke-WebRequest ("https://api.bitbucket.org/2.0/repositories/" + $_.value.repo + "/commits") -OutFile "$checkfile"
-			$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-			$new = $($json.values[0].hash).Substring(0, 12)
-			removefile "$checkfile"
+			if ((dload -url ("https://api.bitbucket.org/2.0/repositories/" + $_.value.repo + "/commits") -OutFile "$checkfile")) {
+				$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+				$new = $($json.values[0].hash).Substring(0, 12)
+				removefile "$checkfile"
 
-			if (
-				($conf.versions_paths[$_.key] -eq $null) -or
-				($conf.versions_paths[$_.key] -ne $new) -or (
-					($conf.paths[$_.key + "_taco"]) -and
-					(-not (Test-Path "$path_t"))
-				) -or (
-					($conf.paths[$_.key + "_blish"]) -and
-					(-not (Test-Path "$path_b"))
-				)
-			) {
-				msgupdate -type "path" -name $_.value.name -update $true
+				if (
+					($conf.versions_paths[$_.key] -eq $null) -or
+					($conf.versions_paths[$_.key] -ne $new) -or (
+						($conf.paths[$_.key + "_taco"]) -and
+						(-not (Test-Path "$path_t"))
+					) -or (
+						($conf.paths[$_.key + "_blish"]) -and
+						(-not (Test-Path "$path_b"))
+					)
+				) {
+					msgupdate -type "path" -name $_.value.name -update $true
 
-				Invoke-WebRequest ("https://bitbucket.org/" + $_.value.repo + "/get/" + $new + ".zip") -OutFile "$checkfile.zip"
+					if ((dload -url ("https://bitbucket.org/" + $_.value.repo + "/get/" + $new + ".zip") -OutFile "$checkfile.zip")) {
+						if (Test-Path "$checkfile.zip") {
+							Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Script_path\" -Force
+							removefile "$checkfile.zip"
+							Compress-Archive -Path ("$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$new\" + $_.value.subfolder + "*") -DestinationPath "$checkfile.zip"
+							Remove-Item ("$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$new") -Recurse -force -ErrorAction SilentlyContinue
 
-				if (Test-Path "$checkfile.zip") {
-					Expand-Archive -Path "$checkfile.zip" -DestinationPath "$Script_path\" -Force
-					removefile "$checkfile.zip"
-					Compress-Archive -Path ("$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$new\" + $_.value.subfolder + "*") -DestinationPath "$checkfile.zip"
-					Remove-Item ("$Script_path\" + ($($_.value.repo).Replace("/", "-")) + "-$new") -Recurse -force -ErrorAction SilentlyContinue
+							if ($conf.paths[$_.key + "_blish"]) {
+								removefile "$path_b"
 
-					if ($conf.paths[$_.key + "_blish"]) {
-						removefile "$path_b"
+								Copy-Item "$checkfile.zip" -Destination "$path_b"
+							}
 
-						Copy-Item "$checkfile.zip" -Destination "$path_b"
+							if ($conf.paths[$_.key + "_taco"]) {
+								removefile "$path_t"
+
+								Copy-Item "$checkfile.zip" -Destination "$path_t"
+							}
+
+							$conf.versions_paths[$_.key] = $new
+							Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+						}
+
+						removefile "$checkfile.zip"
 					}
-
-					if ($conf.paths[$_.key + "_taco"]) {
-						removefile "$path_t"
-
-						Copy-Item "$checkfile.zip" -Destination "$path_t"
-					}
-
-					$conf.versions_paths[$_.key] = $new
-					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+				} else {
+					msgupdate -type "path" -name $_.value.name -update $false
 				}
-
-				removefile "$checkfile.zip"
-			} else {
-				msgupdate -type "path" -name $_.value.name -update $false
 			}
 		}
 	}
@@ -2532,121 +2570,129 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 	if ($conf.addons[$key] -and $conf.main.enabledArc) {
 		if ($value.host_type -eq "github") {
 			checkGithub
-			Invoke-WebRequest $value.host_url -OutFile "$checkfile"
 
-			$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
-			$new = $json.name
-			removefile "$checkfile"
+			if ((dload -url $value.host_url -OutFile "$checkfile")) {
+				$json = (Get-Content "$checkfile" -Raw) | ConvertFrom-Json
+				$new = $json.name
+				removefile "$checkfile"
 
-			if (
-					($value.download_type -eq "archive") -and
-					($value.install_mode -eq "binary")
-			) {
 				if (
-					($conf.versions_addons[$key] -eq $null) -or
-					($conf.versions_addons[$key] -ne $new) -or
-					(-not (Test-Path "$targetpath"))
+						($value.download_type -eq "archive") -and
+						($value.install_mode -eq "binary")
 				) {
-					msgupdate -type "addon" -name $value.addon_name -update $true
+					if (
+						($conf.versions_addons[$key] -eq $null) -or
+						($conf.versions_addons[$key] -ne $new) -or
+						(-not (Test-Path "$targetpath"))
+					) {
+						msgupdate -type "addon" -name $value.addon_name -update $true
 
-					Remove-Item ("$targetpath") -Recurse -Force -ErrorAction SilentlyContinue
-					Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
-					newdir "$checkfile"
-					Expand-Archive -Path "$checkfile.zip" -DestinationPath "$checkfile\" -Force
-					removefile "$checkfile.zip"
+						Remove-Item ("$targetpath") -Recurse -Force -ErrorAction SilentlyContinue
 
-					newdir "$targetpath"
+						if ((dload -url $json.assets.browser_download_url -OutFile "$checkfile.zip")) {
+							newdir "$checkfile"
+							Expand-Archive -Path "$checkfile.zip" -DestinationPath "$checkfile\" -Force
+							removefile "$checkfile.zip"
 
-					gci -Path "$checkfile" -recurse -file | foreach {
-						Copy-Item $_.fullname -Destination "$targetpath\"
-					}
+							newdir "$targetpath"
 
-					Remove-Item "$checkfile" -recurse -force -ErrorAction SilentlyContinue
+							gci -Path "$checkfile" -recurse -file | foreach {
+								Copy-Item $_.fullname -Destination "$targetpath\"
+							}
 
-					$conf.versions_addons[$key] = $new
-					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-				} else {
-					msgupdate -type "addon" -name $value.addon_name -update $false
-				}
-			} elseif (
-					($value.download_type -eq "archive") -and
-					($value.install_mode -eq "arc")
-			) {
-				if (
-					($conf.versions_addons[$key] -eq $null) -or
-					($conf.versions_addons[$key] -ne $new) -or
-					(-not (Test-Path "$targetpath"))
-				) {
-					msgupdate -type "addon" -name $value.addon_name -update $true
+							Remove-Item "$checkfile" -recurse -force -ErrorAction SilentlyContinue
 
-					Invoke-WebRequest $json.assets.browser_download_url -OutFile "$checkfile.zip"
-					Remove-Item "$checkfile" -Recurse -Force -ErrorAction SilentlyContinue
-					newdir "$checkfile\"
-					Expand-Archive -Path "$checkfile.zip" -DestinationPath "$checkfile\" -Force
-					removefile "$checkfile.zip"
-
-					gci -Path "$checkfile\*" -recurse -file -filter *.dll | foreach {
-						removefile ($GW2_path + "\bin64\" + (path_a -key $key -value $value -dll $true))
-						removefile ($GW2_path + "\bin64\" + $_.name)
-
-						Copy-Item $_.fullname -Destination "$targetpath"
-					}
-
-					Remove-Item "$checkfile" -recurse -force -ErrorAction SilentlyContinue
-
-					$conf.versions_addons[$key] = $new
-					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-				} else {
-					msgupdate -type "addon" -name $value.addon_name -update $false
-				}
-			} elseif (
-					($value.download_type -eq ".dll") -and
-					($value.install_mode -eq "arc")
-			) {
-				if (
-					($conf.versions_addons[$key] -eq $null) -or
-					($conf.versions_addons[$key] -ne $new) -or
-					(-not (Test-Path "$targetpath"))
-				) {
-					msgupdate -type "addon" -name $value.addon_name -update $true
-
-					removefile "$targetpath"
-
-					$download = $json.assets.browser_download_url
-
-					$json.assets | foreach {
-						if ($_.browser_download_url -like "*.dll") {
-							$download = $_.browser_download_url
+							$conf.versions_addons[$key] = $new
+							Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
 						}
+					} else {
+						msgupdate -type "addon" -name $value.addon_name -update $false
 					}
+				} elseif (
+						($value.download_type -eq "archive") -and
+						($value.install_mode -eq "arc")
+				) {
+					if (
+						($conf.versions_addons[$key] -eq $null) -or
+						($conf.versions_addons[$key] -ne $new) -or
+						(-not (Test-Path "$targetpath"))
+					) {
+						msgupdate -type "addon" -name $value.addon_name -update $true
 
-					removefile ($GW2_path + "\bin64\" + (path_a -key $key -value $value -dll $true))
-					Invoke-WebRequest $download -OutFile "$targetpath"
+						if ((dload -url $json.assets.browser_download_url -OutFile "$checkfile.zip")) {
+							Remove-Item "$checkfile" -Recurse -Force -ErrorAction SilentlyContinue
+							newdir "$checkfile\"
+							Expand-Archive -Path "$checkfile.zip" -DestinationPath "$checkfile\" -Force
+							removefile "$checkfile.zip"
 
-					$conf.versions_addons[$key] = $new
-					Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+							gci -Path "$checkfile\*" -recurse -file -filter *.dll | foreach {
+								removefile ($GW2_path + "\bin64\" + (path_a -key $key -value $value -dll $true))
+								removefile ($GW2_path + "\bin64\" + $_.name)
+
+								Copy-Item $_.fullname -Destination "$targetpath"
+							}
+
+							Remove-Item "$checkfile" -recurse -force -ErrorAction SilentlyContinue
+
+							$conf.versions_addons[$key] = $new
+							Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+						}
+					} else {
+						msgupdate -type "addon" -name $value.addon_name -update $false
+					}
+				} elseif (
+						($value.download_type -eq ".dll") -and
+						($value.install_mode -eq "arc")
+				) {
+					if (
+						($conf.versions_addons[$key] -eq $null) -or
+						($conf.versions_addons[$key] -ne $new) -or
+						(-not (Test-Path "$targetpath"))
+					) {
+						msgupdate -type "addon" -name $value.addon_name -update $true
+
+						removefile "$targetpath"
+
+						$download = $json.assets.browser_download_url
+
+						$json.assets | foreach {
+							if ($_.browser_download_url -like "*.dll") {
+								$download = $_.browser_download_url
+							}
+						}
+
+						removefile ($GW2_path + "\bin64\" + (path_a -key $key -value $value -dll $true))
+
+						if ((dload -url $download -OutFile "$targetpath")) {
+							$conf.versions_addons[$key] = $new
+							Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+						}
+					} else {
+						msgupdate -type "addon" -name $value.addon_name -update $false
+					}
+				}
+
+			}
+
+		} elseif ($value.host_type -eq "standalone") {
+			if ((dload -url $value.website -OutFile "$checkfile")) {
+				$new = $(Get-FileHash "$checkfile" -Algorithm MD5).Hash
+				removefile "$checkfile"
+
+				if (
+					($conf.versions_addons[$key] -eq $null) -or
+					($conf.versions_addons[$key] -ne $new) -or
+					(-not (Test-Path "$targetpath"))
+				) {
+					msgupdate -type "addon" -name $value.addon_name -update $true
+
+					if ((dload -url $value.host_url -OutFile "$targetpath")) {
+						$conf.versions_addons[$key] = $new
+						Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
+					}
 				} else {
 					msgupdate -type "addon" -name $value.addon_name -update $false
 				}
-			}
-		} elseif ($value.host_type -eq "standalone") {
-			Invoke-WebRequest $value.website -OutFile "$checkfile"
-			$new = $(Get-FileHash "$checkfile" -Algorithm MD5).Hash
-			removefile "$checkfile"
-
-			if (
-				($conf.versions_addons[$key] -eq $null) -or
-				($conf.versions_addons[$key] -ne $new) -or
-				(-not (Test-Path "$targetpath"))
-			) {
-				msgupdate -type "addon" -name $value.addon_name -update $true
-
-				Invoke-WebRequest $value.host_url -OutFile "$targetpath"
-
-				$conf.versions_addons[$key] = $new
-				Out-IniFile -InputObject $conf -FilePath "$Script_path\GW2start.ini"
-			} else {
-				msgupdate -type "addon" -name $value.addon_name -update $false
 			}
 		}
 	} else {
