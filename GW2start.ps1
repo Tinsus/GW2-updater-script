@@ -1,6 +1,10 @@
 param($forceGUIfromBat = "")
 
+#HOTFIXES:
+#20221224_1 using suggested rename "fix" from https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/issues/15 it will not fix the issue but may help a little bit.
+
 #TODO:
+# better blish timers-data handling
 # autodectekct GW2 within steam
 # Multi-Account-Login-Management durch kopieren der local.dat
 # man könnte mit der GW2-launcher-update routine gw2 selbst installieren.
@@ -200,9 +204,7 @@ function path_a($key, $value, $dll = $false) {
 				"binary" {
 					$targetpath = "$targetpath\" + $key
 				}
-
 			}
-
 		}
 	}
 
@@ -1285,6 +1287,13 @@ function msgupdate($type, $name, $update = $false) {
 
 			break
 		}
+		"hotfix" {
+			Write-Host "Hotfix applied: " -NoNewline -ForegroundColor Red
+			Write-Host $name -NoNewline -ForegroundColor Yellow
+			Write-Host " For more details checkout: $update"
+
+			return
+		}
 	}
 
 	if ($update) {
@@ -1538,11 +1547,17 @@ if (-not (Test-Path "$Script_path\GW2start.ini")) {
 	$conf = Get-IniContent "$Script_path\GW2start.ini"
 }
 
-@("main", "addons", "paths", "modules", "versions_addons", "versions_main", "versions_modules", "versions_paths", "ignore") | foreach {
+@("main", "addons", "paths", "modules", "versions_addons", "versions_main", "versions_modules", "versions_paths") | foreach {
 	if ($conf[$_] -eq $null) {
 		$conf[$_] = @{}
 
 		$forceGUI = $true
+	}
+}
+
+@("ignore", "hotfix") | foreach {
+	if ($conf[$_] -eq $null) {
+		$conf[$_] = @{}
 	}
 }
 
@@ -1932,6 +1947,16 @@ if (-not $forceGUI) {
 	if ($conf.main.enabledArc) {
 		$modules.ArcDPS.GetEnumerator() | foreach {
 			$targetfile = path_a -key $_.key -value $_.value
+
+			#consider fix 20221224_1 https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/issues/15
+			if (
+				($_.key -eq "ArcDPSBoonTable") -and
+				($conf.hotfix["20221224_1"] -ne $null) -and
+				($conf.hotfix["20221224_1"] -eq $true)
+			) {
+				$targetfile = "$GW2_path\addons\arcdps\aaa_d3d9_arcdps_boontable.dll"
+			}
+
 			$targeted = Test-Path $targetfile
 
 			if ($conf.ignore[$_.key] -eq $null) {
@@ -2577,8 +2602,8 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 				removefile "$checkfile"
 
 				if (
-						($value.download_type -eq "archive") -and
-						($value.install_mode -eq "binary")
+					($value.download_type -eq "archive") -and
+					($value.install_mode -eq "binary")
 				) {
 					if (
 						($conf.versions_addons[$key] -eq $null) -or
@@ -2609,8 +2634,8 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 						msgupdate -type "addon" -name $value.addon_name -update $false
 					}
 				} elseif (
-						($value.download_type -eq "archive") -and
-						($value.install_mode -eq "arc")
+					($value.download_type -eq "archive") -and
+					($value.install_mode -eq "arc")
 				) {
 					if (
 						($conf.versions_addons[$key] -eq $null) -or
@@ -2641,9 +2666,16 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 						msgupdate -type "addon" -name $value.addon_name -update $false
 					}
 				} elseif (
-						($value.download_type -eq ".dll") -and
-						($value.install_mode -eq "arc")
+					($value.download_type -eq ".dll") -and
+					($value.install_mode -eq "arc")
 				) {
+					#refix 20221224_1 https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/issues/15
+					if ($key -eq "ArcDPSBoonTable") {
+						Rename-Item -LiteralPath "$GW2_path\addons\arcdps\aaa_d3d9_arcdps_boontable.dll" -NewName "$GW2_path\addons\arcdps\d3d9_arcdps_boontable.dll" -ErrorAction SilentlyContinue
+
+						$conf.hotfix["20221224_1"] = $false
+					}
+
 					if (
 						($conf.versions_addons[$key] -eq $null) -or
 						($conf.versions_addons[$key] -ne $new) -or
@@ -2670,10 +2702,17 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					} else {
 						msgupdate -type "addon" -name $value.addon_name -update $false
 					}
+
+					#fix 20221224_1 https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/issues/15
+					if ($key -eq "ArcDPSBoonTable") {
+						Rename-Item -LiteralPath "$GW2_path\addons\arcdps\d3d9_arcdps_boontable.dll" -NewName "$GW2_path\addons\arcdps\aaa_d3d9_arcdps_boontable.dll" -ErrorAction SilentlyContinue
+
+						msgupdate -type "hotfix" -name "ArcDPS Boon-Table uses default settings instead of your configuration for what boons to show. This hotfix will not help 100% but improve the problem a bit. The developers of the addon need to fix this issue." -update "https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/issues/15"
+
+						$conf.hotfix["20221224_1"] = $true
+					}
 				}
-
 			}
-
 		} elseif ($value.host_type -eq "standalone") {
 			if ((dload -url $value.website -OutFile "$checkfile")) {
 				$new = $(Get-FileHash "$checkfile" -Algorithm MD5).Hash
