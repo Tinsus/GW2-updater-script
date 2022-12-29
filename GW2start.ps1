@@ -1,10 +1,11 @@
 param($forceGUIfromBat = "")
 
-#HOTFIXES:
-#20221224_1 using suggested rename "fix" from https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/issues/15 it will not fix the issue but may help a little bit.
+# HOTFIXES:
+# none
+# Archive:
+# 20221224_1 using suggested rename "fix" from https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/issues/15 it will not fix the issue but may help a little bit.
 
 #TODO:
-# better blish timers-data handling
 # autodectekct GW2 within steam
 # Multi-Account-Login-Management durch kopieren der local.dat
 # man könnte mit der GW2-launcher-update routine gw2 selbst installieren.
@@ -2672,7 +2673,7 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					#refix 20221224_1 https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/issues/15
 					if ($key -eq "ArcDPSBoonTable") {
 						Rename-Item -LiteralPath "$GW2_path\addons\arcdps\aaa_d3d9_arcdps_boontable.dll" -NewName "$GW2_path\addons\arcdps\d3d9_arcdps_boontable.dll" -ErrorAction SilentlyContinue
-
+						msgupdate -type "hotfix undone" -name "ArcDPS Boon-Table issue (default settings instead configuration) has been fixed by its author. This hotfix is no more necessary." -update "https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/issues/15"
 						$conf.hotfix["20221224_1"] = $false
 					}
 
@@ -2704,13 +2705,10 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					}
 
 					#fix 20221224_1 https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/issues/15
-					if ($key -eq "ArcDPSBoonTable") {
-						Rename-Item -LiteralPath "$GW2_path\addons\arcdps\d3d9_arcdps_boontable.dll" -NewName "$GW2_path\addons\arcdps\aaa_d3d9_arcdps_boontable.dll" -ErrorAction SilentlyContinue
-
-						msgupdate -type "hotfix" -name "ArcDPS Boon-Table uses default settings instead of your configuration for what boons to show. This hotfix will not help 100% but improve the problem a bit. The developers of the addon need to fix this issue." -update "https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/issues/15"
-
-						$conf.hotfix["20221224_1"] = $true
-					}
+					#if ($key -eq "ArcDPSBoonTable") {
+					#	Rename-Item -LiteralPath "$GW2_path\addons\arcdps\d3d9_arcdps_boontable.dll" -NewName "$GW2_path\addons\arcdps\aaa_d3d9_arcdps_boontable.dll" -ErrorAction SilentlyContinue
+					#	$conf.hotfix["20221224_1"] = $true
+					#}
 				}
 			}
 		} elseif ($value.host_type -eq "standalone") {
