@@ -2671,7 +2671,11 @@ $modules.ArcDPS.GetEnumerator() | foreach {
 					($value.install_mode -eq "arc")
 				) {
 					#refix 20221224_1 https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/issues/15
-					if ($key -eq "ArcDPSBoonTable") {
+					if (
+						($key -eq "ArcDPSBoonTable") -and
+						($conf.hotfix["20221224_1"] -ne $null) -and
+						($conf.hotfix["20221224_1"] -eq $true)
+					) {
 						Rename-Item -LiteralPath "$GW2_path\addons\arcdps\aaa_d3d9_arcdps_boontable.dll" -NewName "$GW2_path\addons\arcdps\d3d9_arcdps_boontable.dll" -ErrorAction SilentlyContinue
 						msgupdate -type "hotfix" -name "ArcDPS Boon-Table issue (default settings instead configuration) has been fixed by its author. This hotfix is no more necessary." -update "https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/issues/15"
 						$conf.hotfix["20221224_1"] = $false
