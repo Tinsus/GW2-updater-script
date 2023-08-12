@@ -126,7 +126,11 @@ function startGW2() {
 	Write-Host "have fun in Guild Wars 2"
 
 	if ($conf.main.dontwait -eq $null) {
+		powershell -windowstyle "hidden" -command "exit"
+
 		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -wait -RedirectStandardError "$GW2_path\errorautocheck.txt"
+
+		powershell -windowstyle "normal" -command "exit"
 	} else {
 		Start-Process -FilePath "$GW2_path\Gw2-64.exe" -WorkingDirectory "$GW2_path\" -RedirectStandardError "$GW2_path\errorautocheck.txt"
 
