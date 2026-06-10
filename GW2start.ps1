@@ -2343,8 +2343,9 @@ if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
 		) {
 			msgupdate -type "main" -name "BlishHUD-ArcDPS Bridge" -update $true
 
-			if ((dload -url $json.assets.browser_download_url[1] -OutFile "$checkfile.zip")) {
-				Expand-Archive -Path "$checkfile.zip" -DestinationPath "$GW2_path\bin64\" -Force
+			removefile "$targetfile"
+			
+			if ((dload -url $json.assets.browser_download_url[1] -OutFile "$targetfile")) {
 				removefile "$checkfile.zip"
 
 				$conf.versions_main.BlishHUD_ArcDPS_Bridge = $new
