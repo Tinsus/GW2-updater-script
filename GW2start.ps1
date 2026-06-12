@@ -2345,7 +2345,7 @@ if ($conf.main.enabledBlish -and $conf.main.enabledArc) {
 
 			removefile "$targetfile"
 			
-			if ((dload -url $json.assets.browser_download_url[1] -OutFile "$targetfile")) {
+			if ((dload -url $json.assets[0].browser_download_url -OutFile "$targetfile")) {
 				removefile "$checkfile.zip"
 
 				$conf.versions_main.BlishHUD_ArcDPS_Bridge = $new
